@@ -1,13 +1,21 @@
+library(Seurat)
 library(SingleCellExperiment)
 library(data.table)
 library(purrr)
 
-source("/Users/ricard/10x_gastrulation_TetChimera/mapping/mapping_settings.R")
 
 io <- list()
-io$path2atlas <- "/Users/ricard/data/gastrulation10x/processed"
-io$path2query <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed"
-io$outdir <- "/Users/ricard/data/10x_gastrulation_TetChimera/mapping"
+if (grepl("ricard",Sys.info()['nodename'])) {
+  source("/Users/ricard/10x_gastrulation_TetChimera/mapping/mapping_settings.R")
+  io$path2atlas <- "/Users/ricard/data/gastrulation10x/processed"
+  io$path2query <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed"
+  io$outdir <- "/Users/ricard/data/10x_gastrulation_TetChimera/mapping"
+} else {
+  source("/homes/ricard/10x_gastrulation_TetChimera/mapping/mapping_settings.R")
+  io$path2atlas <- "/hps/nobackup2/research/stegle/users/ricard/gastrulation10x/processed"
+  io$path2query <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed"
+  io$outdir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/mapping"
+}
 
 ################
 ## Load atlas ##
@@ -33,7 +41,7 @@ meta_query <- seurat_query@meta.data
 meta_query$stage <- "E8.5"
 
 # Convert from Seurat to SCE
-sce_query <- as.SingleCellExperiment(seurat_query)
+sce_query <- Seurat::as.SingleCellExperiment(seurat_query)
 
 #############
 ## Prepare ## 
