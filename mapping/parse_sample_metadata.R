@@ -7,50 +7,52 @@ library(purrr)
 
 # I/O
 io <- list()
-io$sample_metadata <- "/Users/ricard/data/scnmt_gastrulation_TetKO/sample_metadata.txt"
-io$mapping <- "/Users/ricard/data/scnmt_gastrulation_TetKO/rna/mapping_10x/mapping10x_mnn.rds"
-io$outdir <- "/Users/ricard/data/scnmt_gastrulation_TetKO/rna/mapping_10x"
+io$seurat <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/seurat.rds"
+io$mapping <- "/Users/ricard/data/10x_gastrulation_TetChimera/mapping/mapping10x_mnn.rds"
+io$outdir <- "/Users/ricard/data/10x_gastrulation_TetChimera/mapping"
 
 ###############
 ## Load data ##
 ###############
 
+seurat <- readRDS(io$seurat)
 mapping <- readRDS(io$mapping)
-sample_metadata <- fread(io$sample_metadata)
+
+sample_metadata <- seurat@meta.data %>% as.data.table
 
 ################################################
 ## Add lineage annotations to sample metadata ##
 ################################################
 
 mapping.dt <- mapping$mapping %>% as.data.table %>% 
-  setnames("cell","id_rna") %>%
-  setnames("celltype.mapped","lineage10x") %>%
+  setnames("celltype.mapped", "celltype.mapped.level1") %>%
   .[,closest.cell:=NULL]
 
-sample_metadata <- merge(sample_metadata,mapping.dt, by="id_rna", all.x=T)
+sample_metadata <- merge(sample_metadata,mapping.dt, by="cell", all.x=T)
 
 sample_metadata %>%
-  .[,lineage10x_2:=lineage10x] %>%
+  .[,celltype.mapped.level2:=celltype.mapped.level1] %>%
   
   # Mesoderm
-  .[lineage10x%in%c("Nascent mesoderm","Pharyngeal mesoderm","Paraxial mesoderm","ExE mesoderm","Mesenchyme","Mixed mesoderm","Intermediate mesoderm","Somitic mesoderm","Caudal mesoderm"), lineage10x_2:="Mesoderm"] %>%
+  .[celltype.mapped.level1%in%c("Nascent mesoderm","Pharyngeal mesoderm","Paraxial mesoderm","ExE mesoderm","Mesenchyme","Mixed mesoderm","Intermediate mesoderm","Somitic mesoderm","Caudal mesoderm", "Caudal Mesoderm"), celltype.mapped.level2:="Mesoderm"] %>%
   # Blood
-  .[lineage10x%in%c("Blood progenitors 1","Blood progenitors 2","Haematoendothelial progenitors"), lineage10x_2:="Blood"] %>%
+  .[celltype.mapped.level1%in%c("Blood progenitors 1","Blood progenitors 2","Haematoendothelial progenitors","Erythroid1","Erythroid2","Erythroid3"), celltype.mapped.level2:="Blood"] %>%
   # Embryonic endoderm
-  .[lineage10x%in%c("Gut","Def. endoderm","Notochord"), lineage10x_2:="Endoderm"] %>%
+  .[celltype.mapped.level1%in%c("Gut","Def. endoderm","Notochord"), celltype.mapped.level2:="Endoderm"] %>%
   # Extra-embryonic endoderm
-  .[lineage10x%in%c("Parietal endoderm","ExE endoderm","Visceral endoderm"), lineage10x_2:="ExE endoderm"] %>%
+  .[celltype.mapped.level1%in%c("Parietal endoderm","ExE endoderm","Visceral endoderm"), celltype.mapped.level2:="ExE endoderm"] %>%
   # Primitive streak
-  .[lineage10x%in%c("Primitive Streak", "Caudal epiblast","Anterior Primitive Streak"), lineage10x_2:="Primitive streak"] %>%
+  .[celltype.mapped.level1%in%c("Primitive Streak", "Caudal epiblast","Anterior Primitive Streak"), celltype.mapped.level2:="Primitive streak"] %>%
   # Ectoderm
-  .[lineage10x%in%c("Rostral neurectoderm","Surface ectoderm"), lineage10x_2:="Ectoderm"] %>%
-  # PGC are not expected, they are most likely epiblast
-  .[lineage10x%in%c("PGC"), c("lineage10x","lineage10x_2"):="Epiblast"]
-  # At E6.5 we do not expect any mature ectoderm
-  # .[stage=="E6.5" & lineage10x%in%c("Rostral neurectoderm","Surface ectoderm"), lineage10x_2:="Epiblast"]
+  .[celltype.mapped.level1%in%c("Rostral neurectoderm","Surface ectoderm","Forebrain/Midbrain/Hindbrain","Neural crest","Spinal cord","Caudal neurectoderm"), celltype.mapped.level2:="Ectoderm"]
 
-unique(sample_metadata$lineage10x_2)
+unique(sample_metadata$celltype.mapped.level2)
 
 # Save
 fwrite(sample_metadata, file=paste0(io$outdir,"/sample_metadata_mapping_mnn.txt"), sep="\t", row.names=F, col.names=T, na="NA", quote=F)
 
+foo <- sample_metadata %>% as.data.frame %>% tibble::column_to_rownames("cell")
+foo$cell <- rownames(foo)
+seurat@meta.data <- foo
+
+saveRDS(seurat, "/Users/ricard/data/10x_gastrulation_TetChimera/processed/seurat_2.rds")

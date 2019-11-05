@@ -25,7 +25,8 @@ sce_atlas  <- readRDS(paste0(io$path2atlas,"/SingleCellExperiment.rds"))
 meta_atlas <- readRDS(paste0(io$path2atlas,"/sample_metadata.rds"))
 
 # Filter
-meta_atlas <- meta_atlas[meta_atlas$stage%in%c("E6.75"),]
+meta_atlas <- meta_atlas[!meta_atlas$stage%in%c("E6.5","E6.75","E7.0","E7.25"),]
+meta_atlas <- meta_atlas[!meta_atlas$celltype%in%c("PGC"),]
 sce_atlas <- sce_atlas[,meta_atlas$cell] 
 
 ################
@@ -34,11 +35,11 @@ sce_atlas <- sce_atlas[,meta_atlas$cell]
 
 # Load Seurat object
 seurat_query  <- readRDS(paste0(io$path2query, "/seurat.rds"))
+meta_query <- seurat_query@meta.data
 
 # Filter
-seurat_query <- seurat_query[,seurat_query@meta.data$genotype=="WT"]
-meta_query <- seurat_query@meta.data
-meta_query$stage <- "E8.5"
+meta_query <- meta_query[meta_query$stage=="E8.5",]
+seurat_query <- seurat_query[,meta_query$cells]
 
 # Convert from Seurat to SCE
 sce_query <- Seurat::as.SingleCellExperiment(seurat_query)
@@ -70,4 +71,4 @@ mapping  <- mapWrap(
 ##########
 
 # save mapping results as an .rds file
-saveRDS(mapping, paste0(io$outdir,"/mapping10x_mnn.rds"))
+saveRDS(mapping, paste0(io$outdir,"/mapping10x_mnn_v2.rds"))
