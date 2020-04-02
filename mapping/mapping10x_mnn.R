@@ -60,6 +60,8 @@ meta_query_list$stage <- meta_query$stage[match(colnames(sce_query), meta_query$
 ## Map ##
 #########
 
+# TO-DO: BATCH EFFECT CORRECTION IN THE QUERY?
+
 mapping  <- mapWrap(
   atlas_sce = sce_atlas, atlas_meta = meta_atlas,
   map_sce = sce_query, map_meta = meta_query_list, 

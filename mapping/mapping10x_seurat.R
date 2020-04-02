@@ -24,8 +24,9 @@ sce_atlas  <- readRDS(paste0(io$path2atlas, "/SingleCellExperiment.rds"))
 meta_atlas <- readRDS(paste0(io$path2atlas, "/sample_metadata.rds"))
 
 # Filter
-meta_atlas <- meta_atlas[meta_atlas$stage%in%c("E8.5","E8.25","E8.0","E7.75","E7.5"),]
-sce_atlas <- sce_atlas[,meta_atlas$cell]
+meta_atlas <- meta_atlas[!meta_atlas$stage%in%c("E6.5","E6.75","E7.0","E7.25"),]
+meta_atlas <- meta_atlas[!meta_atlas$celltype%in%c("PGC"),]
+sce_atlas <- sce_atlas[,meta_atlas$cell] 
 
 # Convert to Seurat object
 seurat_atlas   <- CreateSeuratObject(counts(sce_atlas), project = "ATLAS")
@@ -43,8 +44,7 @@ seurat_atlas   <- ScaleData(seurat_atlas)
 seurat_query  <- readRDS(paste0(io$path2query, "/seurat.rds"))
 
 # Filter
-# seurat_query <- seurat_query[,seurat_query@meta.data$genotype=="WT"]
-# meta_query <- seurat_query@meta.data
+seurat_query <- seurat_query[,seurat_query@meta.data$stage=="E8.5"]
 
 #############
 ## Prepare ## 
@@ -53,6 +53,8 @@ seurat_query  <- readRDS(paste0(io$path2query, "/seurat.rds"))
 genes <- intersect(rownames(seurat_query), rownames(seurat_atlas))
 seurat_query  <- seurat_query[genes,]
 seurat_atlas <- seurat_atlas[genes,]
+
+# TO-DO: BATCH EFFECT CORRECTION IN THE QUERY AND THE ATLAS??
 
 #########
 ## Map ##

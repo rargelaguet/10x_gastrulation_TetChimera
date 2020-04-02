@@ -18,7 +18,8 @@ io$outdir <- "/Users/ricard/data/10x_gastrulation_TetChimera/mapping"
 seurat <- readRDS(io$seurat)
 mapping <- readRDS(io$mapping)
 
-sample_metadata <- seurat@meta.data %>% as.data.table
+sample_metadata <- seurat@meta.data %>% as.data.table %>%
+  .[cell%in%mapping$mapping$cell]
 
 ################################################
 ## Add lineage annotations to sample metadata ##
@@ -34,17 +35,18 @@ sample_metadata %>%
   .[,celltype.mapped.level2:=celltype.mapped.level1] %>%
   
   # Mesoderm
-  .[celltype.mapped.level1%in%c("Nascent mesoderm","Pharyngeal mesoderm","Paraxial mesoderm","ExE mesoderm","Mesenchyme","Mixed mesoderm","Intermediate mesoderm","Somitic mesoderm","Caudal mesoderm", "Caudal Mesoderm"), celltype.mapped.level2:="Mesoderm"] %>%
+  .[celltype.mapped.level1%in%c("Pharyngeal mesoderm","Paraxial mesoderm","Mixed mesoderm","Intermediate mesoderm","Somitic mesoderm","Caudal mesoderm", "Caudal Mesoderm"), celltype.mapped.level2:="Mesoderm"] %>%
   # Blood
-  .[celltype.mapped.level1%in%c("Blood progenitors 1","Blood progenitors 2","Haematoendothelial progenitors","Erythroid1","Erythroid2","Erythroid3"), celltype.mapped.level2:="Blood"] %>%
+  .[celltype.mapped.level1%in%c("Erythroid1","Erythroid2","Erythroid3"), celltype.mapped.level2:="Erythroid"] %>%
+  .[celltype.mapped.level1%in%c("Blood progenitors 1","Blood progenitors 2"), celltype.mapped.level2:="Blood progenitors"] %>%
   # Embryonic endoderm
-  .[celltype.mapped.level1%in%c("Gut","Def. endoderm","Notochord"), celltype.mapped.level2:="Endoderm"] %>%
+  .[celltype.mapped.level1%in%c("Gut","Def. endoderm"), celltype.mapped.level2:="Endoderm"] %>%
   # Extra-embryonic endoderm
   .[celltype.mapped.level1%in%c("Parietal endoderm","ExE endoderm","Visceral endoderm"), celltype.mapped.level2:="ExE endoderm"] %>%
   # Primitive streak
-  .[celltype.mapped.level1%in%c("Primitive Streak", "Caudal epiblast","Anterior Primitive Streak"), celltype.mapped.level2:="Primitive streak"] %>%
+  .[celltype.mapped.level1%in%c("Primitive Streak", "Caudal epiblast","Anterior Primitive Streak"), celltype.mapped.level2:="Primitive Streak"] %>%
   # Ectoderm
-  .[celltype.mapped.level1%in%c("Rostral neurectoderm","Surface ectoderm","Forebrain/Midbrain/Hindbrain","Neural crest","Spinal cord","Caudal neurectoderm"), celltype.mapped.level2:="Ectoderm"]
+  .[celltype.mapped.level1%in%c("Rostral neurectoderm","Surface ectoderm","Caudal neurectoderm"), celltype.mapped.level2:="Ectoderm"]
 
 unique(sample_metadata$celltype.mapped.level2)
 
