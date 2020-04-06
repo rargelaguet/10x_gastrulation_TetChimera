@@ -1,0 +1,89 @@
+mapping_methods:
+    - mnn
+    - seurat
+    - liger
+    - harmony
+
+experiments:
+    - TettKOchimera
+
+types:
+    TettKOchimera:
+        - WT
+        - TKO
+
+subset_celltypes:
+    - Haematoendothelial
+    - Endoderm
+    - EpiblastPSNeuro
+    - Mesoderm
+
+scripts:
+    CreateSeurat: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/processing/create_seurat.R
+    Plotting: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/evaluating/plotting.R
+
+directories:
+    base: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/
+    output: processed_files_Leah/
+    mapping_scripts: mapping_TetTKO/mapping/
+    atlas: /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/
+    outfiles: mapping_TetTKO/20200405/outfiles/
+    errfiles: mapping_TetTKO/20200405/errfiles/
+
+settings:
+    CreateSeurat: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/processing/settings.R
+    Mapping: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/settings.R
+    Plotting: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/evaluating/settings.R
+
+functions:
+    Mapping: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/mapping_functions.R
+
+lsf:
+    Mapping:
+        memory:
+            mnn: 80000
+            liger: 80000
+            harmony: 80000
+            seurat: 800000
+        rusage:
+            mnn: 40000
+            liger: 40000
+            harmony: 40000
+            seurat: 100000
+        other:
+            seurat: -P bigmem
+            mnn: ''
+            liger: ''
+            harmony: ''
+    MappingSubset:
+        memory:
+            mnn: 35000
+            liger: 35000
+            harmony: 35000
+            seurat: 200000
+        rusage:
+            mnn: 10000
+            liger: 10000
+            harmony: 10000
+            seurat: 50000
+        other:
+            seurat: ''
+            mnn: ''
+            liger: ''
+            harmony: ''
+    CreateSeurat:
+        memory: 25000
+        rusage: 20000
+        other: ''
+    CorrectAtlas:
+        memory: 115000
+        rusage: 70000
+        other: ''
+    Plotting:
+        memory: 20000
+        rusage: 1000
+        other: ''
+    PlottingSubset:
+        memory: 10000
+        rusage: 5000
+        other: ''

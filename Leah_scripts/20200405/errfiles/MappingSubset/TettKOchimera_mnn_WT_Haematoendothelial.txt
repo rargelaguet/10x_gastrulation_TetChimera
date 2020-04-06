@@ -1,0 +1,63 @@
+Building DAG of jobs...
+Using shell: /usr/local/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	MappingSubset
+	1
+
+[Mon Apr  6 09:51:37 2020]
+rule MappingSubset:
+    input: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/mnn/mapping_mnn.R, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/seurat_QCed.rds, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/sample_metadata_QCed.txt, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT.rds, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT.txt.gz, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/settings.R, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/mapping_functions.R, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/corrected/seurat_atlas_Haematoendothelial.rds, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/corrected/seurat_atlas_Haematoendothelial.txt
+    output: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT_Haematoendothelial.rds, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT_Haematoendothelial.txt.gz
+    jobid: 0
+    wildcards: experiment=TettKOchimera, method=mnn, sample=WT, subset=Haematoendothelial
+
+Loading atlas...
+Downloading atlas from bioconda package...
+Subsetting atlas to Haematoendothelial progenitors, Blood progenitors 1, Blood progenitors 2, Erythroid1, Erythroid2, Erythroid3, Endothelium, Cardiomyocytes
+Loading query...
+Subsetting query batches to WT
+Subsetting query to Haematoendothelial progenitors, Blood progenitors 1, Blood progenitors 2, Erythroid1, Erythroid2, Erythroid3, Endothelium, Cardiomyocytes
+Filtering genes...
+Normalizing joint dataset...
+Done
+
+Computing highly variable genes...
+Done
+
+Performing PCA...
+Done
+
+Batch effect correction for the atlas...
+Done
+
+MNN mapping...
+Done
+
+Computing mapping scores...
+Done
+
+Writing output...
+Done
+
+Warning messages:
+1: In regularize.values(x, y, ties, missing(ties)) :
+  collapsing to unique 'x' values
+2: In regularize.values(x, y, ties, missing(ties)) :
+  collapsing to unique 'x' values
+3: In sweep(centered, 2, w, "/", check.margin = FALSE) :
+  'check.margin' is ignored when 'x' is a DelayedArray object or
+  derivative
+4: In .refine_k(k, precomputed, query = TRUE) :
+  'k' capped at the number of observations
+5: In .refine_k(k, precomputed, query = TRUE) :
+  'k' capped at the number of observations
+6: In .refine_k(k, precomputed, query = TRUE) :
+  'k' capped at the number of observations
+7: In .refine_k(k, precomputed, query = TRUE) :
+  'k' capped at the number of observations
+[Mon Apr  6 10:23:16 2020]
+Finished job 0.
+1 of 1 steps (100%) done
