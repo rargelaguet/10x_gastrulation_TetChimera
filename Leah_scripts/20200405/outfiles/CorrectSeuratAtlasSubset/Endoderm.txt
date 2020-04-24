@@ -1,0 +1,43 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsf@hx-noah-01-03>
+Subject: Job 9568872: </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.60kr8kz0/snakejob.CorrectSeuratAtlasSubset.54.sh> in cluster <EBI> Done
+
+Job </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.60kr8kz0/snakejob.CorrectSeuratAtlasSubset.54.sh> was submitted from host <hx-noah-05-16> by user <lrosen> in cluster <EBI> at Sun Apr  5 18:43:52 2020
+Job was executed on host(s) <hx-noah-01-03>, in queue <research-rh74>, as user <lrosen> in cluster <EBI> at Sun Apr  5 18:43:54 2020
+</homes/lrosen> was used as the home directory.
+</nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO> was used as the working directory.
+Started at Sun Apr  5 18:43:54 2020
+Terminated at Sun Apr  5 19:01:14 2020
+Results reported at Sun Apr  5 19:01:14 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+/nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.60kr8kz0/snakejob.CorrectSeuratAtlasSubset.54.sh
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   1013.70 sec.
+    Max Memory :                                 18102 MB
+    Average Memory :                             9165.84 MB
+    Total Requested Memory :                     70000.00 MB
+    Delta Memory :                               51898.00 MB
+    Max Swap :                                   18915 MB
+    Max Processes :                              6
+    Max Threads :                                73
+    Run time :                                   1040 sec.
+    Turnaround time :                            1042 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/20200405/errfiles/CorrectSeuratAtlasSubset/Endoderm.txt> for stderr output of this job.
+

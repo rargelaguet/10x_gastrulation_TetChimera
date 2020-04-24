@@ -1,0 +1,48 @@
+Building DAG of jobs...
+Using shell: /usr/local/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	MappingSubset
+	1
+
+[Mon Apr  6 09:51:37 2020]
+rule MappingSubset:
+    input: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/mnn/mapping_mnn.R, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/seurat_QCed.rds, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/sample_metadata_QCed.txt, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT.rds, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT.txt.gz, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/settings.R, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/mapping_functions.R, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/corrected/seurat_atlas_EpiblastPSNeuro.rds, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/corrected/seurat_atlas_EpiblastPSNeuro.txt
+    output: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT_EpiblastPSNeuro.rds, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT_EpiblastPSNeuro.txt.gz
+    jobid: 0
+    wildcards: experiment=TettKOchimera, method=mnn, sample=WT, subset=EpiblastPSNeuro
+
+Loading atlas...
+Downloading atlas from bioconda package...
+Error: failed to load resource
+  name: EH2810
+  title: Atlas size factors (sample 2)
+  reason: 1 resources failed to download
+In addition: Warning messages:
+1: download failed
+  web resource path: ‘https://experimenthub.bioconductor.org/fetch/2826’
+  local file path: ‘/scratch/RtmpI4ycSs/BiocFileCache/e7d97eaadbd0_2826’
+  reason: Internal Server Error (HTTP 500). 
+2: bfcadd() failed; resource removed
+  rid: BFC10
+  fpath: ‘https://experimenthub.bioconductor.org/fetch/2826’
+  reason: download failed 
+3: download failed
+  hub path: ‘https://experimenthub.bioconductor.org/fetch/2826’
+  cache resource: ‘EH2810 : 2826’
+  reason: bfcadd() failed; see warnings() 
+Execution halted
+[Mon Apr  6 09:52:05 2020]
+Error in rule MappingSubset:
+    jobid: 0
+    output: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT_EpiblastPSNeuro.rds, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT_EpiblastPSNeuro.txt.gz
+
+RuleException:
+CalledProcessError in line 127 of /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/Snakefile:
+Command 'set -euo pipefail;  /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/mnn/mapping_mnn.R -Q /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/seurat_QCed.rds -q /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/sample_metadata_QCed.txt -M /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT.rds -m /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT.txt.gz -b WT -L EpiblastPSNeuro -S /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/settings.R -f /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/mapping_functions.R -O /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT_EpiblastPSNeuro.rds -o /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT_EpiblastPSNeuro.txt.gz' returned non-zero exit status 1.
+  File "/nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/Snakefile", line 127, in __rule_MappingSubset
+  File "/nfs/research1/marioni/Leah/software/anaconda3/envs/ModelSystems10x/lib/python3.7/concurrent/futures/thread.py", line 57, in run
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message

@@ -1,0 +1,57 @@
+Building DAG of jobs...
+Using shell: /usr/local/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	Plotting
+	1
+
+[Mon Apr  6 09:51:36 2020]
+rule Plotting:
+    input: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/evaluating/plotting.R, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT.rds, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT.txt.gz, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/sample_metadata_QCed.txt, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/corrected/seurat_atlas.txt, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/evaluating/settings.R
+    output: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/plots/mockfile_mnn_WT.txt
+    jobid: 0
+    wildcards: experiment=TettKOchimera, method=mnn, sample=WT
+
+Loading input...
+Joining datasets...
+Running UMAP...
+Creating dataframes to be plotted...
+Plotting...
+Error: Insufficient values in manual scale. 36 needed but only 10 provided.
+Backtrace:
+     █
+  1. └─ggplot2::ggsave(...)
+  2.   ├─grid::grid.draw(plot)
+  3.   └─ggplot2:::grid.draw.ggplot(plot)
+  4.     ├─base::print(x)
+  5.     └─ggplot2:::print.ggplot(x)
+  6.       ├─ggplot2::ggplot_build(x)
+  7.       └─ggplot2:::ggplot_build.ggplot(x)
+  8.         └─base::lapply(data, scales_map_df, scales = npscales)
+  9.           └─ggplot2:::FUN(X[[i]], ...)
+ 10.             ├─base::unlist(...)
+ 11.             └─base::lapply(scales$scales, function(scale) scale$map_df(df = df))
+ 12.               └─ggplot2:::FUN(X[[i]], ...)
+ 13.                 └─scale$map_df(df = df)
+ 14.                   └─ggplot2:::f(..., self = self)
+ 15.                     └─base::lapply(aesthetics, function(j) self$map(df[[j]]))
+ 16.                       └─ggplot2:::FUN(X[[i]], ...)
+ 17.                         └─self$map(df[[j]])
+ 18.            
+Execution halted
+[Mon Apr  6 09:57:25 2020]
+Error in rule Plotting:
+    jobid: 0
+    output: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/plots/mockfile_mnn_WT.txt
+    shell:
+        
+        mkdir -p /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/plots/mnn/WT/
+        /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/evaluating/plotting.R -R /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT.rds -m /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/mnn/mapping_mnn_WT.txt.gz -q /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/sample_metadata_QCed.txt -a /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/corrected/seurat_atlas.txt -S /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/evaluating/settings.R -O /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/plots/mnn/WT/mnn_WT
+        touch /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/plots/mockfile_mnn_WT.txt
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message

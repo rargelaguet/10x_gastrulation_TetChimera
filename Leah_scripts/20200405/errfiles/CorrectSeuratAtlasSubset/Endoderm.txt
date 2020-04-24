@@ -1,0 +1,42 @@
+Building DAG of jobs...
+Using shell: /usr/local/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	CorrectSeuratAtlasSubset
+	1
+
+[Sun Apr  5 18:43:55 2020]
+rule CorrectSeuratAtlasSubset:
+    input: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/seurat/CorrectAtlas_seurat.R, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/settings.R, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/sce_atlas.rds, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/atlas_metadata.txt.gz
+    output: /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/corrected/seurat_atlas_Endoderm.rds, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/corrected/seurat_atlas_Endoderm.txt
+    jobid: 0
+    wildcards: subset=Endoderm
+
+Loading atlas...
+Subsetting atlas to ExE endoderm, Visceral endoderm, Gut, Def. endoderm, Notochord
+Normalising data...
+Finding HVGs...
+Creating Seurat object...
+Warning: Keys should be one or more alphanumeric characters followed by an underscore, setting key from x to x_
+Warning: All keys should be one or more alphanumeric characters followed by an underscore '_', setting key to x_
+Splitting by batch...
+Integrating datasets...
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+There were 18 warnings (use warnings() to see them)
+Warning: Adding a command log without an assay associated with it
+Scaling Data...
+Dimensionality reduction...
+Saving output...
+[Sun Apr  5 19:01:14 2020]
+Finished job 0.
+1 of 1 steps (100%) done

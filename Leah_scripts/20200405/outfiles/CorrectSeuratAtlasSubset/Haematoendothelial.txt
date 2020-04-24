@@ -1,0 +1,86 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsf@hx-noah-03-16>
+Subject: Job 9568870: </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.60kr8kz0/snakejob.CorrectSeuratAtlasSubset.52.sh> in cluster <EBI> Exited
+
+Job </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.60kr8kz0/snakejob.CorrectSeuratAtlasSubset.52.sh> was submitted from host <hx-noah-05-16> by user <lrosen> in cluster <EBI> at Sun Apr  5 18:43:52 2020
+Job was executed on host(s) <hx-noah-03-16>, in queue <research-rh74>, as user <lrosen> in cluster <EBI> at Sun Apr  5 18:43:54 2020
+</homes/lrosen> was used as the home directory.
+</nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO> was used as the working directory.
+Started at Sun Apr  5 18:43:54 2020
+Terminated at Sun Apr  5 18:43:56 2020
+Results reported at Sun Apr  5 18:43:56 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+/nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.60kr8kz0/snakejob.CorrectSeuratAtlasSubset.52.sh
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   0.38 sec.
+    Max Memory :                                 24 MB
+    Average Memory :                             24.00 MB
+    Total Requested Memory :                     70000.00 MB
+    Delta Memory :                               69976.00 MB
+    Max Swap :                                   388 MB
+    Max Processes :                              4
+    Max Threads :                                5
+    Run time :                                   1 sec.
+    Turnaround time :                            4 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/20200405/errfiles/CorrectSeuratAtlasSubset/Haematoendothelial.txt> for stderr output of this job.
+
+
+------------------------------------------------------------
+Sender: LSF System <lsf@hx-noah-71-05>
+Subject: Job 9731934: </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.8jd29r2e/snakejob.CorrectSeuratAtlasSubset.52.sh> in cluster <EBI> Done
+
+Job </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.8jd29r2e/snakejob.CorrectSeuratAtlasSubset.52.sh> was submitted from host <hx-noah-70-10> by user <lrosen> in cluster <EBI> at Mon Apr  6 08:02:04 2020
+Job was executed on host(s) <hx-noah-71-05>, in queue <research-rh74>, as user <lrosen> in cluster <EBI> at Mon Apr  6 08:02:06 2020
+</homes/lrosen> was used as the home directory.
+</nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO> was used as the working directory.
+Started at Mon Apr  6 08:02:06 2020
+Terminated at Mon Apr  6 08:17:39 2020
+Results reported at Mon Apr  6 08:17:39 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+/nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.8jd29r2e/snakejob.CorrectSeuratAtlasSubset.52.sh
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   898.83 sec.
+    Max Memory :                                 14299 MB
+    Average Memory :                             9011.20 MB
+    Total Requested Memory :                     70000.00 MB
+    Delta Memory :                               55701.00 MB
+    Max Swap :                                   15108 MB
+    Max Processes :                              6
+    Max Threads :                                41
+    Run time :                                   932 sec.
+    Turnaround time :                            935 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/20200405/errfiles/CorrectSeuratAtlasSubset/Haematoendothelial.txt> for stderr output of this job.
+

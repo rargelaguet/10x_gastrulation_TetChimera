@@ -1,0 +1,43 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsf@hx-noah-71-01>
+Subject: Job 9731935: </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.8jd29r2e/snakejob.Mapping.50.sh> in cluster <EBI> Done
+
+Job </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.8jd29r2e/snakejob.Mapping.50.sh> was submitted from host <hx-noah-70-10> by user <lrosen> in cluster <EBI> at Mon Apr  6 08:02:04 2020
+Job was executed on host(s) <hx-noah-71-01>, in queue <research-rh74>, as user <lrosen> in cluster <EBI> at Mon Apr  6 08:02:06 2020
+</homes/lrosen> was used as the home directory.
+</nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO> was used as the working directory.
+Started at Mon Apr  6 08:02:06 2020
+Terminated at Mon Apr  6 08:42:47 2020
+Results reported at Mon Apr  6 08:42:47 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+/nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.8jd29r2e/snakejob.Mapping.50.sh
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   2419.24 sec.
+    Max Memory :                                 56972 MB
+    Average Memory :                             46230.25 MB
+    Total Requested Memory :                     40000.00 MB
+    Delta Memory :                               -16972.00 MB
+    Max Swap :                                   57769 MB
+    Max Processes :                              6
+    Max Threads :                                41
+    Run time :                                   2441 sec.
+    Turnaround time :                            2443 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/20200405/errfiles/Mapping/TettKOchimera_harmony_TKO.txt> for stderr output of this job.
+

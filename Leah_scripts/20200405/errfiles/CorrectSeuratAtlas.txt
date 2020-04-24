@@ -1,0 +1,62 @@
+Building DAG of jobs...
+Using shell: /usr/local/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	CorrectSeuratAtlas
+	1
+
+[Sun Apr  5 18:43:54 2020]
+rule CorrectSeuratAtlas:
+    input: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/seurat/CorrectAtlas_seurat.R, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/settings.R, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/sce_atlas.rds, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/atlas_metadata.txt.gz
+    output: /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/corrected/seurat_atlas.rds, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/corrected/seurat_atlas.txt
+    jobid: 0
+
+Loading atlas...
+Normalising data...
+Finding HVGs...
+Creating Seurat object...
+Warning: Keys should be one or more alphanumeric characters followed by an underscore, setting key from x to x_
+Warning: All keys should be one or more alphanumeric characters followed by an underscore '_', setting key to x_
+Splitting by batch...
+Integrating datasets...
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning: Adding a command log without an assay associated with it
+Warning messages:
+1: In `[<-`(`*tmp*`, tp, value = IntegrateData(anchorset = integration.anchors,  :
+  implicit list embedding of S4 objects is deprecated
+2: In `[<-`(`*tmp*`, tp, value = IntegrateData(anchorset = integration.anchors,  :
+  implicit list embedding of S4 objects is deprecated
+3: In `[<-`(`*tmp*`, tp, value = sublist[[1]]) :
+  implicit list embedding of S4 objects is deprecated
+4: In `[<-`(`*tmp*`, tp, value = IntegrateData(anchorset = integration.anchors,  :
+  implicit list embedding of S4 objects is deprecated
+5: In `[<-`(`*tmp*`, tp, value = IntegrateData(anchorset = integration.anchors,  :
+  implicit list embedding of S4 objects is deprecated
+6: In `[<-`(`*tmp*`, tp, value = IntegrateData(anchorset = integration.anchors,  :
+  implicit list embedding of S4 objects is deprecated
+7: In `[<-`(`*tmp*`, tp, value = IntegrateData(anchorset = integration.anchors,  :
+  implicit list embedding of S4 objects is deprecated
+8: In `[<-`(`*tmp*`, tp, value = IntegrateData(anchorset = integration.anchors,  :
+  implicit list embedding of S4 objects is deprecated
+9: In `[<-`(`*tmp*`, tp, value = IntegrateData(anchorset = integration.anchors,  :
+  implicit list embedding of S4 objects is deprecated
+10: In `[<-`(`*tmp*`, tp, value = IntegrateData(anchorset = integration.anchors,  :
+  implicit list embedding of S4 objects is deprecated
+Warning: Adding a command log without an assay associated with it
+Scaling Data...
+Dimensionality reduction...
+Saving output...
+Warning message:
+system call failed: Cannot allocate memory 
+[Sun Apr  5 21:35:22 2020]
+Finished job 0.
+1 of 1 steps (100%) done

@@ -1,0 +1,48 @@
+  |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   1%  |                                                                              |=                                                                     |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   5%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   7%  |                                                                              |======                                                                |   8%  |                                                                              |======                                                                |   9%  |                                                                              |=======                                                               |  10%  |                                                                              |========                                                              |  11%  |                                                                              |========                                                              |  12%  |                                                                              |=========                                                             |  13%  |                                                                              |==========                                                            |  14%  |                                                                              |==========                                                            |  15%  |                                                                              |===========                                                           |  16%  |                                                                              |============                                                          |  17%  |                                                                              |=============                                                         |  18%  |                                                                              |=============                                                         |  19%  |                                                                              |==============                                                        |  20%  |                                                                              |===============                                                       |  21%  |                                                                              |===============                                                       |  22%  |                                                                              |================                                                      |  23%  |                                                                              |=================                                                     |  24%  |                                                                              |======================================================================| 100%
+Finished in 35.92787 mins, 24 iterations.
+Max iterations set: 100.
+Final objective delta: 9.604036e-05.
+Best results with seed 1.
+
+------------------------------------------------------------
+Sender: LSF System <lsf@hx-noah-76-04>
+Subject: Job 9731930: </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.8jd29r2e/snakejob.Mapping.49.sh> in cluster <EBI> Exited
+
+Job </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.8jd29r2e/snakejob.Mapping.49.sh> was submitted from host <hx-noah-70-10> by user <lrosen> in cluster <EBI> at Mon Apr  6 08:02:04 2020
+Job was executed on host(s) <hx-noah-76-04>, in queue <research-rh74>, as user <lrosen> in cluster <EBI> at Mon Apr  6 08:02:06 2020
+</homes/lrosen> was used as the home directory.
+</nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO> was used as the working directory.
+Started at Mon Apr  6 08:02:06 2020
+Terminated at Mon Apr  6 08:53:38 2020
+Results reported at Mon Apr  6 08:53:38 2020
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+/nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.8jd29r2e/snakejob.Mapping.49.sh
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   3075.87 sec.
+    Max Memory :                                 56998 MB
+    Average Memory :                             35917.82 MB
+    Total Requested Memory :                     40000.00 MB
+    Delta Memory :                               -16998.00 MB
+    Max Swap :                                   57788 MB
+    Max Processes :                              7
+    Max Threads :                                10
+    Run time :                                   3092 sec.
+    Turnaround time :                            3094 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/20200405/errfiles/Mapping/TettKOchimera_liger_TKO.txt> for stderr output of this job.
+
