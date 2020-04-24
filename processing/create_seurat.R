@@ -8,13 +8,13 @@ library(Seurat)
 
 io <- list()
 if (grepl("ricard",Sys.info()['nodename'])) {
-  io$directory <- "/Users/ricard/data/10x_gastrulation_TetChimera/original/test"
-  io$genes <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
-  io$outfile <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/seurat.rds"
+  io$directory <- "/Users/ricard/data/10x_gastrulation_TetChimera/original/second_batch"
+  io$genes <- "¡/Users/ricard/data/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
+  io$outfile <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/second_batch/seurat.rds"
 } else {
-  io$directory <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/original/test"
-  io$genes <- "/hps/nobackup2/research/stegle/users/ricard/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
-  io$outfile <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/seurat.rds"
+  # io$directory <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/original/test"
+  # io$genes <- "/hps/nobackup2/research/stegle/users/ricard/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
+  # io$outfile <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/seurat.rds"
 }
 
 ##############################
