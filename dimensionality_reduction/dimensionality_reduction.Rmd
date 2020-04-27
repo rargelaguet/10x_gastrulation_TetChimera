@@ -1,0 +1,129 @@
+---
+title: "Dimensionality reduction on RNA data"
+---
+  
+```{r load_modules, echo=FALSE, include=FALSE}
+library(Seurat)
+# library(RColorBrewer)
+# library(umap)
+```
+
+# Define settings
+
+Define I/O
+```{r define_io, echo=FALSE}
+# Load default settings
+source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
+
+# io$outdir <- paste0(io$basedir,"/results/dimensionality_reduction")
+```
+
+Define options
+```{r}
+opts$batches <- c(
+	"E75_TET_TKO_L002",
+	"E75_WT_Host_L001"
+	# "E85_Rep1_TET_TKO_L004",
+	# "E85_Rep2_TET_TKO_L006",
+	# "E85_Rep1_WT_Host_L003",
+	# "E85_Rep2_WT_Host_L005"
+	# "E125_DNMT3A_HET_A_L001",
+	# "E125_DNMT3A_HET_A_L003",
+	# "E125_DNMT3A_KO_B_L002",
+	# "E125_DNMT3A_KO_E_L004"
+)
+
+opts$target <- c("TET","WT")
+```
+
+Update sample metadata
+```{r load_metadata, echo=FALSE}
+sample_metadata <- sample_metadata %>%
+  .[pass_rnaQC==T & batch%in%opts$batches]
+```
+
+```{r}
+hist(sample_metadata$nFeature_RNA)
+```
+
+# Load data
+
+Load RNA expression data as Seurat object
+```{r load_data, echo=FALSE}
+seurat <- readRDS(io$seurat)#[,sample_metadata$cell]
+dim(seurat)
+```
+
+Remove genes that are not expressed
+```{r}
+foo <- Matrix::rowMeans(seurat@assays$RNA@counts)
+seurat <- subset(seurat, features = names(which(foo>0)))
+```
+
+# Parse data 
+
+Normalise
+
+```{r}
+# SCTransform
+# seurat <- SCTransform(seurat)
+
+# LogNormalize
+seurat <- NormalizeData(seurat, normalization.method = "LogNormalize")
+
+# Scale
+seurat <- ScaleData(seurat)
+```
+
+Change gene names
+```{r}
+# rownames(sce) <- rowData(sce)$symbol
+```
+
+Select HVG: Option 1, using FindVariableFeatures
+```{r}
+seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1500)
+# length(seurat@assays$RNA@var.features)
+```
+
+Select HVG: Option 2, using precomputed marker genes
+```{r}
+marker_genes.dt <- fread(io$atlas.marker_genes)
+hvg <- unique(marker_genes.dt$ens_id)
+hvg <- hvg[hvg%in%rownames(seurat)]
+
+seurat@assays$RNA@var.features <- hvg
+```
+
+# Dimensionality reduction
+
+PCA 
+```{r message=FALSE}
+seurat <- RunPCA(seurat, 
+  features = VariableFeatures(seurat),
+  npcs = 50,
+  verbose = FALSE
+  )
+```
+
+UMAP
+```{r}
+seurat <- RunUMAP(seurat, 
+  dims = 1:50, 
+  reduction = "pca"
+)
+```
+
+# Plot 
+
+```{r}
+DimPlot(seurat, label = FALSE, reduction = 'umap')# + NoLegend()
+```
+
+Explore marker genes
+```{r}
+genes.to.plot <- c("ENSG00000223609","ENSG00000133742","ENSG00000029534","ENSG00000244734")
+
+FeaturePlot(seurat, features = genes.to.plot, reduction='umap')
+```
+

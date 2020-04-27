@@ -9,6 +9,7 @@ suppressPackageStartupMessages(library(ggplot2))
 io <- list()
 if (grepl("ricard",Sys.info()['nodename'])) {
   io$basedir <- "/Users/ricard/data/10x_gastrulation_TetChimera"
+  io$atlas.basedir <- "/Users/ricard/data/gastrulation10x"
   io$gene_metadata <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
 } else if (grepl("ebi",Sys.info()['nodename'])) {
   io$basedir <- "/hps/nobackup2/stegle/users/ricard/10x_gastrulation_TetChimera"
@@ -17,11 +18,16 @@ if (grepl("ricard",Sys.info()['nodename'])) {
 }
 
 io$metadata <- paste0(io$basedir,"/processed/second_batch/sample_metadata.txt.gz")
-# io$gene_metadata <- paste0(io$basedir,"/features/genes/Mmusculus_genes_BioMart.87.txt")
+io$seurat <- paste0(io$basedir,"/processed/second_batch/seurat.rds")
+# io$sce <- paste0(io$basedir,"/rna/SingleCellExperiment.rds")
+# io$counts <- paste0(io$basedir,"/rna/counts_datatable.tsv.gz")
 
-io$rna.seurat <- paste0(io$basedir,"/processed/second_batch/seurat.rds")
-# io$rna.sce <- paste0(io$basedir,"/rna/SingleCellExperiment.rds")
-# io$rna.counts <- paste0(io$basedir,"/rna/counts_datatable.tsv.gz")
+# Atlas information
+io$atlas.metadata <- paste0(io$atlas.basedir,"/sample_metadata.txt.gz")
+io$atlas.marker_genes <- paste0(io$atlas.basedir,"/results/marker_genes/marker_genes.tsv.gz")
+io$atlas.average_expression_per_celltype <- paste0(io$atlas.basedir,"/results/marker_genes/avg_expr_per_celltype_and_gene.txt.gz")
+io$atlas.sce <- paste0(io$atlas.basedir,"/processed/SingleCellExperiment.rds")
+
 
 #############
 ## Options ##
@@ -29,6 +35,45 @@ io$rna.seurat <- paste0(io$basedir,"/processed/second_batch/seurat.rds")
 
 opts <- list()
 
+opts$colors1 = c(
+	"Epiblast" = "#635547",
+	"Primitive Streak" = "#DABE99",
+	"Caudal epiblast" = "#9e6762",
+	"PGC" = "#FACB12",
+	"Anterior Primitive Streak" = "#c19f70",
+	"Notochord" = "#0F4A9C",
+	"Def. endoderm" = "#F397C0",
+	"Gut" = "#EF5A9D",
+	"Nascent mesoderm" = "#C594BF",
+	"Mixed mesoderm" = "#DFCDE4",
+	"Intermediate mesoderm" = "#139992",
+	"Caudal Mesoderm" = "#3F84AA",
+	"Paraxial mesoderm" = "#8DB5CE",
+	"Somitic mesoderm" = "#005579",
+	"Pharyngeal mesoderm" = "#C9EBFB",
+	"Cardiomyocytes" = "#B51D8D",
+	"Allantois" = "#532C8A",
+	"ExE mesoderm" = "#8870ad",
+	"Mesenchyme" = "#cc7818",
+	"Haematoendothelial progenitors" = "#FBBE92",
+	"Endothelium" = "#ff891c",
+	"Blood progenitors 1" = "#f9decf",
+	"Blood progenitors 2" = "#c9a997",
+	"Erythroid1" = "#C72228",
+	"Erythroid2" = "#f79083",
+	"Erythroid3" = "#EF4E22",
+	"NMP" = "#8EC792",
+	"Rostral neurectoderm" = "#65A83E",
+	"Caudal neurectoderm" = "#354E23",
+	"Neural crest" = "#C3C388",
+	"Forebrain/Midbrain/Hindbrain" = "#647a4f",
+	"Spinal cord" = "#CDE088",
+	"Surface ectoderm" = "#f7f79e",
+	"Visceral endoderm" = "#F6BFCB",
+	"ExE endoderm" = "#7F6874",
+	"ExE ectoderm" = "#989898",
+	"Parietal endoderm" = "#1A1A1A"
+)
 
 ##########################
 ## Load sample metadata ##
