@@ -1,22 +1,19 @@
-library(data.table)
-library(purrr)
-library(ggplot2)
-
 #####################
 ## Define settings ##
 #####################
 
-source("/Users/ricard/10x_gastrulation_TetChimera/mapping/plot/plot_utils.R")
+source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
+# source("/Users/ricard/10x_gastrulation_TetChimera/mapping/plot/plot_utils.R")
 
-io <- list()
-io$sample_metadata <- "/Users/ricard/data/10x_gastrulation_TetChimera/mapping/sample_metadata_mapping_mnn.txt"
-io$outdir <- "/Users/ricard/data/10x_gastrulation_TetChimera/mapping/pdf"
+io$mapping <- "/Users/ricard/data/10x_gastrulation_TetChimera/mapping/sample_metadata_mapping_mnn.txt"
+io$outdir <- paste0(io$basedir,"/mapping/pdf")
 
 ###############
 ## Load data ##
 ###############
 
-sample_metadata <- fread(io$sample_metadata)
+mapping <- fread(io$mapping)
+sample_metadata <- sample_metadata %>% merge(mapping)
 
 ################
 ## Parse data ##

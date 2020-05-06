@@ -1,5 +1,5 @@
 ---
-title: "Dimensionality reduction on RNA data"
+title: "Dimensionality reduction"
 ---
   
 ```{r load_modules, echo=FALSE, include=FALSE}
@@ -33,17 +33,28 @@ opts$batches <- c(
 	# "E125_DNMT3A_KO_E_L004"
 )
 
-opts$target <- c("TET","WT")
+# opts$target <- c("TKO","WT")
 ```
 
 Update sample metadata
 ```{r load_metadata, echo=FALSE}
 sample_metadata <- sample_metadata %>%
-  .[pass_rnaQC==T & batch%in%opts$batches]
+  .[batch%in%opts$batches & pass_QC==T]
+table(sample_metadata$batch)
 ```
 
+Load cell type annotations
 ```{r}
-hist(sample_metadata$nFeature_RNA)
+foo <- fread("/Users/ricard/data/10x_gastrulation_TetChimera/processed/second_batch/mapping/mnn/mapping_mnn_WT.txt.gz") %>%
+  .[class=="WT"]
+bar <- fread("/Users/ricard/data/10x_gastrulation_TetChimera/processed/second_batch/mapping/mnn/mapping_mnn_TET_TKO.txt.gz") %>%
+  .[class=="TET_TKO"]
+
+celltypes <- rbind(foo,bar) %>%
+  .[cell%in%sample_metadata$cell] %>%
+  .[,c("cell","celltype.mapped","stage.mapped","celltype.score","cellstage.score")]
+
+sample_metadata <- sample_metadata %>% merge(celltypes)
 ```
 
 # Load data
@@ -54,16 +65,24 @@ seurat <- readRDS(io$seurat)#[,sample_metadata$cell]
 dim(seurat)
 ```
 
+```{r}
+foo <- sample_metadata %>% as.data.frame %>% tibble::column_to_rownames("cell") %>%
+  .[colnames(seurat),]
+
+stopifnot(colnames(seurat) == rownames(foo))
+# seurat <- AddMetaData(seurat, foo)  # not working????
+seurat@meta.data <- foo
+```
+
 Remove genes that are not expressed
 ```{r}
 foo <- Matrix::rowMeans(seurat@assays$RNA@counts)
-seurat <- subset(seurat, features = names(which(foo>0)))
+seurat <- subset(seurat, features = names(which(foo>1e-6)))
 ```
 
 # Parse data 
 
 Normalise
-
 ```{r}
 # SCTransform
 # seurat <- SCTransform(seurat)
@@ -80,13 +99,15 @@ Change gene names
 # rownames(sce) <- rowData(sce)$symbol
 ```
 
-Select HVG: Option 1, using FindVariableFeatures
+# Select HVG
+
+Option 1, using FindVariableFeatures
 ```{r}
-seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1500)
+seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1000)
 # length(seurat@assays$RNA@var.features)
 ```
 
-Select HVG: Option 2, using precomputed marker genes
+Option 2, using precomputed marker genes
 ```{r}
 marker_genes.dt <- fread(io$atlas.marker_genes)
 hvg <- unique(marker_genes.dt$ens_id)
@@ -103,13 +124,23 @@ seurat <- RunPCA(seurat,
   features = VariableFeatures(seurat),
   npcs = 50,
   verbose = FALSE
-  )
+)
+```
+
+Correlation between PCs and batch
+```{r}
+r <- cor(
+  seurat@reductions$pca@cell.embeddings,
+  as.numeric(as.factor(seurat@meta.data$batch))
+)[,1]
+r
 ```
 
 UMAP
 ```{r}
 seurat <- RunUMAP(seurat, 
-  dims = 1:50, 
+  # dims = 1:50, 
+  dims = which(r<=0.5), 
   reduction = "pca"
 )
 ```
@@ -117,12 +148,24 @@ seurat <- RunUMAP(seurat,
 # Plot 
 
 ```{r}
-DimPlot(seurat, label = FALSE, reduction = 'umap')# + NoLegend()
+Idents(seurat) <- "batch"
+# Idents(seurat) <- "celltype.mapped"
+# levels(seurat)
+```
+
+
+```{r}
+DimPlot(seurat, label = FALSE, reduction = 'pca', dims=c(10,11))
+```
+
+```{r}
+DimPlot(seurat, label = FALSE, reduction = 'umap')
+DimPlot(seurat, label = FALSE, reduction = 'umap', cols = opts$colors1) + NoLegend()
 ```
 
 Explore marker genes
 ```{r}
-genes.to.plot <- c("ENSG00000223609","ENSG00000133742","ENSG00000029534","ENSG00000244734")
+genes.to.plot <- c("ENSMUSG00000026566")
 
 FeaturePlot(seurat, features = genes.to.plot, reduction='umap')
 ```

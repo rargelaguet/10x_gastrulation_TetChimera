@@ -1,12 +1,11 @@
-library(data.table)
-library(purrr)
 
 ######################
 ## Define  settings ##
 ######################
 
+source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
+
 # I/O
-io <- list()
 io$seurat <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/seurat.rds"
 io$mapping <- "/Users/ricard/data/10x_gastrulation_TetChimera/mapping/mapping10x_mnn.rds"
 io$outdir <- "/Users/ricard/data/10x_gastrulation_TetChimera/mapping"
@@ -15,7 +14,7 @@ io$outdir <- "/Users/ricard/data/10x_gastrulation_TetChimera/mapping"
 ## Load data ##
 ###############
 
-seurat <- readRDS(io$seurat)
+# seurat <- readRDS(io$seurat)
 mapping <- readRDS(io$mapping)
 
 sample_metadata <- seurat@meta.data %>% as.data.table %>%
@@ -55,6 +54,6 @@ fwrite(sample_metadata, file=paste0(io$outdir,"/sample_metadata_mapping_mnn.txt"
 
 foo <- sample_metadata %>% as.data.frame %>% tibble::column_to_rownames("cell")
 foo$cell <- rownames(foo)
-seurat@meta.data <- foo
 
-saveRDS(seurat, "/Users/ricard/data/10x_gastrulation_TetChimera/processed/seurat_2.rds")
+# seurat@meta.data <- foo
+# saveRDS(seurat, "/Users/ricard/data/10x_gastrulation_TetChimera/processed/seurat_2.rds")
