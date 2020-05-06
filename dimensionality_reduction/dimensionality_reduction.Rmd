@@ -61,7 +61,7 @@ sample_metadata <- sample_metadata %>% merge(celltypes)
 
 Load RNA expression data as Seurat object
 ```{r load_data, echo=FALSE}
-seurat <- readRDS(io$seurat)#[,sample_metadata$cell]
+seurat <- readRDS(io$seurat)[,sample_metadata$cell]
 dim(seurat)
 ```
 
