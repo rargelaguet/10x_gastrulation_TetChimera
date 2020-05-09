@@ -34,7 +34,8 @@ doBatchCorrect <- function(counts, timepoints, samples, timepoint_order, sample_
   #perform corrections within list elements (i.e. within stages)
   correct_list <- lapply(pc_list, function(x){
     if(length(x) > 1){
-      return(do.call(scran::fastMNN, c(x, "pc.input" = TRUE, BPPARAM = BPPARAM))$corrected)
+        #return(do.call(scran::fastMNN, c(x, "pc.input" = TRUE, BPPARAM = BPPARAM))$corrected)
+        return(do.call(reducedMNN, c(x, BPPARAM = BPPARAM))$corrected) # edited 09.02.2020 because of "Error: 'fastMNN' is not an exported object from 'namespace:scran'", 17.02.2020 changed to reducedMNN because otherwise it thinks PCA space is logcounts which would be utter bullcrap
     } else {
       return(x[[1]])
     }
@@ -42,39 +43,22 @@ doBatchCorrect <- function(counts, timepoints, samples, timepoint_order, sample_
   
   #perform correction over list
   if(length(correct_list)>1){
-    correct <- do.call(scran::fastMNN, c(correct_list, "pc.input" = TRUE, BPPARAM = BPPARAM))$corrected
+      #correct <- do.call(scran::fastMNN, c(correct_list, "pc.input" = TRUE, BPPARAM = BPPARAM))$corrected
+      correct <- do.call(reducedMNN, c(correct_list, BPPARAM = BPPARAM))$corrected # edited 09.02.2020 because of "Error: 'fastMNN' is not an exported object from 'namespace:scran'", 17.02.2020 changed to reducedMNN because otherwise it thinks PCA space is logcounts which would be utter bullcrap
   } else {
     correct <- correct_list[[1]]
   }
-  
+    
   correct <- correct[match(colnames(counts), rownames(correct)),]
   
   return(correct)
   
 }
 
-getHVGs <- function(sce, min.mean = 1e-3, chrY.genes.file = NULL){
-  trend  <- scran::trendVar(sce, use.spikes = FALSE, loess.args = list(span = 0.05))
-  decomp <- scran::decomposeVar(sce, fit = trend)
+getHVGs <- function(sce, block, min.mean = 1e-3){
+  decomp <- modelGeneVar(sce, block=block)
   decomp <- decomp[decomp$mean > min.mean,]
-  
-  #exclude sex genes
-  xist <- "ENSMUSG00000086503"
-  if(!is.null(chrY.genes.file)){
-    #ychr <- read.table("/nfs/research1/marioni/jonny/embryos/data/ygenes.tab", stringsAsFactors = FALSE)[,1]
-    ychr <- read.table(chrY.genes.file, stringsAsFactors = FALSE)[,1]
-  }else{
-    mouse_ensembl <- biomaRt::useMart("ensembl")
-    mouse_ensembl <- biomaRt::useDataset("mmusculus_gene_ensembl", mart = mouse_ensembl)
-    gene_map <- biomaRt::getBM(attributes=c("ensembl_gene_id", "chromosome_name"),
-      filters = "ensembl_gene_id", values = rownames(decomp), mart = mouse_ensembl)
-    ychr <- gene_map[gene_map[,2] == "Y", 1]  
-  }
-  
-  other = c("tomato-td") #for the chimera
-  decomp = decomp[!rownames(decomp) %in% c(xist, ychr, other),]
-  
-  decomp$FDR = p.adjust(decomp$p.value, method = "fdr")
+  decomp$FDR <- p.adjust(decomp$p.value, method = "fdr")
   return(rownames(decomp)[decomp$p.value < 0.05])
 }
 
@@ -105,35 +89,39 @@ getcelltypes <- function(v, dist) {
 }
 
 getMappingScore <- function(mapping){
-  celltypes_accrossK <- matrix(unlist(mapping$celltypes.mapped), 
-    nrow=length(mapping$celltypes.mapped[[1]]),
-    ncol=length(mapping$celltypes.mapped))
-  P <- NULL
-  for (i in 1:nrow(celltypes_accrossK)){
-    p <- max(table(celltypes_accrossK[i,]))
-    index <- which(table(celltypes_accrossK[i,]) == p)
-    p <- p/length(mapping$celltypes.mapped)
-    P <- c(P,p) 
-  }
-  return(P)  
+    out <- list()
+    celltypes_accrossK <- matrix(unlist(mapping$celltypes.mapped),
+                                 nrow=length(mapping$celltypes.mapped[[1]]),
+                                 ncol=length(mapping$celltypes.mapped))
+    cellstages_accrossK <- matrix(unlist(mapping$cellstages.mapped),
+                                  nrow=length(mapping$cellstages.mapped[[1]]),
+                                  ncol=length(mapping$cellstages.mapped))
+    out$celltype.score <- NULL
+    for (i in 1:nrow(celltypes_accrossK)){
+        p <- max(table(celltypes_accrossK[i,]))
+        index <- which(table(celltypes_accrossK[i,]) == p)
+        p <- p/length(mapping$celltypes.mapped)
+        out$celltype.score <- c(out$celltype.score,p)
+    }
+    out$cellstage.score <- NULL
+    for (i in 1:nrow(cellstages_accrossK)){
+        p <- max(table(cellstages_accrossK[i,]))
+        index <- which(table(cellstages_accrossK[i,]) == p)
+        p <- p/length(mapping$cellstages.mapped)
+        out$cellstage.score <- c(out$cellstage.score,p)
+    }
+    return(out)  
 }
 
-mnnMap <- function(atlas_pca, atlas_meta, map_pca, map_meta, k_map = 10){
-  correct <- scran::fastMNN(atlas_pca, map_pca, pc.input = TRUE)$corrected
-  atlas   <- 1:nrow(atlas_pca)
-  correct_atlas <- correct[atlas,]
-  correct_map   <- correct[-atlas,]
-  
+get_meta <- function(correct_atlas, atlas_meta, correct_map, map_meta, k_map = 10){
   knns <- BiocNeighbors::queryKNN(correct_atlas, correct_map, k = k_map, get.index = TRUE,
     get.distance = FALSE)
-  
   #get closest k matching cells
   k.mapped  <- t(apply(knns$index, 1, function(x) atlas_meta$cell[x]))
   celltypes <- t(apply(k.mapped, 1, function(x) atlas_meta$celltype[match(x, atlas_meta$cell)]))
   stages    <- t(apply(k.mapped, 1, function(x) atlas_meta$stage[match(x, atlas_meta$cell)]))
   celltype.mapped <- apply(celltypes, 1, function(x) getmode(x, 1:length(x)))
   stage.mapped    <- apply(stages, 1, function(x) getmode(x, 1:length(x)))
-  
   out <- lapply(1:length(celltype.mapped), function(x){
     list(cells.mapped     = k.mapped[x,],
          celltype.mapped  = celltype.mapped[x],
@@ -141,29 +129,43 @@ mnnMap <- function(atlas_pca, atlas_meta, map_pca, map_meta, k_map = 10){
          celltypes.mapped = celltypes[x,],
          stages.mapped    = stages[x,])
   })
-  
   names(out) <- map_meta$cell
-  
   return(out)  
-  
 }
 
-mapWrap <- function(atlas_sce, atlas_meta, map_sce, map_meta, k = 30, return.list = FALSE){
-  
+mapWrap <- function(atlas_sce, atlas_meta, map_sce, map_meta, order = NULL, k = 30, npcs = 50, genes = NULL, return.list = FALSE){
+    
   message("Normalizing joint dataset...")
   
   #easier to avoid directly binding sce objects as it is a lot more likely to have issues
   sce_all <- SingleCellExperiment::SingleCellExperiment(
     list(counts=Matrix::Matrix(cbind(counts(atlas_sce),counts(map_sce)),sparse=TRUE)))
-  big_sce <- scater::normalize(sce_all)
+  
+  # Filter out non-expressed genes
+  sce_all <- sce_all[rowMeans(counts(sce_all))>1e-5,]
+  
+  #big_sce <- scater::normalize(sce_all)
+  #big_sce <- scater::logNormCounts(sce_all) # edited 09.02.2020 because normalize deprecated in favour of logNormCounts
+  big_sce <- multiBatchNorm(sce_all, batch=c(atlas_meta$sample, map_meta$batch)) # edited 17.02.2020 because now multibatchnorm exists
   message("Done\n")
   
-  message("Computing highly variable genes...")
-  hvgs    <- getHVGs(big_sce)
-  message("Done\n")
+  if (is.null(genes)) {
+    message("Genes not provided. Computing highly variable genes...")
+    hvgs <- getHVGs(big_sce, block=c(atlas_meta$sample, map_meta$batch))
+    message("Done\n")
+  } else {
+    hvgs <- genes
+    message(sprintf("%d Genes provided...",length(genes)))
+    
+  }
   
   message("Performing PCA...")
-  big_pca <- irlba::prcomp_irlba(t(logcounts(big_sce[hvgs,])), n = 50)$x
+  big_pca <- multiBatchPCA(big_sce,
+                           batch=c(atlas_meta$sample, map_meta$batch),
+                           subset.row = hvgs,
+                           d = npcs,
+                           preserve.single = TRUE,
+                           assay.type = "logcounts")[[1]]
   rownames(big_pca) <- colnames(big_sce) 
   atlas_pca <- big_pca[1:ncol(atlas_sce),]
   map_pca   <- big_pca[-(1:ncol(atlas_sce)),]
@@ -183,14 +185,23 @@ mapWrap <- function(atlas_sce, atlas_meta, map_sce, map_meta, k = 30, return.lis
                                     samples         = atlas_meta$sample, 
                                     timepoint_order = order_df$stage, 
                                     sample_order    = order_df$sample, 
-                                    pc_override     = atlas_pca)
+                                    pc_override     = atlas_pca,
+                                    npc             = npcs)
   message("Done\n")
   
   message("MNN mapping...")                        
-  mapping <- mnnMap(atlas_pca = atlas_corrected,
-                    atlas_meta = atlas_meta,
-                    map_pca = map_pca,
-                    map_meta = map_meta,k_map = k)
+  correct <- reducedMNN(rbind(atlas_corrected, map_pca),
+                      batch=c(rep("ATLAS", dim(atlas_meta)[1]), map_meta$batch),
+                      merge.order=order)$corrected
+  atlas   <- 1:nrow(atlas_pca)
+  correct_atlas <- correct[atlas,]
+  correct_map   <- correct[-atlas,]
+
+  mapping <- get_meta(correct_atlas = correct_atlas,
+                      atlas_meta = atlas_meta,
+                      correct_map = correct_map,
+                      map_meta = map_meta,
+                      k_map = k)
   message("Done\n")
   
   if(return.list){
@@ -204,17 +215,23 @@ mapWrap <- function(atlas_sce, atlas_meta, map_sce, map_meta, k = 30, return.lis
     out$celltypes.mapped[[i]]  <- sapply(mapping, function(x) x$celltypes.mapped[i])
     out$cellstages.mapped[[i]] <- sapply(mapping, function(x) x$stages.mapped[i])
   }  
-  celltype.multinomial.prob <- getMappingScore(out)
+  multinomial.prob <- getMappingScore(out)
   message("Done\n")
   
   message("Writing output...") 
+  out$correct_atlas <- correct_atlas
+  out$correct_map <- correct_map
+  ct <- sapply(mapping, function(x) x$celltype.mapped); is.na(ct) <- lengths(ct) == 0
+  st <- sapply(mapping, function(x) x$stage.mapped); is.na(st) <- lengths(st) == 0
+  cm <- sapply(mapping, function(x) x$cells.mapped[1]); is.na(cm) <- lengths(cm) == 0
   out$mapping <- data.frame(
-    cell            = names(mapping), 
-    celltype.mapped = sapply(mapping, function(x) x$celltype.mapped),
-    stage.mapped    = sapply(mapping, function(x) x$stage.mapped),
-    closest.cell    = sapply(mapping, function(x) x$cells.mapped[1]))
+      cell            = names(mapping), 
+      celltype.mapped = unlist(ct),
+      stage.mapped    = unlist(st),
+      closest.cell    = unlist(cm))
   
-  out$mapping <- cbind(out$mapping,celltype.multinomial.prob)
+  out$mapping <- cbind(out$mapping,multinomial.prob)
+  out$pca <- big_pca
   message("Done\n")
   
   return(out)

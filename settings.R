@@ -19,7 +19,7 @@ if (grepl("ricard",Sys.info()['nodename'])) {
 
 io$metadata <- paste0(io$basedir,"/processed/second_batch/sample_metadata.txt.gz")
 io$seurat <- paste0(io$basedir,"/processed/second_batch/seurat.rds")
-# io$sce <- paste0(io$basedir,"/rna/SingleCellExperiment.rds")
+io$sce <- paste0(io$basedir,"/processed/second_batch/SingleCellExperiment.rds")
 # io$counts <- paste0(io$basedir,"/rna/counts_datatable.tsv.gz")
 
 # Atlas information
