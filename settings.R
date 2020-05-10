@@ -37,6 +37,46 @@ io$atlas.sce <- paste0(io$atlas.basedir,"/processed/SingleCellExperiment.rds")
 
 opts <- list()
 
+opts$celltypes.1 = c(
+	"Epiblast",
+	"Primitive_Streak",
+	"Caudal_epiblast",
+	"PGC",
+	"Anterior_Primitive_Streak",
+	"Notochord",
+	"Def._endoderm",
+	"Gut",
+	"Nascent_mesoderm",
+	"Mixed_mesoderm",
+	"Intermediate_mesoderm",
+	"Caudal_Mesoderm",
+	"Paraxial_mesoderm",
+	"Somitic_mesoderm",
+	"Pharyngeal_mesoderm",
+	"Cardiomyocytes",
+	"Allantois",
+	"ExE_mesoderm",
+	"Mesenchyme",
+	"Haematoendothelial_progenitors",
+	"Endothelium",
+	"Blood_progenitors_1",
+	"Blood_progenitors_2",
+	"Erythroid1",
+	"Erythroid2",
+	"Erythroid3",
+	"NMP",
+	"Rostral_neurectoderm",
+	"Caudal_neurectoderm",
+	"Neural_crest",
+	"Forebrain_Midbrain_Hindbrain",
+	"Spinal_cord",
+	"Surface_ectoderm",
+	"Visceral_endoderm",
+	"ExE_endoderm",
+	"ExE_ectoderm",
+	"Parietal_endoderm"
+)
+
 opts$colors1 = c(
 	"Epiblast" = "#635547",
 	"Primitive Streak" = "#DABE99",
@@ -81,6 +121,6 @@ opts$colors1 = c(
 ## Load sample metadata ##
 ##########################
 
-sample_metadata <- fread(io$metadata) 
+sample_metadata <- fread(io$metadata) %>% .[pass_QC==T]
   
   

@@ -12,7 +12,7 @@ p <- ArgumentParser(description='')
 p$add_argument('--groupA',    type="character",    help='group A')
 p$add_argument('--groupB',    type="character",    help='group B')
 p$add_argument('--test',      type="character",    help='Statistical test')
-p$add_argument('--celltype',  type="character",    help='Cell type')
+p$add_argument('--celltype',  type="character",    nargs="+", help='Cell type')
 p$add_argument('--test_mode', action="store_true", help='Test mode? subset number of cells')
 p$add_argument('--outfile',   type="character",    help='Output file')
 args <- p$parse_args(commandArgs(TRUE))
@@ -21,12 +21,11 @@ args <- p$parse_args(commandArgs(TRUE))
 stopifnot(args$test%in%c("edgeR","t-test","wilcoxon"))
 
 ## START TEST
-args$groupA <- c("WT")
-args$groupB <- c("TET_TKO")
-args$celltype <- c("Allantois")
-args$test <- c("edgeR")
-args$outfile <- c("/Users/ricard/data/10x_gastrulation_TetChimera/results/second_batch/differential/foo.tsv.gz")
-args$test_mode <- TRUE
+# args$groupA <- c("WT")
+# args$groupB <- c("TET_TKO")
+# args$celltype <- c("Allantois")
+# args$test <- c("edgeR")
+# args$test_mode <- TRUE
 ## END TEST
 
 
@@ -72,7 +71,7 @@ stopifnot(all(opts$groups%in%unique(sample_metadata$class)))
 
 # Update cell metadata
 sample_metadata <- sample_metadata %>%
-  .[class%in%opts$groups] %>%
+  .[class%in%opts$groups & celltype%in%args$celltype] %>%
   setnames("class","group") %>%
   .[,c("cell","group")]
 
