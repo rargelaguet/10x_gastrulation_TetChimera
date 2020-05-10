@@ -13,6 +13,8 @@ if (grepl("ricard",Sys.info()['nodename'])) {
   io$gene_metadata <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
 } else if (grepl("ebi",Sys.info()['nodename'])) {
   io$basedir <- "/hps/nobackup2/stegle/users/ricard/10x_gastrulation_TetChimera"
+  io$atlas.basedir <- "/hps/nobackup2/stegle/users/ricard/gastrulation10x"
+  io$gene_metadata <- "/hps/nobackup2/stegle/users/ricard/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
 } else {
   stop("Computer not recognised")
 }
