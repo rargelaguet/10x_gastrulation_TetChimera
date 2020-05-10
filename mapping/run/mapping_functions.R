@@ -141,9 +141,6 @@ mapWrap <- function(atlas_sce, atlas_meta, map_sce, map_meta, order = NULL, k = 
   sce_all <- SingleCellExperiment::SingleCellExperiment(
     list(counts=Matrix::Matrix(cbind(counts(atlas_sce),counts(map_sce)),sparse=TRUE)))
   
-  # Filter out non-expressed genes
-  sce_all <- sce_all[rowMeans(counts(sce_all))>1e-5,]
-  
   #big_sce <- scater::normalize(sce_all)
   #big_sce <- scater::logNormCounts(sce_all) # edited 09.02.2020 because normalize deprecated in favour of logNormCounts
   big_sce <- multiBatchNorm(sce_all, batch=c(atlas_meta$sample, map_meta$batch)) # edited 17.02.2020 because now multibatchnorm exists
@@ -156,7 +153,6 @@ mapWrap <- function(atlas_sce, atlas_meta, map_sce, map_meta, order = NULL, k = 
   } else {
     hvgs <- genes
     message(sprintf("%d Genes provided...",length(genes)))
-    
   }
   
   message("Performing PCA...")

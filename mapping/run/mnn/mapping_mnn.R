@@ -15,7 +15,7 @@ p$add_argument('--outdir',          type="character",               help='Output
 args <- p$parse_args(commandArgs(TRUE))
 
 ## START TEST ##
-# args$atlas.stages <- c(
+# args$atlas_stages <- c(
 #   "E6.5"
 #   # "E6.75",
 #   # "E7.0",
@@ -28,18 +28,20 @@ args <- p$parse_args(commandArgs(TRUE))
 #   # "mixed_gastrulation"
 # )
 # 
-# args$query.batches <- c(
-#   # "E75_TET_TKO_L002", 
-#   # "E75_WT_Host_L001", 
-#   # "E85_Rep1_TET_TKO_L004", 
-#   # "E85_Rep2_TET_TKO_L006", 
-#   "E85_Rep1_WT_Host_L003"
+# args$query_batches <- c(
+#   # "E75_TET_TKO_L002",
+#   # "E75_WT_Host_L001",
+#   "E85_Rep1_TET_TKO_L004"
+#   # "E85_Rep2_TET_TKO_L006",
+#   # "E85_Rep1_WT_Host_L003"
 #   # "E85_Rep2_WT_Host_L005"
-#   # "E125_DNMT3A_HET_A_L001", 
+#   # "E125_DNMT3A_HET_A_L001",
 #   # "E125_DNMT3A_HET_A_L003",
-#   # "E125_DNMT3A_KO_B_L002", 
+#   # "E125_DNMT3A_KO_B_L002",
 #   # "E125_DNMT3A_KO_E_L004"
 # )
+# 
+# args$test <- TRUE
 ## END TEST ##
 
 ################
@@ -85,7 +87,7 @@ sce_atlas <- sce_atlas[,meta_atlas$cell]
 sce_query <- readRDS(io$sce)
 
 # Load cell metadata
-meta_query <- fread(io$metadata) %>% .[pass_QC==T & batch%in%args$query_batches & cell%in%colnames(sce_query)]
+meta_query <- fread(io$metadata) %>% .[pass_QC==T & batch%in%args$query_batches]
 
 # Filter
 if (isTRUE(args$test)) meta_query <- head(meta_query,n=1000)
@@ -95,6 +97,10 @@ sce_query <- sce_query[,meta_query$cell]
 ## Prepare ## 
 #############
 
+# Filter out non-expressed genes
+sce_query <- sce_query[rowMeans(counts(sce_query))>1e-5,]
+sce_atlas <- sce_atlas[rowMeans(counts(sce_atlas))>1e-5,]
+
 # Intersect genes
 genes.intersect <- intersect(rownames(sce_query), rownames(sce_atlas))
 sce_query  <- sce_query[genes.intersect,]
@@ -103,11 +109,13 @@ sce_atlas <- sce_atlas[genes.intersect,]
 # Load gene markers to be used as HVGs
 marker_genes.dt <- fread(io$atlas.marker_genes)
 marker_genes.dt <- marker_genes.dt[,head(.SD,n=50),by="celltype"]
-marker_genes <- marker_genes.dt$ens_id
+marker_genes <- unique(marker_genes.dt$ens_id)
 marker_genes <- marker_genes[marker_genes%in%genes.intersect]
 
 print(marker_genes.dt[,.N,by="celltype"])
 
+
+stopifnot(all(marker_genes%in%rownames(sce_atlas)))
 #########
 ## Map ##
 #########
