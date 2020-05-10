@@ -15,23 +15,23 @@ if (grepl("ricard",Sys.info()['nodename'])) {
 }
 io$path2atlas <- io$atlas.basedir
 io$path2query <- io$basedir
-io$outdir <- paste0(io$basedir,"/results/mapping")
+io$outdir <- paste0(io$basedir,"/results/second_batch/mapping")
 
 ####################
 ## Define options ##
 ####################
 
 opts$atlas.stages <- c(
-  "E6.5"
-  # "E6.75",
-  # "E7.0",
-  # "E7.25",
-  # "E7.5",
-  # "E7.75",
-  # "E8.0",
-  # "E8.25",
-  # "E8.5",
-  # "mixed_gastrulation"
+  "E6.5",
+  "E6.75",
+  "E7.0",
+  "E7.25",
+  "E7.5",
+  "E7.75",
+  "E8.0",
+  "E8.25",
+  "E8.5",
+  "mixed_gastrulation"
 )
 
 opts$query.batches <- c(
