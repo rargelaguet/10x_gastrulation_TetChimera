@@ -4,57 +4,37 @@ title: "Dimensionality reduction"
   
 ```{r load_modules, echo=FALSE, include=FALSE}
 library(Seurat)
-# library(RColorBrewer)
-# library(umap)
 ```
 
 # Define settings
 
 Define I/O
 ```{r define_io, echo=FALSE}
-# Load default settings
 source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
-
-# io$outdir <- paste0(io$basedir,"/results/dimensionality_reduction")
+io$outdir <- paste0(io$basedir,"/results/dimensionality_reduction")
 ```
 
 Define options
 ```{r}
 opts$batches <- c(
-	"E75_TET_TKO_L002",
-	"E75_WT_Host_L001"
-	# "E85_Rep1_TET_TKO_L004",
-	# "E85_Rep2_TET_TKO_L006",
-	# "E85_Rep1_WT_Host_L003",
-	# "E85_Rep2_WT_Host_L005"
-	# "E125_DNMT3A_HET_A_L001",
-	# "E125_DNMT3A_HET_A_L003",
-	# "E125_DNMT3A_KO_B_L002",
-	# "E125_DNMT3A_KO_E_L004"
+  "E75_TET_TKO_L002", 
+  "E75_WT_Host_L001"
+  # "E85_Rep1_TET_TKO_L004", 
+  # "E85_Rep1_WT_Host_L003", 
+  # "E85_Rep2_TET_TKO_L006", 
+  # "E85_Rep2_WT_Host_L005", 
+  # "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
+  # "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
+  # "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
+  # "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
 )
-
-# opts$target <- c("TKO","WT")
 ```
 
 Update sample metadata
 ```{r load_metadata, echo=FALSE}
 sample_metadata <- sample_metadata %>%
-  .[batch%in%opts$batches & pass_QC==T]
+  .[batch%in%opts$batches]
 table(sample_metadata$batch)
-```
-
-Load cell type annotations
-```{r}
-foo <- fread("/Users/ricard/data/10x_gastrulation_TetChimera/processed/second_batch/mapping/mnn/mapping_mnn_WT.txt.gz") %>%
-  .[class=="WT"]
-bar <- fread("/Users/ricard/data/10x_gastrulation_TetChimera/processed/second_batch/mapping/mnn/mapping_mnn_TET_TKO.txt.gz") %>%
-  .[class=="TET_TKO"]
-
-celltypes <- rbind(foo,bar) %>%
-  .[cell%in%sample_metadata$cell] %>%
-  .[,c("cell","celltype.mapped","stage.mapped","celltype.score","cellstage.score")]
-
-sample_metadata <- sample_metadata %>% merge(celltypes)
 ```
 
 # Load data
@@ -65,6 +45,7 @@ seurat <- readRDS(io$seurat)[,sample_metadata$cell]
 dim(seurat)
 ```
 
+Add metadata to the Seurat object
 ```{r}
 foo <- sample_metadata %>% as.data.frame %>% tibble::column_to_rownames("cell") %>%
   .[colnames(seurat),]
@@ -74,13 +55,13 @@ stopifnot(colnames(seurat) == rownames(foo))
 seurat@meta.data <- foo
 ```
 
+# Parse data 
+
 Remove genes that are not expressed
 ```{r}
 foo <- Matrix::rowMeans(seurat@assays$RNA@counts)
 seurat <- subset(seurat, features = names(which(foo>1e-6)))
 ```
-
-# Parse data 
 
 Normalise
 ```{r}
@@ -94,9 +75,25 @@ seurat <- NormalizeData(seurat, normalization.method = "LogNormalize")
 seurat <- ScaleData(seurat)
 ```
 
-Change gene names
+Change gene names from ENSEMBL to symbols
 ```{r}
-# rownames(sce) <- rowData(sce)$symbol
+gene_metadata <- fread(io$gene_metadata) %>% .[,c("ens_id","symbol")] %>%
+  .[symbol!="" & ens_id%in%rownames(seurat)]
+
+gene_metadata$symbol[duplicated(gene_metadata$symbol)]
+seurat <- seurat[rownames(seurat)%in%gene_metadata$ens_id,]
+foo <- gene_metadata$symbol; names(foo) <- gene_metadata$ens_id
+new.names <- foo[rownames(seurat)]
+
+# Sanity cehcks
+stopifnot(sum(is.na(new.names))==0)
+stopifnot(sum(duplicated(new.names))==0)
+
+# Rename seurat objects manually
+rownames(seurat@assays$RNA@counts) <- new.names
+rownames(seurat@assays$RNA@data) <- new.names
+rownames(seurat@assays$RNA@scale.data) <- new.names
+seurat[["RNA"]]@meta.features <- data.frame(row.names=new.names)
 ```
 
 # Select HVG
@@ -104,16 +101,16 @@ Change gene names
 Option 1, using FindVariableFeatures
 ```{r}
 seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1000)
-# length(seurat@assays$RNA@var.features)
+# head(seurat@assays$RNA@var.features)
 ```
 
 Option 2, using precomputed marker genes
 ```{r}
-marker_genes.dt <- fread(io$atlas.marker_genes)
-hvg <- unique(marker_genes.dt$ens_id)
-hvg <- hvg[hvg%in%rownames(seurat)]
-
-seurat@assays$RNA@var.features <- hvg
+# marker_genes.dt <- fread(io$atlas.marker_genes)
+# hvg <- unique(marker_genes.dt$ens_id)
+# hvg <- hvg[hvg%in%rownames(seurat)]
+# 
+# seurat@assays$RNA@var.features <- hvg
 ```
 
 # Dimensionality reduction
@@ -122,25 +119,25 @@ PCA
 ```{r message=FALSE}
 seurat <- RunPCA(seurat, 
   features = VariableFeatures(seurat),
-  npcs = 50,
+  npcs = ,
   verbose = FALSE
 )
 ```
 
 Correlation between PCs and batch
 ```{r}
-r <- cor(
-  seurat@reductions$pca@cell.embeddings,
-  as.numeric(as.factor(seurat@meta.data$batch))
-)[,1]
-r
+# r <- cor(
+#   seurat@reductions$pca@cell.embeddings,
+#   as.numeric(as.factor(seurat@meta.data$batch))
+# )[,1]
+# r
 ```
 
 UMAP
 ```{r}
 seurat <- RunUMAP(seurat, 
-  # dims = 1:50, 
-  dims = which(r<=0.5), 
+  dims = 1:25,
+  # dims = which(r<=0.5),
   reduction = "pca"
 )
 ```
@@ -148,24 +145,19 @@ seurat <- RunUMAP(seurat,
 # Plot 
 
 ```{r}
-Idents(seurat) <- "batch"
-# Idents(seurat) <- "celltype.mapped"
+# Idents(seurat) <- "batch"
+Idents(seurat) <- "celltype.mapped"
 # levels(seurat)
 ```
 
-
 ```{r}
-DimPlot(seurat, label = FALSE, reduction = 'pca', dims=c(10,11))
-```
-
-```{r}
-DimPlot(seurat, label = FALSE, reduction = 'umap')
-DimPlot(seurat, label = FALSE, reduction = 'umap', cols = opts$colors1) + NoLegend()
+# DimPlot(seurat, label = FALSE, reduction = 'umap')
+DimPlot(seurat, label = FALSE, reduction = 'umap', cols = opts$celltype.colors) + NoLegend()
 ```
 
 Explore marker genes
 ```{r}
-genes.to.plot <- c("ENSMUSG00000026566")
+genes.to.plot <- c("Apom")
 
 FeaturePlot(seurat, features = genes.to.plot, reduction='umap')
 ```

@@ -10,7 +10,8 @@ io <- list()
 if (grepl("ricard",Sys.info()['nodename'])) {
   io$basedir <- "/Users/ricard/data/10x_gastrulation_TetChimera"
   io$atlas.basedir <- "/Users/ricard/data/gastrulation10x"
-  io$gene_metadata <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
+  # io$gene_metadata <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
+  io$gene_metadata <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/all_genes/Mmusculus_genes_BioMart.87.txt"
 } else if (grepl("ebi",Sys.info()['nodename'])) {
   io$basedir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera"
   io$atlas.basedir <- "/hps/nobackup2/research/stegle/users/ricard/gastrulation10x"
@@ -19,10 +20,9 @@ if (grepl("ricard",Sys.info()['nodename'])) {
   stop("Computer not recognised")
 }
 
-io$metadata <- paste0(io$basedir,"/processed/second_batch/sample_metadata.txt.gz")
-io$seurat <- paste0(io$basedir,"/processed/second_batch/seurat.rds")
-io$sce <- paste0(io$basedir,"/processed/second_batch/SingleCellExperiment.rds")
-# io$counts <- paste0(io$basedir,"/rna/counts_datatable.tsv.gz")
+io$metadata <- paste0(io$basedir,"/sample_metadata.txt.gz")
+io$seurat <- paste0(io$basedir,"/processed/seurat.rds")
+io$sce <- paste0(io$basedir,"/processed/SingleCellExperiment.rds")
 
 # Atlas information
 io$atlas.metadata <- paste0(io$atlas.basedir,"/sample_metadata.txt.gz")
@@ -38,7 +38,7 @@ io$atlas.sce <- paste0(io$atlas.basedir,"/processed/SingleCellExperiment.rds")
 
 opts <- list()
 
-opts$celltypes.1 = c(
+opts$celltypes = c(
 	"Epiblast",
 	"Primitive_Streak",
 	"Caudal_epiblast",
@@ -78,7 +78,7 @@ opts$celltypes.1 = c(
 	"Parietal_endoderm"
 )
 
-opts$colors1 = c(
+opts$celltype.colors = c(
 	"Epiblast" = "#635547",
 	"Primitive Streak" = "#DABE99",
 	"Caudal epiblast" = "#9e6762",
@@ -118,10 +118,33 @@ opts$colors1 = c(
 	"Parietal endoderm" = "#1A1A1A"
 )
 
+opts$batches <- c(
+  "E75_TET_TKO_L002", 
+  "E75_WT_Host_L001", 
+  "E85_Rep1_TET_TKO_L004", 
+  "E85_Rep1_WT_Host_L003", 
+  "E85_Rep2_TET_TKO_L006", 
+  "E85_Rep2_WT_Host_L005", 
+  "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
+  "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
+  "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
+  "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
+)
+
+opts$classes <- c(
+  "E7.5_Host", 
+  "E7.5_TET_TKO", 
+  "E8.5_Host", 
+  "E8.5_TET_TKO", 
+  "E10.5_Host", 
+  "E10.5_TET_TKO"
+)
+
 ##########################
 ## Load sample metadata ##
 ##########################
 
-sample_metadata <- fread(io$metadata) %>% .[pass_QC==T]
-  
+sample_metadata <- fread(io$metadata) %>% .[pass_QC==T] %>% 
+  .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped," ","_")] %>%
+  .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,"/","_")]
   
