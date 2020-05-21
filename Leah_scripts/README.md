@@ -1,5 +1,7 @@
-# mapping_pipeline
-Git repo with pipeline for mapping gastrulation organoids to the mouse gastrulation atlas.
+# mapping_TetTKO
+Git repo with pipeline for mapping Tet TKO chimeras, given an already processed Seurat.
+
+NOTE: Some files are named DNMT3A when in fact they're DNMT3B. I have renamed this in the metadata file when parsing the modifications and targets, but kept the batch name, as for better or worse this is the file name.
 
 This pipeline was built with Snakemake (https://snakemake.readthedocs.io/en/stable/) and so it can be run from the EBI cluster with the following command: - bsub -M 50 snakemake -j 99 --cluster "bsub {params.other} -M {params.memory} -R rusage[mem={params.rusage}] -n 1 -o {params.outfile} -e {params.errfile} -q research-rh74".
 
@@ -10,7 +12,7 @@ Each step has a settings.R file to go with it, which gives the option of hard-co
 
 ## File Structure
 There are 3 steps:
-1. pre-processing (this creates a Seurat object, and does some preliminary QC)
+1. pre-processing (this takes the Seurat object and does some further QC)
 2. mapping (this does the actual mapping). Within the mapping directory, there is a separate directory for each method (harmony,mnn,seurat,liger). Harmony, MNN, and LIGER map the atlas new each time, because they are very fast. Seurat takes a lot longer to map the atlas, so does it once, and this mapped atlas is then input for each experiment individually.
 3. evaluating. Here the output plots are made.
 

@@ -25,6 +25,8 @@ option_list = list(
                 help="path to the query to be mapped (a Seurat file)", metavar="character"),
     make_option(c("-q", "--query.metadata"), type="character", default=NULL, 
                 help="path to the sample metadata file for the query", metavar="character"),
+    make_option(c("-e", "--experiment"), type="character", default=NULL, 
+                help="name of experiment", metavar="character"),
     make_option(c("-M", "--query.mapping.RDS"), type="character", default=NULL, 
                 help="path to how the query previously mapped", metavar="character"),
     make_option(c("-m", "--query.mapping.meta"), type="character", default=NULL, 
@@ -176,12 +178,13 @@ stopifnot(all(meta_atlas$cell == colnames(sce_atlas)))
 message("Loading query...")
 
 # Load metadata
-meta_query <- fread(paste0(opts$query.metadata)) 
+meta_query <- fread(paste0(opts$query.metadata))
+meta_query <- meta_query[pass_QC==T,]
 
 # Filter batches
 if (any(opts$query_batches != "all")) {
   message(sprintf("Subsetting query batches to %s",paste(opts$query_batches, collapse=", ")))
-  meta_query <- meta_query[genotype%in%opts$query_batches]
+  meta_query <- meta_query[class%in%opts$query_batches]
 }
 
 # Filter lineages
@@ -197,8 +200,8 @@ if (isTRUE(opts$testing)) {
     
     n <- round(1000/length(opts$query_batches))
     sub = c()
-    for (b in opts$query_batches){
-        sub <- append(sub, meta_query[meta_query$genotype==b,]$cell[1:n])
+    for (b in unique(meta_query$batch)){
+        sub <- append(sub, meta_query[meta_query$batch==b,]$cell[1:n])
     }
     
     meta_query <- meta_query[meta_query$cell %in% sub,]
@@ -230,7 +233,7 @@ sce_atlas <- sce_atlas[genes,]
 mapping <- mapWrap(
   atlas_sce = sce_atlas, atlas_meta = meta_atlas,
   map_sce = sce_query, map_meta = meta_query,
-  order <- io$order[[opts$query_batches]],
+  order = io$order[[opts$experiment]][[opts$query_batches]],
   k = io$k, npcs = io$npcs
 )
 

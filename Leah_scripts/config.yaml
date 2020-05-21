@@ -1,16 +1,26 @@
 mapping_methods:
     - mnn
-    - seurat
-    - liger
-    - harmony
 
 experiments:
-    - TettKOchimera
+    - second_batch
+    - third_batch
 
 types:
-    TettKOchimera:
+    first_batch:
         - WT
         - TKO
+    second_batch:
+        - TET_TKO
+        - WT
+        - DNMT3B_HET
+        - DNMT3B_KO
+    third_batch:
+        - TET_TKO
+        - TET_Host
+        - Dnmt3aKO_Dnmt3bWT
+        - Dnmt3aWT_Dnmt3bWT
+        - Dnmt3aKO_Dnmt3bHet
+        - Dnmt3aHet_Dnmt3bKO
 
 subset_celltypes:
     - Haematoendothelial
@@ -19,24 +29,25 @@ subset_celltypes:
     - Mesoderm
 
 scripts:
-    CreateSeurat: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/processing/create_seurat.R
-    Plotting: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/evaluating/plotting.R
+    CreateSeurat: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_chimera/processing/create_seurat.R
+    Plotting: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_chimera/evaluating/plotting.R
 
 directories:
     base: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/
-    output: processed_files_Leah/
-    mapping_scripts: mapping_TetTKO/mapping/
+    extention: TettKOchimera/
+    output: processed/
+    mapping_scripts: mapping_chimera/mapping/
     atlas: /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/
-    outfiles: mapping_TetTKO/20200405/outfiles/
-    errfiles: mapping_TetTKO/20200405/errfiles/
+    outfiles: mapping_chimera/20200512/outfiles/
+    errfiles: mapping_chimera/20200512/errfiles/
 
 settings:
-    CreateSeurat: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/processing/settings.R
-    Mapping: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/settings.R
-    Plotting: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/evaluating/settings.R
+    CreateSeurat: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_chimera/processing/settings.R
+    Mapping: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_chimera/mapping/settings.R
+    Plotting: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_chimera/evaluating/settings.R
 
 functions:
-    Mapping: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/mapping_functions.R
+    Mapping: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_chimera/mapping/mapping_functions.R
 
 lsf:
     Mapping:
@@ -57,7 +68,7 @@ lsf:
             harmony: ''
     MappingSubset:
         memory:
-            mnn: 35000
+            mnn: 80000
             liger: 35000
             harmony: 35000
             seurat: 200000

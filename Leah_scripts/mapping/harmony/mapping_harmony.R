@@ -28,6 +28,8 @@ option_list = list(
                 help="path to the query to be mapped (a Seurat file)", metavar="character"),
     make_option(c("-q", "--query.metadata"), type="character", default=NULL, 
                 help="path to the sample metadata file for the query", metavar="character"),
+    make_option(c("-e", "--experiment"), type="character", default=NULL, 
+                help="name of experiment", metavar="character"),
     make_option(c("-M", "--query.mapping.RDS"), type="character", default=NULL, 
                 help="path to how the query previously mapped", metavar="character"),
     make_option(c("-m", "--query.mapping.meta"), type="character", default=NULL, 
@@ -186,7 +188,7 @@ meta_query <- fread(paste0(opts$query.metadata))
 # Filter batches
 if (any(opts$query_batches != "all")) {
   message(sprintf("Subsetting query batches to %s",paste(opts$query_batches, collapse=", ")))
-  meta_query <- meta_query[genotype%in%opts$query_batches]
+  meta_query <- meta_query[class%in%opts$query_batches]
 }
 
 # Filter lineages
@@ -230,8 +232,8 @@ if (isTRUE(opts$testing)) {
     
     n <- round(5000/length(opts$query_batches))
     sub = c()
-    for (b in opts$query_batches){
-        sub <- append(sub, meta_query[meta_query$genotype==b,]$cell[1:n])
+    for (b in unique(meta_query$batch)){
+        sub <- append(sub, meta_query[meta_query$batch==b,]$cell[1:n])
     }
     
     meta_query <- meta_query[meta_query$cell %in% sub,]; rm(sub)
@@ -331,19 +333,20 @@ out$cellstages.mapped[[i]] <- sapply(mapping, function(x) x$stages.mapped[i])
 }  
 multinomial.prob <- getMappingScore(out)
 message("Done\n")
-
+                                     
 message("Writing output...") 
-out$correct_atlas <- correct_atlas
-out$correct_map <- correct_map
-out$seurat_merged <- seurat_merged
+out$correct_atlas <- correct_atlas; rm(correct_atlas)
+out$correct_map <- correct_map; rm(correct_map)
+out$integrated_seurat <- seurat_merged; rm(seurat_merged)
 ct <- sapply(mapping, function(x) x$celltype.mapped); is.na(ct) <- lengths(ct) == 0
 st <- sapply(mapping, function(x) x$stage.mapped); is.na(st) <- lengths(st) == 0
 cm <- sapply(mapping, function(x) x$cells.mapped[1]); is.na(cm) <- lengths(cm) == 0
 out$mapping <- data.frame(
-cell            = names(mapping), 
-celltype.mapped = unlist(ct),
-stage.mapped    = unlist(st),
-closest.cell    = unlist(cm))
+    cell            = names(mapping), 
+    celltype.mapped = unlist(ct),
+    stage.mapped    = unlist(st),
+    closest.cell    = unlist(cm),
+    stringsAsFactors=FALSE); rm(mapping)
 
 out$mapping <- cbind(out$mapping,multinomial.prob)
 message("Done\n")
@@ -356,4 +359,6 @@ message("Done\n")
 saveRDS(out, paste0(opts$output.RDS))
 
 # save mapping in .txt format
-fwrite(out$mapping, paste0(opts$output.metadata), sep="\t", na="NA", quote=F)
+metadata <- fread(paste0(opts$query.metadata)) %>%
+  merge(out$mapping %>% as.data.table, by="cell", all.x=TRUE)
+fwrite(metadata, paste0(opts$output.metadata), sep="\t", na="NA", quote=F)

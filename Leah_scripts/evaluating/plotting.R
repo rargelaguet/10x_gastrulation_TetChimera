@@ -70,12 +70,11 @@ if (file_ext(opts$atlas.metadata) == "rds") {
 }
 
 # Load query metadata
-meta_query <- fread(paste0(opts$query.metadata)) 
+meta_mapping <- fread(opts$input.meta)
+meta_mapping <- meta_mapping[which(!is.na(meta_mapping$celltype.mapped)),]
 
 # Load mapping output
 merge_output <- readRDS(paste0(opts$input.rds))
-meta_mapping <- data.table(merge_output$mapping)
-meta_mapping <- merge(meta_query, meta_mapping, by='cell')
 
 
 find_top2_celltypes <- function(row) {
@@ -205,7 +204,6 @@ atlas_sample <- ggplot(data=plot_df_atlas, mapping = aes(x=X1, y=X2, colour=samp
   geom_point(size=io$dot_size, alpha=io$dot_alpha) +
   # ggrastr::geom_point_rast(size=opts$dot_size, alpha=opts$dot_alpha) +
   labs(x="UMAP Dimension 1", y="UMAP Dimension 2") +
-  scale_colour_manual(values = stage_colours, name = "Stage") +
   guides(colour = guide_legend(override.aes = list(size=6))) +
   theme_classic()
 ggsave(paste0(opts$output.base, "_atlas_sample.", opts$plot.type), plot = atlas_sample, device=opts$plot.type, width = 7, height = 5, units = "in")
@@ -285,12 +283,3 @@ cellstages_score <- gghistogram(to.plot, x="cellstage.score", y="..density..", f
   labs(x="Cellstage mapping score (per query cell)", y="Density") +
   theme(legend.title = element_blank())
 ggsave(paste0(opts$output.base, "_cellstages_score.", opts$plot.type), plot = cellstages_score, device=opts$plot.type, width = 5, height = 5, units = "in")
-
-
-
-
-
-
-
-
-
