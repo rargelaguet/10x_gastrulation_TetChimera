@@ -1,0 +1,180 @@
+---
+title: "Sex determination using RNA expression of genes on the Y chromosome."
+---
+
+QUESTION: CHIMERA CELLS ARE MALE OR FEMALE???
+
+```{r echo=FALSE, include=FALSE}
+library(scater)
+library(ggpubr)
+```
+
+```{r define_opts, echo=FALSE, include=FALSE}
+
+if (grepl("ricard",Sys.info()['nodename'])) {
+  source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
+} else if (grepl("ebi",Sys.info()['nodename'])) {
+  source("/homes/ricard/10x_gastrulation_TetChimera/settings.R")
+} else {
+  stop("Computer not recognised")
+}
+io$outdir <- paste0(io$basedir,"/results/sex")
+
+# Define embryos (= embryo)
+# opts$embryos <- c(
+#   "E7.5_embryo1", 
+#   "E8.5_embryo1", 
+#   "E8.5_embryo2", 
+#   "E10.5_embryo1", 
+#   "E10.5_embryo2"
+# )
+opts$batches <- c(
+  "E75_TET_TKO_L002", 
+  "E75_WT_Host_L001", 
+  "E85_Rep1_TET_TKO_L004", 
+  "E85_Rep1_WT_Host_L003", 
+  "E85_Rep2_TET_TKO_L006", 
+  "E85_Rep2_WT_Host_L005", 
+  "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
+  "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
+  "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
+  "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
+)
+
+# Define which cells to use
+opts$cells <- sample_metadata %>% 
+  .[batch%in%opts$batches,cell]
+```
+
+```{r}
+table(sample_metadata$batch)
+```
+
+# Load data
+
+Load SingleCellExperiment
+```{r load_expr, echo=FALSE, include=FALSE}
+sce <- readRDS(io$sce)[,opts$cells]
+```
+
+Load gene metadata
+```{r}
+gene_metadata <- fread(io$gene_metadata) %>% 
+  .[ens_id%in%rownames(sce)]
+```
+
+# Parse data
+
+Group genes by chromosome
+```{r}
+# For some reason Erdr1 is predicted as Ychr, but the last version of ENSEMBL is in the Xchr
+genes.chrY <- gene_metadata[chr=="chrY" & ens_id!="ENSMUSG00000096768",ens_id]
+genes.chrX <- gene_metadata[chr=="chrX",ens_id]
+genes.chr1 <- gene_metadata[chr=="chr1",ens_id]
+
+genes <- c(genes.chr1,genes.chrY)
+```
+
+Remove genes that are not expressed
+```{r}
+genes.filt <- genes[Matrix::rowMeans(logcounts(sce)[genes,])>0]
+```
+
+Create data.table from SingleCellExperiment object
+```{r}
+dt <- counts(sce[genes.filt]) %>% as.matrix %>% t %>%
+  as.data.table(keep.rownames="cell") %>% 
+  melt(id.vars="cell", value.name="counts", variable.name="ens_id") %>%
+  merge(sample_metadata[,c("cell","batch","embryo","class")], by="cell")  %>%
+  merge(gene_metadata[,c("chr","ens_id","symbol")], by="ens_id")
+```
+
+# Plot
+
+## Individual genes
+
+```{r}
+# to.plot <- dt[chr=="chrY"] %>% 
+#   .[,.(counts=sum(counts)),by=c("batch","chr","ens_id","symbol")] %>%
+#   .[,mean:=mean(counts),by="ens_id"] %>% .[mean>0] %>% .[,mean:=NULL]
+```
+
+Barplots of expression of chrY genes, facet by embryo
+```{r}
+# p <- ggbarplot(to.plot, x="symbol", y="counts", facet="embryo") +
+#   labs(x="", y="Read counts") +
+#   theme(
+#   axis.text.x = element_text(colour="black",size=rel(0.7), angle=45, hjust=1, vjust=1),
+#   axis.text.y = element_text(colour="black",size=rel(0.8))
+#   )
+# 
+# pdf(sprintf("%s/pdf/sex_ychr_expr_per_gene.pdf",io$outdir), width=8, height=6, useDingbats = F)
+# print(p)
+# dev.off()
+```
+
+## Agregated genes
+
+```{r}
+to.plot <- dt %>% 
+  .[,.(counts=sum(counts)),by=c("embryo","batch","chr","class")] %>%
+  dcast(embryo+class~chr, value.var="counts") %>%
+  .[,ratioY:=chrY/chr1]
+
+to.plot[,class:=sapply(stringr::str_split(class,"_"),"[[",2)]
+```
+
+Barplots of chrXY/chr1 count ratio per embryo
+```{r}
+p <- ggbarplot(to.plot, x="class", y="ratioY", fill="class", facet="embryo") +
+  labs(x="", y="chrY/chr1 counts ratio") +
+  theme(
+    legend.position = "right",
+    # axis.text.x = element_text(colour="black",size=rel(0.8), angle=45, hjust=1, vjust=1),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+
+pdf(sprintf("%s/pdf/sex_ychr_expr_aggregated.pdf",io$outdir), width=8, height=6, useDingbats = F)
+print(p)
+dev.off()
+```
+
+# Plot expression of Xist
+
+```{r}
+to.plot <- data.table(
+  cell = colnames(sce),
+  expr = logcounts(sce["ENSMUSG00000086503",])[1,]
+) %>% merge(sample_metadata,by="cell")
+to.plot[,class:=sapply(stringr::str_split(class,"_"),"[[",2)]
+```
+
+```{r}
+p <- ggboxplot(to.plot, x="class", y="expr", fill="class", facet="embryo") +
+  labs(x="", y="Xist expression") +
+  theme(
+    legend.position = "right",
+    # axis.text.x = element_text(colour="black",size=rel(0.8), angle=45, hjust=1, vjust=1),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+
+pdf(sprintf("%s/pdf/Xist_expr.pdf",io$outdir), width=8, height=6, useDingbats = F)
+print(p)
+dev.off()
+```
+
+# Sex assignment
+
+```{r}
+opts$threshold.ratioY <- 1e-3 
+to.plot %>% .[,sex:=c("female","male")[as.numeric(ratioY>=opts$threshold.ratioY)+1]]
+```
+
+# Save
+
+```{r}
+fwrite(to.plot, paste0(io$outdir,"/sex_assignment.txt.gz"))
+```
+

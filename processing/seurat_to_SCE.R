@@ -5,34 +5,19 @@ library(scran)
 
 # Load default settings
 source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
-io$outfile <- paste0(io$basedir,"/processed/second_batch/SingleCellExperiment.rds")
-
-# Define options
-opts$batches <- c(
-	"E75_TET_TKO_L002",
-	"E75_WT_Host_L001",
-	"E85_Rep1_TET_TKO_L004",
-	"E85_Rep2_TET_TKO_L006",
-	"E85_Rep1_WT_Host_L003",
-	"E85_Rep2_WT_Host_L005"
-	# "E125_DNMT3A_HET_A_L001",
-	# "E125_DNMT3A_HET_A_L003",
-	# "E125_DNMT3A_KO_B_L002",
-	# "E125_DNMT3A_KO_E_L004"
-)
-
-# Update sample metadata
-sample_metadata <- sample_metadata %>%
-  .[batch%in%opts$batches & pass_QC==T]
+io$outfile <- paste0(io$basedir,"/processed/SingleCellExperiment.rds")
 
 # Load Seurat object
-seurat <- readRDS(io$seurat)[,sample_metadata$cell]
-dim(seurat)
+seurat <- readRDS(io$seurat)
 
 # Convert to SingleCellExperiment
 sce <- as.SingleCellExperiment(seurat)
 
 # Add metadata
+stopifnot(sample_metadata$cell%in%colnames(sce))
+stopifnot(colnames(sce)%in%sample_metadata$cell)
+sample_metadata <- sample_metadata %>% setkey(cell) %>% .[colnames(sce)]
+stopifnot(sample_metadata$cell == colnames(sce))
 colData(sce) <- sample_metadata %>% as.data.frame %>% tibble::column_to_rownames("cell") %>%
   .[colnames(sce),] %>% DataFrame()
 
@@ -47,5 +32,7 @@ ggplot(to.plot, mapping = aes(x = X, y = Y)) +
   geom_point() +
   labs(x = "Number of UMIs", y = "Size Factor") +
   theme_classic()
+
+sce <- logNormCounts(sce)
 
 saveRDS(sce, io$outfile)

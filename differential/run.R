@@ -8,11 +8,11 @@ if (grepl("ricard",Sys.info()['nodename'])) {
 } else if(grepl("ebi",Sys.info()['nodename'])){
   source("/homes/ricard/10x_gastrulation_TetChimera/settings.R")
   io$script <- "/homes/ricard/10x_gastrulation_TetChimera/differential/differential.R"
-  io$tmpdir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/results/second_batch/differential/tmp"; dir.create(io$tmpdir, showWarnings=F)
+  io$tmpdir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/results/differential/tmp"; dir.create(io$tmpdir, showWarnings=F)
 } else {
   stop("Computer not recognised")
 }
-io$outdir <- paste0(io$basedir,"/results/second_batch/differential"); dir.create(io$outdir, showWarnings = F)
+io$outdir <- paste0(io$basedir,"/results/differential"); dir.create(io$outdir, showWarnings = F)
 
 #############
 ## Options ##
@@ -25,16 +25,16 @@ opts$statistical.test <- "edgeR"
 opts$test_mode <- FALSE
 
 # Define groups
-opts$groupA <- "WT"
-opts$groupB <- "TET_TKO"
+opts$groupA <- c("E7.5_Host")
+opts$groupB <- c("E7.5_TET_TKO")
 
 #########
 ## Run ##
 #########
 
-for (i in head(opts$celltypes.1,n=3)) {
+for (i in head(opts$celltypes,n=3)) {
 # for (i in opts$celltypes.1) {
-    outfile <- sprintf("%s/%s_WT_vs_TKO.txt.gz", io$outdir,i)
+    outfile <- sprintf("%s/%s_%s_vs_%s.txt.gz", io$outdir,i,opts$groupA,opts$groupB)
     
     # Define LSF command
     if (grepl("ricard",Sys.info()['nodename'])) {

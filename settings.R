@@ -80,42 +80,42 @@ opts$celltypes = c(
 
 opts$celltype.colors = c(
 	"Epiblast" = "#635547",
-	"Primitive Streak" = "#DABE99",
-	"Caudal epiblast" = "#9e6762",
+	"Primitive_Streak" = "#DABE99",
+	"Caudal_epiblast" = "#9e6762",
 	"PGC" = "#FACB12",
-	"Anterior Primitive Streak" = "#c19f70",
+	"Anterior_Primitive_Streak" = "#c19f70",
 	"Notochord" = "#0F4A9C",
-	"Def. endoderm" = "#F397C0",
+	"Def._endoderm" = "#F397C0",
 	"Gut" = "#EF5A9D",
-	"Nascent mesoderm" = "#C594BF",
-	"Mixed mesoderm" = "#DFCDE4",
-	"Intermediate mesoderm" = "#139992",
-	"Caudal Mesoderm" = "#3F84AA",
-	"Paraxial mesoderm" = "#8DB5CE",
-	"Somitic mesoderm" = "#005579",
-	"Pharyngeal mesoderm" = "#C9EBFB",
+	"Nascent_mesoderm" = "#C594BF",
+	"Mixed_mesoderm" = "#DFCDE4",
+	"Intermediate_mesoderm" = "#139992",
+	"Caudal_Mesoderm" = "#3F84AA",
+	"Paraxial_mesoderm" = "#8DB5CE",
+	"Somitic_mesoderm" = "#005579",
+	"Pharyngeal_mesoderm" = "#C9EBFB",
 	"Cardiomyocytes" = "#B51D8D",
 	"Allantois" = "#532C8A",
-	"ExE mesoderm" = "#8870ad",
+	"ExE_mesoderm" = "#8870ad",
 	"Mesenchyme" = "#cc7818",
-	"Haematoendothelial progenitors" = "#FBBE92",
+	"Haematoendothelial_progenitors" = "#FBBE92",
 	"Endothelium" = "#ff891c",
-	"Blood progenitors 1" = "#f9decf",
-	"Blood progenitors 2" = "#c9a997",
+	"Blood_progenitors_1" = "#f9decf",
+	"Blood_progenitors_2" = "#c9a997",
 	"Erythroid1" = "#C72228",
 	"Erythroid2" = "#f79083",
 	"Erythroid3" = "#EF4E22",
 	"NMP" = "#8EC792",
-	"Rostral neurectoderm" = "#65A83E",
-	"Caudal neurectoderm" = "#354E23",
-	"Neural crest" = "#C3C388",
-	"Forebrain/Midbrain/Hindbrain" = "#647a4f",
-	"Spinal cord" = "#CDE088",
-	"Surface ectoderm" = "#f7f79e",
-	"Visceral endoderm" = "#F6BFCB",
-	"ExE endoderm" = "#7F6874",
-	"ExE ectoderm" = "#989898",
-	"Parietal endoderm" = "#1A1A1A"
+	"Rostral_neurectoderm" = "#65A83E",
+	"Caudal_neurectoderm" = "#354E23",
+	"Neural_crest" = "#C3C388",
+	"Forebrain_Midbrain_Hindbrain" = "#647a4f",
+	"Spinal_cord" = "#CDE088",
+	"Surface_ectoderm" = "#f7f79e",
+	"Visceral_endoderm" = "#F6BFCB",
+	"ExE_endoderm" = "#7F6874",
+	"ExE_ectoderm" = "#989898",
+	"Parietal_endoderm" = "#1A1A1A"
 )
 
 opts$batches <- c(
@@ -148,3 +148,23 @@ sample_metadata <- fread(io$metadata) %>% .[pass_QC==T] %>%
   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped," ","_")] %>%
   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,"/","_")]
   
+##################
+## IGNORE BELOW ##
+##################
+
+# Assign embryos
+# opts$batch.to.embryo <- c(
+#   "E75_TET_TKO_L002" = "E7.5_embryo1", 
+#   "E75_WT_Host_L001" = "E7.5_embryo1", 
+#   "E85_Rep1_TET_TKO_L004" = "E8.5_embryo1", 
+#   "E85_Rep1_WT_Host_L003" = "E8.5_embryo1", 
+#   "E85_Rep2_TET_TKO_L006" = "E8.5_embryo2", 
+#   "E85_Rep2_WT_Host_L005" = "E8.5_embryo2", 
+#   "SIGAE4_E105_3_TET123_Chimera_Host_L005" = "E10.5_embryo1", 
+#   "SIGAF4_E105_3_TET123_Chimera_TKO_L006" = "E10.5_embryo1", 
+#   "SIGAG4_E105_5_TET123_Chimera_Host_L007" = "E10.5_embryo2", 
+#   "SIGAH4_E105_5_TET123_Chimera_TKO_L008" = "E10.5_embryo2"
+# )
+# sample_metadata <- fread(io$metadata)
+# sample_metadata[,embryo:=stringr::str_replace_all(batch,opts$batch.to.embryo)]
+# fwrite(sample_metadata, io$metadata, sep="\t", na="NA", quote=F)

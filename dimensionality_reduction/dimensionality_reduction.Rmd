@@ -17,23 +17,63 @@ io$outdir <- paste0(io$basedir,"/results/dimensionality_reduction")
 Define options
 ```{r}
 opts$batches <- c(
-  "E75_TET_TKO_L002", 
-  "E75_WT_Host_L001"
+  # "E75_TET_TKO_L002", 
+  # "E75_WT_Host_L001"
   # "E85_Rep1_TET_TKO_L004", 
-  # "E85_Rep1_WT_Host_L003", 
+  "E85_Rep1_WT_Host_L003",
   # "E85_Rep2_TET_TKO_L006", 
-  # "E85_Rep2_WT_Host_L005", 
+  "E85_Rep2_WT_Host_L005"
   # "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
   # "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
   # "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
   # "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
+)
+
+opts$celltypes = c(
+	# "Epiblast",
+	# "Primitive_Streak"
+	# "Caudal_epiblast",
+	# "PGC",
+	# "Anterior_Primitive_Streak",
+	# "Notochord",
+	# "Def._endoderm",
+	# "Gut"
+	# "Nascent_mesoderm",
+	# "Mixed_mesoderm",
+	# "Intermediate_mesoderm",
+	# "Caudal_Mesoderm",
+	# "Paraxial_mesoderm",
+	# "Somitic_mesoderm",
+	# "Pharyngeal_mesoderm",
+	# "Cardiomyocytes",
+	# "Allantois",
+	# "ExE_mesoderm",
+	# "Mesenchyme"
+	# "Haematoendothelial_progenitors",
+	# "Endothelium",
+	# "Blood_progenitors_1",
+	# "Blood_progenitors_2",
+	# "Erythroid1",
+	# "Erythroid2",
+	# "Erythroid3"
+	# "NMP",
+	"Rostral_neurectoderm",
+	"Caudal_neurectoderm",
+	"Neural_crest",
+	"Forebrain_Midbrain_Hindbrain",
+	"Spinal_cord"
+	# "Surface_ectoderm",
+	# "Visceral_endoderm",
+	# "ExE_endoderm",
+	# "ExE_ectoderm",
+	# "Parietal_endoderm"
 )
 ```
 
 Update sample metadata
 ```{r load_metadata, echo=FALSE}
 sample_metadata <- sample_metadata %>%
-  .[batch%in%opts$batches]
+  .[batch%in%opts$batches & celltype.mapped%in%opts$celltypes]
 table(sample_metadata$batch)
 ```
 
@@ -145,20 +185,23 @@ seurat <- RunUMAP(seurat,
 # Plot 
 
 ```{r}
-# Idents(seurat) <- "batch"
 Idents(seurat) <- "celltype.mapped"
-# levels(seurat)
+DimPlot(seurat, label = FALSE, reduction = 'umap', cols = opts$celltype.colors)# + NoLegend()
 ```
 
 ```{r}
-# DimPlot(seurat, label = FALSE, reduction = 'umap')
-DimPlot(seurat, label = FALSE, reduction = 'umap', cols = opts$celltype.colors) + NoLegend()
+Idents(seurat) <- "class"
+DimPlot(seurat, label = FALSE, reduction = 'umap')
+```
+
+```{r}
+Idents(seurat) <- "batch"
+DimPlot(seurat, label = FALSE, reduction = 'umap')
 ```
 
 Explore marker genes
 ```{r}
-genes.to.plot <- c("Apom")
-
-FeaturePlot(seurat, features = genes.to.plot, reduction='umap')
+# genes.to.plot <- c("Apom")
+# FeaturePlot(seurat, features = genes.to.plot, reduction='umap')
 ```
 

@@ -21,8 +21,8 @@ args <- p$parse_args(commandArgs(TRUE))
 stopifnot(args$test%in%c("edgeR","t-test","wilcoxon"))
 
 ## START TEST
-# args$groupA <- c("WT")
-# args$groupB <- c("TET_TKO")
+# args$groupA <- c("E7.5_Host")
+# args$groupB <- c("E7.5_TET_TKO")
 # args$celltype <- c("Allantois")
 # args$test <- c("edgeR")
 # args$test_mode <- TRUE
@@ -71,7 +71,7 @@ stopifnot(all(opts$groups%in%unique(sample_metadata$class)))
 
 # Update cell metadata
 sample_metadata <- sample_metadata %>%
-  .[class%in%opts$groups & celltype%in%args$celltype] %>%
+  .[class%in%opts$groups & celltype.mapped%in%args$celltype] %>%
   setnames("class","group") %>%
   .[,c("cell","group")]
 
@@ -114,15 +114,18 @@ sce <- sce[rownames(sce)%in%gene_metadata$ens_id,]
 ################################################
 
 out <- doDiffExpr(sce, opts$groups, args$test, opts$min_detection_rate_per_group) %>%
+  # Add sample statistics
+  .[,c("groupA_N","groupB_N"):=list(table(sample_metadata$group)[1],table(sample_metadata$group)[2])]%>% 
+  setnames(c("groupA_N","groupB_N"),c(sprintf("N_%s",opts$groups[1]),sprintf("N_%s",opts$groups[2]))) %>%
+  # Add gene statistics
   merge(cdr.dt, all.y=T, by="ens_id") %>%
   merge(gene_metadata, all.y=T, by="ens_id") %>%
+  # Calculate statistical significance
  .[, sig := (padj_fdr<=opts$threshold_fdr & abs(logFC)>=opts$min.logFC)] %>%
-  # setorderv(c("sig","padj_fdr"), na.last=T)
   setorder(-sig, padj_fdr, na.last=T)
 
 ##################
 ## Save results ##
 ##################
 
-# args$outfile <- args$outfile# %>% stringr::str_replace_all(.,"-"," ")
 fwrite(out, args$outfile, sep="\t", na="NA", quote=F)
