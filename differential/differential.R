@@ -21,11 +21,11 @@ args <- p$parse_args(commandArgs(TRUE))
 stopifnot(args$test%in%c("edgeR","t-test","wilcoxon"))
 
 ## START TEST
-# args$groupA <- c("E7.5_Host")
-# args$groupB <- c("E7.5_TET_TKO")
-# args$celltype <- c("Allantois")
-# args$test <- c("edgeR")
-# args$test_mode <- TRUE
+args$groupA <- c("E8.5_Host")
+args$groupB <- c("E8.5_TET_TKO")
+args$celltype <- c("Gut")
+args$test <- c("edgeR")
+args$test_mode <- FALSE
 ## END TEST
 
 
@@ -73,7 +73,7 @@ stopifnot(all(opts$groups%in%unique(sample_metadata$class)))
 sample_metadata <- sample_metadata %>%
   .[class%in%opts$groups & celltype.mapped%in%args$celltype] %>%
   setnames("class","group") %>%
-  .[,c("cell","group")]
+  .[,c("cell","celltype.mapped","group")]
 
 # Sort cells so that groupA comes before groupB
 sample_metadata[,group:=factor(group,levels=opts$groups)] %>% setorder(group)

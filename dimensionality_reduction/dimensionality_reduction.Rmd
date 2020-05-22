@@ -30,43 +30,43 @@ opts$batches <- c(
 )
 
 opts$celltypes = c(
-	# "Epiblast",
-	# "Primitive_Streak"
-	# "Caudal_epiblast",
-	# "PGC",
-	# "Anterior_Primitive_Streak",
-	# "Notochord",
-	# "Def._endoderm",
-	# "Gut"
-	# "Nascent_mesoderm",
-	# "Mixed_mesoderm",
-	# "Intermediate_mesoderm",
-	# "Caudal_Mesoderm",
-	# "Paraxial_mesoderm",
-	# "Somitic_mesoderm",
-	# "Pharyngeal_mesoderm",
-	# "Cardiomyocytes",
-	# "Allantois",
-	# "ExE_mesoderm",
-	# "Mesenchyme"
-	# "Haematoendothelial_progenitors",
-	# "Endothelium",
-	# "Blood_progenitors_1",
-	# "Blood_progenitors_2",
-	# "Erythroid1",
-	# "Erythroid2",
-	# "Erythroid3"
-	# "NMP",
+	"Epiblast",
+	"Primitive_Streak",
+	"Caudal_epiblast",
+	"PGC",
+	"Anterior_Primitive_Streak",
+	"Notochord",
+	"Def._endoderm",
+	"Gut",
+	"Nascent_mesoderm",
+	"Mixed_mesoderm",
+	"Intermediate_mesoderm",
+	"Caudal_Mesoderm",
+	"Paraxial_mesoderm",
+	"Somitic_mesoderm",
+	"Pharyngeal_mesoderm",
+	"Cardiomyocytes",
+	"Allantois",
+	"ExE_mesoderm",
+	"Mesenchyme",
+	"Haematoendothelial_progenitors",
+	"Endothelium",
+	"Blood_progenitors_1",
+	"Blood_progenitors_2",
+	"Erythroid1",
+	"Erythroid2",
+	"Erythroid3",
+	"NMP",
 	"Rostral_neurectoderm",
 	"Caudal_neurectoderm",
 	"Neural_crest",
 	"Forebrain_Midbrain_Hindbrain",
-	"Spinal_cord"
-	# "Surface_ectoderm",
-	# "Visceral_endoderm",
-	# "ExE_endoderm",
-	# "ExE_ectoderm",
-	# "Parietal_endoderm"
+	"Spinal_cord",
+	"Surface_ectoderm",
+	"Visceral_endoderm",
+	"ExE_endoderm",
+	"ExE_ectoderm",
+	"Parietal_endoderm"
 )
 ```
 
@@ -186,7 +186,7 @@ seurat <- RunUMAP(seurat,
 
 ```{r}
 Idents(seurat) <- "celltype.mapped"
-DimPlot(seurat, label = FALSE, reduction = 'umap', cols = opts$celltype.colors)# + NoLegend()
+DimPlot(seurat, label = FALSE, reduction = 'umap', cols = opts$celltype.colors) + NoLegend()
 ```
 
 ```{r}
@@ -201,7 +201,7 @@ DimPlot(seurat, label = FALSE, reduction = 'umap')
 
 Explore marker genes
 ```{r}
-# genes.to.plot <- c("Apom")
-# FeaturePlot(seurat, features = genes.to.plot, reduction='umap')
+genes.to.plot <- c("Hba-x")
+FeaturePlot(seurat, features = genes.to.plot, reduction='umap')
 ```
 

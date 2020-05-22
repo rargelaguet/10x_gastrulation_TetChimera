@@ -8,16 +8,16 @@ io$diff.dir <- paste0(io$basedir,"/results/differential")
 io$outdir <- paste0(io$basedir,"/results/differential/pdf")
 
 # Define groups
-opts$groupA <- c("E7.5_Host")
-opts$groupB <- c("E7.5_TET_TKO")
+opts$groupA <- c("E8.5_Host")
+opts$groupB <- c("E8.5_TET_TKO")
 
 #############################################
 ## Load results from differential analysis ##
 #############################################
 
-dt <- head(opts$celltypes,n=3) %>% map(function(i) {
-    fread(sprintf("%s/%s_%s_vs_%s.txt.gz", io$diff.dir,i,opts$groupA,opts$groupB)) %>% 
-      .[,c("celltype","groupA","groupB"):=list(i,opts$groupA,opts$groupB)]
+dt <- opts$celltypes %>% map(function(i) {
+  file <- sprintf("%s/%s_%s_vs_%s.txt.gz", io$diff.dir,i,opts$groupA,opts$groupB)
+  if (file.exists(file)) fread(file) %>% .[,c("celltype","groupA","groupB"):=list(i,opts$groupA,opts$groupB)]
 }) %>% rbindlist
 
 # (TO-DO) Filter by minimum number of cells per group

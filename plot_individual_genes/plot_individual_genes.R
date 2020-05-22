@@ -60,9 +60,9 @@ opts$celltypes = c(
 # Define classes to plot
 opts$classes <- c(
   "E7.5_Host", 
-  "E7.5_TET_TKO"
-  # "E8.5_Host", 
-  # "E8.5_TET_TKO", 
+  "E7.5_TET_TKO",
+  "E8.5_Host",
+  "E8.5_TET_TKO"
   # "E10.5_Host", 
   # "E10.5_TET_TKO"
 )
@@ -109,7 +109,10 @@ stopifnot(sum(duplicated(new.names))==0)
 
 # genes.to.plot <- c("Dnmt3l","Apoe")
 # genes.to.plot <- rownames(sce)
-genes.to.plot <- "Xist"
+# genes.to.plot <- c("Hba-x","Hbb-y","Hba-a1","Hbb-bh1")
+# genes.to.plot <- c("Lefty1","Cd34","Tmsb4x","Fgf3")
+genes.to.plot <- c("Dppa3","Dppa2")
+# genes.to.plot <- c("Spata7","Cer1","Spink1","Dppa4","Dppa5a","Prc1","Lefty2","Ube2c")
 
 for (i in 1:length(genes.to.plot)) {
   gene <- genes.to.plot[i]
@@ -129,8 +132,9 @@ for (i in 1:length(genes.to.plot)) {
     scale_fill_manual(values=opts$celltype.colors) +
     facet_wrap(~class) +
     theme_classic() +
-    labs(x="",y="RNA expression") +
+    labs(title=gene, x="",y="RNA expression") +
     theme(
+      plot.title = element_text(hjust = 0.5, size=rel(1.1), color="black"),
       axis.text.x = element_text(colour="black",size=rel(1.2), angle=50, hjust=1),
       axis.text.y = element_text(colour="black",size=rel(1.0)),
       legend.position="none"
@@ -138,7 +142,7 @@ for (i in 1:length(genes.to.plot)) {
     
   # pdf(sprintf("%s/%s.pdf",io$outdir,i), width=8, height=3.5, useDingbats = F)
   # ggsave("ggtest.png", width = 3.25, height = 3.25, dpi = 1200)
-  jpeg(sprintf("%s/%s.jpeg",io$outdir,gene), width = 1300, height = 400)
+  jpeg(sprintf("%s/%s.jpeg",io$outdir,gene), width = 1300, height = 430)
   print(p)
   dev.off()
 }
