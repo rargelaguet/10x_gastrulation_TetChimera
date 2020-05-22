@@ -217,10 +217,10 @@ mapWrap <- function(atlas_sce, atlas_meta, map_sce, map_meta, order, k = 30, npc
       cell            = names(mapping), 
       celltype.mapped = unlist(ct),
       stage.mapped    = unlist(st),
-      closest.cell    = unlist(cm))
+      closest.cell    = unlist(cm),
+      stringsAsFactors=FALSE)
   
   out$mapping <- cbind(out$mapping,multinomial.prob)
-  out$pca <- big_pca
   message("Done\n")
   
   return(out)

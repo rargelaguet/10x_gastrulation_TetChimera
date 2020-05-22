@@ -9,18 +9,21 @@ for r in ["CreateSeurat", "CorrectSeuratAtlas", "Mapping", "CorrectSeuratAtlasSu
 
 rule all:
     input:
-        expand( config["directories"]["base"]+"TettKOchimera/"+config["directories"]["output"]+"plots/mockfile_{method}_{sample}.txt", sample=config["types"]["TettKOchimera"], method=config["mapping_methods"] ),
-        expand( config["directories"]["base"]+"TettKOchimera/"+config["directories"]["output"]+"plots/mockfile_{method}_{sample}_{subset}.txt", sample=config["types"]["TettKOchimera"], method=config["mapping_methods"], subset=config["subset_celltypes"] )
+        expand( config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"second_batch/plots/mockfile.{method}.{sample}.txt", experiment=config["experiments"], sample=config["types"]["second_batch"], method=config["mapping_methods"] ),
+        expand( config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"second_batch/plots/mockfile.{method}.{sample}.{subset}.txt", experiment=config["experiments"], sample=config["types"]["second_batch"], method=config["mapping_methods"], subset=config["subset_celltypes"] ),
+        expand( config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"third_batch/plots/mockfile.{method}.{sample}.txt", experiment=config["experiments"], sample=config["types"]["third_batch"], method=config["mapping_methods"] ),
+        expand( config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"third_batch/plots/mockfile.{method}.{sample}.{subset}.txt", experiment=config["experiments"], sample=config["types"]["third_batch"], method=config["mapping_methods"], subset=config["subset_celltypes"] )
 
 
 rule CreateSeurat:
     input:
         script=config["scripts"]["CreateSeurat"],
-        srat=lambda wildcards: config["directories"]["base"]+"{experiment}/processed/seurat.rds",
+        dir=lambda wildcards: config["directories"]["base"]+config["directories"]["extention"]+"original/{experiment}/",
         sets=config["settings"]["CreateSeurat"]
     output:
-        seurat=config["directories"]["base"]+"{experiment}/"+config["directories"]["output"]+"seurat_QCed.rds",
-        metadata=config["directories"]["base"]+"{experiment}/"+config["directories"]["output"]+"sample_metadata_QCed.txt"
+        seurat=config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"{experiment}/seurat.rds",
+        metadata=config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"{experiment}/sample_metadata.txt",
+        genemetadata=config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"{experiment}/gene_metadata.txt"
     params:
         memory=config["lsf"]["CreateSeurat"]["memory"],
         rusage=config["lsf"]["CreateSeurat"]["rusage"],
@@ -28,26 +31,7 @@ rule CreateSeurat:
         outfile = config["directories"]["base"]+config["directories"]["outfiles"]+"CreateSeurat/{experiment}.txt",
         errfile = config["directories"]["base"]+config["directories"]["errfiles"]+"CreateSeurat/{experiment}.txt"
     shell:
-        "{input.script} -i {input.srat} -S {input.sets} -O {output.seurat} -o {output.metadata} -e {wildcards.experiment}"
-
-
-rule CorrectSeuratAtlas:
-    input:
-        script=config["directories"]["base"]+config["directories"]["mapping_scripts"]+"seurat/CorrectAtlas_seurat.R",
-        sets=config["settings"]["Mapping"],
-        atlasrds=config["directories"]["atlas"]+"sce_atlas.rds",
-        atlasmd=config["directories"]["atlas"]+"atlas_metadata.txt.gz"
-    output:
-        rds=config["directories"]["atlas"]+"corrected/seurat_atlas.rds",
-        md=config["directories"]["atlas"]+"corrected/seurat_atlas.txt"
-    params:
-        memory=config["lsf"]["CorrectAtlas"]["memory"],
-        rusage=config["lsf"]["CorrectAtlas"]["rusage"],
-        other=config["lsf"]["CorrectAtlas"]["other"],
-        outfile = config["directories"]["base"]+config["directories"]["outfiles"]+"CorrectSeuratAtlas.txt",
-        errfile = config["directories"]["base"]+config["directories"]["errfiles"]+"CorrectSeuratAtlas.txt"
-    shell:
-        "{input.script} -A {input.atlasrds} -a {input.atlasmd} -O {output.rds} -o {output.md} -S {input.sets}"
+        "{input.script} -i {input.dir} -S {input.sets} -O {output.seurat} -o {output.metadata} -g {output.genemetadata} -e {wildcards.experiment}"
 
 
 rule Mapping:
@@ -57,13 +41,11 @@ rule Mapping:
         meta=rules.CreateSeurat.output.metadata,
         sets=config["settings"]["Mapping"],
         fns=config["functions"]["Mapping"],
-        corratlasrds=rules.CorrectSeuratAtlas.output.rds,
-        corratlasmeta=rules.CorrectSeuratAtlas.output.md,
         atlasrds=config["directories"]["atlas"]+"sce_atlas.rds",
         atlasmd=config["directories"]["atlas"]+"atlas_metadata.txt.gz"
     output:
-        rds=config["directories"]["base"]+"{experiment}/"+config["directories"]["output"]+"mapping/{method}/mapping_{method}_{sample}.rds",
-        txtgz=config["directories"]["base"]+"{experiment}/"+config["directories"]["output"]+"mapping/{method}/mapping_{method}_{sample}.txt.gz"
+        rds=config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"{experiment}/mapping/{method}/mapping_{method}_{sample}.rds",
+        txtgz=config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"{experiment}/mapping/{method}/mapping_{method}_{sample}.txt.gz"
     params:
         memory=lambda wildcards: config["lsf"]["Mapping"]["memory"][wildcards.method],
         rusage=lambda wildcards: config["lsf"]["Mapping"]["rusage"][wildcards.method],
@@ -72,30 +54,7 @@ rule Mapping:
         errfile = config["directories"]["base"]+config["directories"]["errfiles"]+"Mapping/{experiment}_{method}_{sample}.txt"
     run:
         b = wildcards.sample
-        
-        if wildcards.method == 'seurat':
-            shell("{input.script} -A {input.corratlasrds} -a {input.corratlasmeta} -Q {input.query} -q {input.meta} -b "+b+" -S {input.sets} -f {input.fns} -O {output.rds} -o {output.txtgz}")
-        else:
-            shell("{input.script} -A {input.atlasrds} -a {input.atlasmd} -Q {input.query} -q {input.meta} -b "+b+" -S {input.sets} -f {input.fns} -O {output.rds} -o {output.txtgz}")
-
-
-rule CorrectSeuratAtlasSubset:
-    input:
-        script=config["directories"]["base"]+config["directories"]["mapping_scripts"]+"seurat/CorrectAtlas_seurat.R",
-        sets=config["settings"]["Mapping"],
-        atlasrds=config["directories"]["atlas"]+"sce_atlas.rds",
-        atlasmd=config["directories"]["atlas"]+"atlas_metadata.txt.gz"
-    output:
-        rds=config["directories"]["atlas"]+"corrected/seurat_atlas_{subset}.rds",
-        md=config["directories"]["atlas"]+"corrected/seurat_atlas_{subset}.txt"
-    params:
-        memory=config["lsf"]["CorrectAtlas"]["memory"],
-        rusage=config["lsf"]["CorrectAtlas"]["rusage"],
-        other=config["lsf"]["CorrectAtlas"]["other"],
-        outfile = config["directories"]["base"]+config["directories"]["outfiles"]+"CorrectSeuratAtlasSubset/{subset}.txt",
-        errfile = config["directories"]["base"]+config["directories"]["errfiles"]+"CorrectSeuratAtlasSubset/{subset}.txt"
-    shell:
-        "{input.script} -A {input.atlasrds} -a {input.atlasmd} -O {output.rds} -o {output.md} -S {input.sets} -L {wildcards.subset}"
+        shell("{input.script} -A {input.atlasrds} -a {input.atlasmd} -Q {input.query} -q {input.meta} -e {wildcards.experiment} -b "+b+" -S {input.sets} -f {input.fns} -O {output.rds} -o {output.txtgz}")
 
 
 rule MappingSubset:
@@ -107,11 +66,11 @@ rule MappingSubset:
         mappingtxtgz=rules.Mapping.output.txtgz,
         sets=config["settings"]["Mapping"],
         fns=config["functions"]["Mapping"],
-        corratlasrds=rules.CorrectSeuratAtlasSubset.output.rds,
-        corratlasmeta=rules.CorrectSeuratAtlasSubset.output.md
+        atlasrds=config["directories"]["atlas"]+"sce_atlas.rds",
+        atlasmd=config["directories"]["atlas"]+"atlas_metadata.txt.gz"
     output:
-        rds=config["directories"]["base"]+"{experiment}/"+config["directories"]["output"]+"mapping/{method}/mapping_{method}_{sample}_{subset}.rds",
-        txtgz=config["directories"]["base"]+"{experiment}/"+config["directories"]["output"]+"mapping/{method}/mapping_{method}_{sample}_{subset}.txt.gz"
+        rds=config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"{experiment}/mapping/{method}/mapping_{method}_{sample}_{subset}.rds",
+        txtgz=config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"{experiment}/mapping/{method}/mapping_{method}_{sample}_{subset}.txt.gz"
     params:
         memory=lambda wildcards: config["lsf"]["MappingSubset"]["memory"][wildcards.method],
         rusage=lambda wildcards: config["lsf"]["MappingSubset"]["rusage"][wildcards.method],
@@ -120,11 +79,7 @@ rule MappingSubset:
         errfile = config["directories"]["base"]+config["directories"]["errfiles"]+"MappingSubset/{experiment}_{method}_{sample}_{subset}.txt"
     run:
         b = wildcards.sample
-        
-        if wildcards.method == 'seurat':
-            shell("{input.script} -A {input.corratlasrds} -a {input.corratlasmeta} -Q {input.query} -q {input.meta} -M {input.mappingrds} -m {input.mappingtxtgz} -b "+b+" -L {wildcards.subset} -S {input.sets} -f {input.fns} -O {output.rds} -o {output.txtgz}")
-        else:
-            shell("{input.script} -Q {input.query} -q {input.meta} -M {input.mappingrds} -m {input.mappingtxtgz} -b "+b+" -L {wildcards.subset} -S {input.sets} -f {input.fns} -O {output.rds} -o {output.txtgz}")
+        shell("{input.script} -A {input.atlasrds} -a {input.atlasmd} -Q {input.query} -q {input.meta} -e {wildcards.experiment} -M {input.mappingrds} -m {input.mappingtxtgz} -b "+b+" -L {wildcards.subset} -S {input.sets} -f {input.fns} -O {output.rds} -o {output.txtgz}")
 
 
 rule Plotting:
@@ -133,15 +88,15 @@ rule Plotting:
         rds=rules.Mapping.output.rds,
         meta=rules.Mapping.output.txtgz,
         query=rules.CreateSeurat.output.metadata,
-        atlas=rules.CorrectSeuratAtlas.output.md,
+        atlas=config["directories"]["atlas"]+"atlas_metadata.txt.gz",
         sets=config["settings"]["Plotting"]
     output:
-        config["directories"]["base"]+"{experiment}/"+config["directories"]["output"]+"plots/mockfile_{method}_{sample}.txt"
+        config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"{experiment}/plots/mockfile.{method}.{sample}.txt"
     params:
         memory=config["lsf"]["Plotting"]["memory"],
         other=config["lsf"]["Plotting"]["other"],
         rusage=config["lsf"]["Plotting"]["rusage"],
-        outdir=config["directories"]["base"]+"{experiment}/"+config["directories"]["output"]+"plots/{method}/{sample}/",
+        outdir=config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"{experiment}/plots/{method}/{sample}/",
         ext="{method}_{sample}",
         outfile = config["directories"]["base"]+config["directories"]["outfiles"]+"Plotting/{experiment}_{method}_{sample}.txt",
         errfile = config["directories"]["base"]+config["directories"]["errfiles"]+"Plotting/{experiment}_{method}_{sample}.txt"
@@ -159,10 +114,10 @@ rule PlottingSubset:
         rds=rules.MappingSubset.output.rds,
         meta=rules.MappingSubset.output.txtgz,
         query=rules.CreateSeurat.output.metadata,
-        atlas=rules.CorrectSeuratAtlasSubset.output.md,
+        atlas=config["directories"]["atlas"]+"atlas_metadata.txt.gz",
         sets=config["settings"]["Plotting"]
     output:
-        config["directories"]["base"]+"{experiment}/"+config["directories"]["output"]+"plots/mockfile_{method}_{sample}_{subset}.txt"
+        config["directories"]["base"]+config["directories"]["extention"]+config["directories"]["output"]+"{experiment}/plots/mockfile.{method}.{sample}.{subset}.txt"
     params:
         memory=config["lsf"]["PlottingSubset"]["memory"],
         rusage=config["lsf"]["PlottingSubset"]["rusage"],
