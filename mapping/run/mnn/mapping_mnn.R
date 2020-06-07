@@ -60,10 +60,6 @@ io$path2query <- io$basedir
 
 if (isTRUE(args$test)) print("Test mode activated...")
 
-####################
-## Define options ##
-####################
-
 ################
 ## Load atlas ##
 ################
@@ -116,6 +112,7 @@ print(marker_genes.dt[,.N,by="celltype"])
 
 
 stopifnot(all(marker_genes%in%rownames(sce_atlas)))
+
 #########
 ## Map ##
 #########
