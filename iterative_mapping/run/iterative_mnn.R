@@ -17,33 +17,33 @@ p$add_argument('--test',            action = "store_true",  help = 'Testing mode
 args <- p$parse_args(commandArgs(TRUE))
 
 ## START TEST ##
-args$atlas_stages <- c(
-  # "E6.5"
-  # "E6.75",
-  # "E7.0",
-  # "E7.25",
-  # "E7.5",
-  # "E7.75",
-  # "E8.0",
-  "E8.25",
-  "E8.5"
-  # "mixed_gastrulation"
-)
-
-args$query_batches <- c(
-  # "E75_TET_TKO_L002",
-  # "E75_WT_Host_L001",
-  # "E85_Rep1_TET_TKO_L004"
-  # "E85_Rep2_TET_TKO_L006",
-  # "E85_Rep1_WT_Host_L003"
-  "E85_Rep2_WT_Host_L005"
-  # "E125_DNMT3A_HET_A_L001",
-  # "E125_DNMT3A_HET_A_L003",
-  # "E125_DNMT3A_KO_B_L002",
-  # "E125_DNMT3A_KO_E_L004"
-)
-
-args$test <- FALSE
+# args$atlas_stages <- c(
+#   # "E6.5"
+#   # "E6.75",
+#   # "E7.0",
+#   # "E7.25",
+#   # "E7.5",
+#   # "E7.75",
+#   # "E8.0",
+#   "E8.25",
+#   "E8.5"
+#   # "mixed_gastrulation"
+# )
+# 
+# args$query_batches <- c(
+#   # "E75_TET_TKO_L002",
+#   # "E75_WT_Host_L001",
+#   # "E85_Rep1_TET_TKO_L004"
+#   # "E85_Rep2_TET_TKO_L006",
+#   # "E85_Rep1_WT_Host_L003"
+#   "E85_Rep2_WT_Host_L005"
+#   # "E125_DNMT3A_HET_A_L001",
+#   # "E125_DNMT3A_HET_A_L003",
+#   # "E125_DNMT3A_KO_B_L002",
+#   # "E125_DNMT3A_KO_E_L004"
+# )
+# 
+# args$test <- FALSE
 ## END TEST ##
 
 #####################
@@ -110,7 +110,7 @@ mapping_dt <- data.table(
   celltype_mapped = sce_query$celltype_mapped,
   mapping_score = sce_query$mapping_score
 )
-foo <- mapping_dt %>% merge(meta_query[,c("cell","celltype.mapped","celltype.score")] %>% setnames(c("cell","celltype_old","score_old")))
+# foo <- mapping_dt %>% merge(meta_query[,c("cell","celltype.mapped","celltype.score")] %>% setnames(c("cell","celltype_old","score_old")))
 
 fwrite(mapping_dt, sprintf("%s/%s_iterative_mnn.txt.gz",io$outdir,paste(args$query_batches,collapse="_")), sep="\t")
 

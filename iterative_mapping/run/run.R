@@ -68,7 +68,7 @@ for (i in opts$query_batches) {
   system(cmd)
 
   # Run tree-guided MNN
-  cmd <- sprintf("%s Rscript %s --query_batches %s --atlas_stages %s", lsf, io$iterative.mnn.script, i, paste(opts$atlas_stages, collapse=" "))
-  if (isTRUE(opts$test)) cmd <- paste0(cmd, " --test")
-  system(cmd)
+  # cmd <- sprintf("%s Rscript %s --query_batches %s --atlas_stages %s", lsf, io$iterative.mnn.script, i, paste(opts$atlas_stages, collapse=" "))
+  # if (isTRUE(opts$test)) cmd <- paste0(cmd, " --test")
+  # system(cmd)
 }

@@ -17,9 +17,9 @@ opts$batches <- c(
   # "E75_WT_Host_L001",
   
   # E8.5
-  # "E85_Rep1_TET_TKO_L004",
-  # "E85_Rep2_TET_TKO_L006",
-  # "E85_Rep1_WT_Host_L003",
+  "E85_Rep1_TET_TKO_L004",
+  "E85_Rep2_TET_TKO_L006",
+  "E85_Rep1_WT_Host_L003",
   "E85_Rep2_WT_Host_L005"
   
   # E12.5
@@ -34,7 +34,7 @@ opts$batches <- c(
 ###################
 
 sample_metadata <- sample_metadata %>%
-  .[batch%in%opts$batches] 
+  .[batch%in%opts$batches] %>%
 table(sample_metadata$batch)
 
 ################
@@ -84,14 +84,19 @@ barplot.pub <- function(df, x, colors=NULL, xlim.max=NULL) {
 }
 
 for (i in opts$batches) {
+  
   to.plot <- mapping_dt[batch==i] %>% 
     merge(sample_metadata, by=c("cell","batch")) %>% 
-    .[celltype_mapped=="Forebrain Midbrain Hindbrain",celltype_mapped:="Forebrain/Midbrain/Hindbrain"] %>%
+    .[celltype_mapped=="Forebrain Midbrain Hindbrain",celltype_mapped:="Forebrain_Midbrain_Hindbrain"] %>%
     .[,.N,by=c("celltype_mapped","batch","method")]
   
-  barplot.pub(to.plot, x="celltype_mapped", colors=opts$celltype.colors) +
+  to.plot[,celltype_mapped:=stringr::str_replace_all(celltype_mapped," ", "_")]
+  
+  p <- barplot.pub(to.plot, x="celltype_mapped", colors=opts$celltype.colors) +
     facet_wrap(~method, nrow=1, scales="free_x") +
     theme(
       strip.background = element_blank()
     )  
+  
+  print(p)
 }
