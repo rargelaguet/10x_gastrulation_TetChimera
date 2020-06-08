@@ -6,6 +6,8 @@ recursive.fn <- function(sce.query, sce.atlas, dist) {
   dt_list <- list()
   for (i in celltypes.to.loop) {
     ids <- which(sce.query$celltype_mapped==i)
+    if (length(ids)==0) stop("ids is length 0")
+    
     foo <- stringr::str_split(i,"%") %>% unlist
     
     # Subset
@@ -32,20 +34,31 @@ mapping.fn <- function(sce.query, sce.atlas, h) {
   groupB <- names(which(cut==2))
   groups.parsed <- c(paste(groupB,collapse="%"),paste(groupA,collapse="%"))
   sce.atlas$celltype <- groups.parsed[as.numeric(sce.atlas$celltype%in%groupA)+1]
-  # sce.atlas$celltype <- factor(sce.atlas$celltype,levels=groups.parsed)
+  
+  # Run differential expression between groupA and groupB cells
+  # diff <- differential_expression(sce.atlas, groupA, groupB)
+  diff <- differential_expression(sce.atlas, groups.parsed[1], groups.parsed[2])
+  
+  # Select genes
+  markers.groupA <- diff[padj_fdr<0.01 & logFC>1,ens_id]
+  markers.groupB <- diff[padj_fdr<0.01 & logFC<(-1),ens_id]
+  genes <- c(markers.groupA,markers.groupB)
+  
+  # TO-DO: SANITY CHECK THAT GENES>0
   
   # Run MNN
-  dt <- mnn.fn(sce.query, sce.atlas)
+  dt <- mnn.fn(sce.query, sce.atlas, npcs = 5, k = 25, genes = genes)
   
   return(dt)
     
 }
 
 
-mnn.fn <- function(sce.query, sce.atlas, npcs = 30, k = 25) {
-  block <- c(rep("atlas",ncol(sce.atlas)),rep("query",ncol(sce.query))) %>% as.factor
+mnn.fn <- function(sce.query, sce.atlas, npcs = 30, k = 25, genes=NULL) {
+  # block <- c(rep("atlas",ncol(sce.atlas)),rep("query",ncol(sce.query))) %>% as.factor
   # block <- c(rep("atlas",ncol(sce.atlas)),sce.query$z)) %>% as.factor
   # block <- c(sce.atlas$sample,sce.query$z) %>% as.factor
+  block <- c(sce.atlas$sample,sce.query$batch) %>% as.factor
   
   # Concatenate
   sce_all <- SingleCellExperiment(
@@ -54,12 +67,13 @@ mnn.fn <- function(sce.query, sce.atlas, npcs = 30, k = 25) {
   
   # Normalise
   # sce_all <- logNormCounts(sce_all)
-  sce_all <- multiBatchNorm(sce_all, batch=as.factor(block))
-  # sce_all <- multiBatchNorm(sce_all, batch=c(atlas_meta$sample, map_meta$batch))
+  sce_all <- multiBatchNorm(sce_all, batch=block)
   
   # Highly variable genes
-  # hvgs <- getHVGs(sce_all, block=block)
-  hvgs <- rownames(sce_all)
+  if (is.null(genes)) {
+    # genes <- getHVGs(sce_all, block=block)
+    genes <- rownames(sce_all)
+  }
   
   # PCA
   # pca_all <- irlba::prcomp_irlba(t(assay(sce_all,"logcounts")), n = npcs)$x
@@ -67,7 +81,7 @@ mnn.fn <- function(sce.query, sce.atlas, npcs = 30, k = 25) {
   
   pca_all <- multiBatchPCA(sce_all,
     batch = block,
-    subset.row = hvgs,
+    subset.row = genes,
     d = npcs,
     preserve.single = TRUE,
     assay.type = "logcounts"
@@ -94,7 +108,6 @@ mnn.fn <- function(sce.query, sce.atlas, npcs = 30, k = 25) {
   #                                   npc             = npcs)
   
   # MNN mapping
-  # correct <- reducedMNN(rbind(atlas_pca, query_pca),
   correct <- reducedMNN(pca_all, batch = block)[["corrected"]]
   correct_atlas <- correct[1:nrow(atlas_pca),,drop=F]
   correct_query   <- correct[-(1:nrow(atlas_pca)),,drop=F]
@@ -174,21 +187,6 @@ getHVGs <- function(sce, block, min.mean = 1e-3, p.value=0.01){
 }
 
 
-getAreaFactorsDirectly = function(sce, transform = NULL) {
-  # sce is a SingleCellExperiment object
-  # transform is a function
-  meta = colData(sce)
-  counts = assay(sce, "counts")
-  if (!is.null(transform)) {
-    sizeFactors.area <- transform(meta$Area)/mean(transform(meta$Area))
-  } else {
-    sizeFactors.area <- meta$Area/mean(meta$Area)
-  }
-  logcounts.area <- log2(t(t(counts)/sizeFactors.area) + 1)
-  return(list(sizeFactors = sizeFactors.area,
-              logcounts.area = logcounts.area))
-}
-
 
 getMappingScore <- function(mapping){
   celltypes_accrossK <- matrix(unlist(mapping$celltypes.mapped),
@@ -202,4 +200,41 @@ getMappingScore <- function(mapping){
     celltype.score <- c(celltype.score,p)
   }
   return(celltype.score)  
+}
+
+
+differential_expression <- function(sce.atlas, groupA, groupB) {
+  
+  
+  # Filter genes by detection rate per group
+  opts$min_detection_rate_per_group <- 0.25
+  cdr_A <- rowMeans(logcounts(sce.atlas[,sce.atlas$celltype%in%groupA])>0) >= opts$min_detection_rate_per_group
+  cdr_B <- rowMeans(logcounts(sce.atlas[,sce.atlas$celltype%in%groupB])>0) >= opts$min_detection_rate_per_group
+  sce.atlas <- sce.atlas[cdr_A|cdr_B,]
+  
+  # Convert SCE to DGEList
+  sce_edger <- scran::convertTo(sce.atlas, type="edgeR")
+  
+  # Define design matrix
+  cdr <- colMeans(logcounts(sce.atlas)>0)
+  design <- model.matrix(~cdr+sce.atlas$celltype)
+  
+  # Estimate dispersions
+  sce_edger <- estimateDisp(sce_edger,design)
+  
+  # Fit GLM
+  fit <- glmQLFit(sce_edger,design)
+  
+  # Likelihood ratio test
+  lrt <- glmQLFTest(fit)
+  
+  # Construct output data.frame
+  out <- topTags(lrt, n=nrow(lrt))$table %>% 
+    as.data.table(keep.rownames=T) %>%
+    setnames(c("ens_id","logFC","logCPM","LR","p.value","padj_fdr")) %>%
+    .[,log_padj_fdr:= -log10(padj_fdr)] %>%
+    .[,c("logCPM","LR"):=NULL] %>%
+    setorder(padj_fdr)
+  
+  return(out)
 }

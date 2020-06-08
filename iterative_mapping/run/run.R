@@ -9,7 +9,7 @@ if (grepl("ricard",Sys.info()['nodename'])) {
 } else if(grepl("ebi",Sys.info()['nodename'])){
   io$standard.mnn.script <- "/homes/ricard/10x_gastrulation_TetChimera/iterative_mapping/run/standard_mnn.R"
   io$iterative.mnn.script <- "/homes/ricard/10x_gastrulation_TetChimera/iterative_mapping/run/iterative_mnn.R"
-  io$tmpdir <- "/hps/nobackup2/research/stegle/users/ricard/gastrulation_spatial/iterative_mapping/tmp"
+  io$tmpdir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/results/iterative_mapping/tmp"
 } 
 
 # Atlas stages
@@ -34,9 +34,9 @@ opts$query_batches <- c(
   # "E75_WT_Host_L001",
 
   # E8.5
-  "E85_Rep1_TET_TKO_L004"
+  "E85_Rep1_TET_TKO_L004",
   "E85_Rep2_TET_TKO_L006",
-  "E85_Rep1_WT_Host_L003"
+  "E85_Rep1_WT_Host_L003",
   "E85_Rep2_WT_Host_L005"
 
   # E12.5
@@ -68,4 +68,7 @@ for (i in opts$query_batches) {
   system(cmd)
 
   # Run tree-guided MNN
+  cmd <- sprintf("%s Rscript %s --query_batches %s --atlas_stages %s", lsf, io$iterative.mnn.script, i, paste(opts$atlas_stages, collapse=" "))
+  if (isTRUE(opts$test)) cmd <- paste0(cmd, " --test")
+  system(cmd)
 }

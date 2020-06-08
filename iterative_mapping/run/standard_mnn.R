@@ -1,14 +1,9 @@
-matrix.please<-function(x) {
-  m<-as.matrix(x[,-1])
-  rownames(m)<-x[[1]]
-  m
-}
-
 # Load libraries
 suppressPackageStartupMessages(library(SingleCellExperiment))
 suppressPackageStartupMessages(library(scran))
 suppressPackageStartupMessages(library(scater))
 suppressPackageStartupMessages(library(batchelor))
+suppressPackageStartupMessages(library(edgeR))
 suppressPackageStartupMessages(library(argparse))
 
 ######################
@@ -16,107 +11,80 @@ suppressPackageStartupMessages(library(argparse))
 ######################
 
 p <- ArgumentParser(description='')
-p$add_argument('--embryo',   type="character",       help = 'Embryo name')
-p$add_argument('--test',     action = "store_true",  help = 'Testing mode')
+p$add_argument('--atlas_stages',    type="character",   nargs='+',  help='Atlas stage(s)')
+p$add_argument('--query_batches',   type="character",   nargs='+',  help='Query batch(es)')
+p$add_argument('--test',            action = "store_true",  help = 'Testing mode')
 args <- p$parse_args(commandArgs(TRUE))
 
-## START TEST ##  
-# args$embryo <- "embryo1"
-# args$test <- TRUE
-## END TEST ##  
+## START TEST ##
+args$atlas_stages <- c(
+  # "E6.5"
+  # "E6.75",
+  # "E7.0",
+  # "E7.25",
+  # "E7.5",
+  # "E7.75",
+  # "E8.0",
+  # "E8.25",
+  "E8.5"
+  # "mixed_gastrulation"
+)
+
+args$query_batches <- c(
+  # "E75_TET_TKO_L002",
+  # "E75_WT_Host_L001",
+  # "E85_Rep1_TET_TKO_L004"
+  # "E85_Rep2_TET_TKO_L006",
+  # "E85_Rep1_WT_Host_L003"
+  "E85_Rep2_WT_Host_L005"
+  # "E125_DNMT3A_HET_A_L001",
+  # "E125_DNMT3A_HET_A_L003",
+  # "E125_DNMT3A_KO_B_L002",
+  # "E125_DNMT3A_KO_E_L004"
+)
+
+args$test <- FALSE
+## END TEST ##
 
 #####################
 ## Define settings ##
 #####################
 
-# Load default settings
 if (grepl("ricard",Sys.info()['nodename'])) {
-  source("/Users/ricard/gastrulation_spatial/settings.R")
-  source("/Users/ricard/gastrulation_spatial/iterative_mapping_10x/run/utils.R")
-} else if(grepl("ebi",Sys.info()['nodename'])){
-  source("/homes/ricard/gastrulation_spatial/settings.R")
-  source("/homes/ricard/gastrulation_spatial/iterative_mapping_10x/run/utils.R")
-}  
-io$outdir <- paste0(io$basedir,"/iterative_mapping"); dir.create(io$outdir, showWarnings = F)
-
-###################
-## Load metadata ##
-###################
-
-# Load spatial metadata
-sample_metadata_query <- fread(io$metadata) %>%
-  .[embryo%in%args$embryo] 
-
-# Load atlas metadata
-sample_metadata_atlas <- fread(io$atlas.metadata) %>%
-  .[stripped==F & doublet==F] %>%
-  .[stage%in%c("E8.5")] %>%
-  .[,celltype:=stringr::str_replace_all(celltype,"_", " ")] %>%
-  .[!celltype%in%c("Erythroid1","Erythroid3","Blood progenitors 1")]
-  
-# Merge some lineages in the atlas
-# sample_metadata_atlas[celltype%in%c("Erythroid1","Erythroid2","Erythroid3"),celltype:="Erythroid"]
-# sample_metadata_atlas[celltype%in%c("Blood progenitors 1","Blood progenitors 2"),celltype:="Blood progenitors"]
-
-# Subset cells
-if (isTRUE(args$test)) {
-  sample_metadata_query <- sample_metadata_query %>% head(n=1000)
-  sample_metadata_atlas <- sample_metadata_atlas %>% split(.$celltype) %>% map(~ head(.,n=100)) %>% rbindlist
+  source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
+  source("/Users/ricard/10x_gastrulation_TetChimera/iterative_mapping/run/utils.R")
+  io$atlas.marker_genes <- "/Users/ricard/data/gastrulation10x/results/marker_genes/E8.5/marker_genes.txt.gz"
+  io$script_load_data <- "/Users/ricard/10x_gastrulation_TetChimera/iterative_mapping/run/load_data.R"
+} else {
+  source("/homes/ricard/10x_gastrulation_TetChimera/settings.R")
+  source("/homes/ricard/10x_gastrulation_TetChimera/iterative_mapping/run/utils.R")
+  io$atlas.marker_genes <- "/hps/nobackup2/research/stegle/users/ricard/gastrulation10x/results/marker_genes/E8.5/marker_genes.txt.gz"
+  io$script_load_data <- "/homes/ricard/10x_gastrulation_TetChimera/iterative_mapping/run/load_data.R"
 }
+io$path2atlas <- io$atlas.basedir
+io$path2query <- io$basedir
+io$outdir <- paste0(io$basedir,"/results/iterative_mapping")
 
-# Filter cell types with low numbers
-opts$celltypes <- which(table(sample_metadata_atlas$celltype)>25) %>% names
-sample_metadata_atlas <- sample_metadata_atlas[celltype%in%opts$celltypes]
+if (isTRUE(args$test)) print("Test mode activated...")
 
-# print statistics
-table(sample_metadata_atlas$celltype)
+###############
+## Load data ##
+###############
 
-#########################
-## Load RNA expression ##
-#########################
-
-# Load RNA expression data for the query
-sce.query <- readRDS(io$sce)[,sample_metadata_query$cell]
-sce.query <- sce.query[rownames(sce.query)!="Xist",]
-
-# sce.query$embryo_pos_z = factor(paste0(sce.query$embryo,"_", sce.query$pos, "_", sce.query$z))
-
-# Load RNA expression data for the atlas
-sce.atlas <- readRDS(io$atlas.sce)[,sample_metadata_atlas$cell]
-colData(sce.atlas) <- sample_metadata_atlas %>% tibble::column_to_rownames("cell") %>% DataFrame
-
-################
-## Parse data ##
-################
-
-# Change gene names from ENSEMBL to symbols
-gene_metadata <- fread(io$gene_metadata) %>% .[,c("ens_id","symbol")] %>%
-  .[symbol!="" & ens_id%in%rownames(sce.atlas)]
-sce.atlas <- sce.atlas[rownames(sce.atlas)%in%gene_metadata$ens_id,]
-foo <- gene_metadata$symbol; names(foo) <- gene_metadata$ens_id
-new.names <- foo[rownames(sce.atlas)]
-rownames(sce.atlas) <- new.names
-rownames(sce.atlas)[rownames(sce.atlas) == "Prkcdbp"] <- "Cavin3"
-
-# remove non-expressed genes
-sce.query <- sce.query[rowMeans(counts(sce.query))>0,]
-sce.atlas <- sce.atlas[rowMeans(counts(sce.atlas))>0,]
-
-# intersect genes
-genes <- intersect(rownames(sce.query), rownames(sce.atlas))
-sce.query  <- sce.query[genes,]
-sce.atlas <- sce.atlas[genes,]
-dim(sce.query); dim(sce.atlas)
+source(io$script_load_data)
 
 #############
 ## Run MNN ##
 #############
 
-mapping.dt <- mnn.fn(sce.query, sce.atlas, npcs = 30, k = 25, cosineNorm = TRUE)
-  
+mapping_dt <- mnn.fn(sce_query, sce_atlas, npcs = 50, k = 25)
+
+# table(mapping_dt$celltype_mapped)
+# foo <- mapping_dt %>% merge(meta_query[,c("cell","celltype.mapped","celltype.score")] %>% setnames(c("cell","celltype_old","score_old")))
+
 ##########
 ## Save ##
 ##########
 
-fwrite(mapping.dt, sprintf("%s/%s_standard_mnn.txt.gz",io$outdir,args$embryo), sep="\t")
+fwrite(mapping_dt, sprintf("%s/%s_standard_mnn.txt.gz",io$outdir,paste(args$query_batches,collapse="_")), sep="\t")
 
