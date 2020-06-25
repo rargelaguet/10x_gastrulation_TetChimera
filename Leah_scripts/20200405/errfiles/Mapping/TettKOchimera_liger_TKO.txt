@@ -1,136 +1,0 @@
-Building DAG of jobs...
-Using shell: /usr/local/bin/bash
-Provided cores: 1 (use --cores to define parallelism)
-Rules claiming more threads will be scaled down.
-Job counts:
-	count	jobs
-	1	Mapping
-	1
-
-[Mon Apr  6 08:02:09 2020]
-rule Mapping:
-    input: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/liger/mapping_liger.R, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/seurat_QCed.rds, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/sample_metadata_QCed.txt, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/settings.R, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/mapping_functions.R, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/corrected/seurat_atlas.rds, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/corrected/seurat_atlas.txt, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/sce_atlas.rds, /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/atlas_metadata.txt.gz
-    output: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/liger/mapping_liger_TKO.rds, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/liger/mapping_liger_TKO.txt.gz
-    jobid: 0
-    wildcards: experiment=TettKOchimera, method=liger, sample=TKO
-
-Loading atlas...
-Warning: Keys should be one or more alphanumeric characters followed by an underscore, setting key from x to x_
-Warning: All keys should be one or more alphanumeric characters followed by an underscore '_', setting key to x_
-Loading query...
-Subsetting query batches to TKO
-Filtering genes...
-Merging query and atlas...
-Warning message:
-In CheckDuplicateCellNames(object.list = objects) :
-  Some cell names are duplicated across objects provided. Renaming to enforce unique cell names.
-Pre-processing data...
-Performing log-normalization
-0%   10   20   30   40   50   60   70   80   90   100%
-[----|----|----|----|----|----|----|----|----|----|
-**************************************************|
-Calculating gene variances
-0%   10   20   30   40   50   60   70   80   90   100%
-[----|----|----|----|----|----|----|----|----|----|
-**************************************************|
-Calculating feature variances of standardized and clipped values
-0%   10   20   30   40   50   60   70   80   90   100%
-[----|----|----|----|----|----|----|----|----|----|
-**************************************************|
-Scaling data matrix
-Scaling data from split 1
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 10
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 12
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 13
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 14
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 15
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 16
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 17
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 18
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 19
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 2
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 20
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 21
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 22
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 23
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 24
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 25
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 26
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 27
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 28
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 29
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 3
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 30
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 31
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 32
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 33
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 34
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 35
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 36
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 37
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 4
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 5
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 6
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 7
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 8
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split 9
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split SIGAB3_E8.5_pool1_TET-TKO_L002
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split SIGAD3_E8.5_pool2_TET-TKO_L004
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split SIGAF3_E7.5_pool1_TET-TKO_L006
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Scaling data from split SIGAH3_E8.5_hasting_TET-TKO_L008
-  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
-Integrating datasets...
-Warning: No columnames present in cell embeddings, setting to 'riNMF_1:30'
-Error: 'SNF' is not an exported object from 'namespace:liger'
-Execution halted
-[Mon Apr  6 08:53:38 2020]
-Error in rule Mapping:
-    jobid: 0
-    output: /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/liger/mapping_liger_TKO.rds, /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/liger/mapping_liger_TKO.txt.gz
-
-RuleException:
-CalledProcessError in line 79 of /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/Snakefile:
-Command 'set -euo pipefail;  /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/liger/mapping_liger.R -A /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/sce_atlas.rds -a /nfs/research1/marioni/Leah/gastrulation10x/data/fromRpackage/atlas_metadata.txt.gz -Q /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/seurat_QCed.rds -q /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/sample_metadata_QCed.txt -b TKO -S /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/settings.R -f /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/mapping/mapping_functions.R -O /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/liger/mapping_liger_TKO.rds -o /nfs/research1/marioni/Leah/scNMTseq/ModelSystems/TettKOchimera/processed_files_Leah/mapping/liger/mapping_liger_TKO.txt.gz' returned non-zero exit status 1.
-  File "/nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/Snakefile", line 79, in __rule_Mapping
-  File "/nfs/research1/marioni/Leah/software/anaconda3/envs/ModelSystems10x/lib/python3.7/concurrent/futures/thread.py", line 57, in run
-Shutting down, this might take some time.
-Exiting because a job execution failed. Look above for error message

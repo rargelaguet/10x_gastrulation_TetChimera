@@ -1,48 +1,0 @@
-  |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   1%  |                                                                              |=                                                                     |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   5%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   7%  |                                                                              |======                                                                |   8%  |                                                                              |======                                                                |   9%  |                                                                              |=======                                                               |  10%  |                                                                              |========                                                              |  11%  |                                                                              |========                                                              |  12%  |                                                                              |=========                                                             |  13%  |                                                                              |==========                                                            |  14%  |                                                                              |==========                                                            |  15%  |                                                                              |===========                                                           |  16%  |                                                                              |============                                                          |  17%  |                                                                              |=============                                                         |  18%  |                                                                              |=============                                                         |  19%  |                                                                              |==============                                                        |  20%  |                                                                              |===============                                                       |  21%  |                                                                              |===============                                                       |  22%  |                                                                              |======================================================================| 100%
-Finished in 32.1453 mins, 22 iterations.
-Max iterations set: 100.
-Final objective delta: 9.676041e-05.
-Best results with seed 1.
-
-------------------------------------------------------------
-Sender: LSF System <lsf@hx-noah-72-12>
-Subject: Job 9731932: </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.8jd29r2e/snakejob.Mapping.45.sh> in cluster <EBI> Exited
-
-Job </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.8jd29r2e/snakejob.Mapping.45.sh> was submitted from host <hx-noah-70-10> by user <lrosen> in cluster <EBI> at Mon Apr  6 08:02:04 2020
-Job was executed on host(s) <hx-noah-72-12>, in queue <research-rh74>, as user <lrosen> in cluster <EBI> at Mon Apr  6 08:02:06 2020
-</homes/lrosen> was used as the home directory.
-</nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO> was used as the working directory.
-Started at Mon Apr  6 08:02:06 2020
-Terminated at Mon Apr  6 08:47:47 2020
-Results reported at Mon Apr  6 08:47:47 2020
-
-Your job looked like:
-
-------------------------------------------------------------
-# LSBATCH: User input
-/nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/.snakemake/tmp.8jd29r2e/snakejob.Mapping.45.sh
-------------------------------------------------------------
-
-Exited with exit code 1.
-
-Resource usage summary:
-
-    CPU time :                                   2718.05 sec.
-    Max Memory :                                 52436 MB
-    Average Memory :                             36264.46 MB
-    Total Requested Memory :                     40000.00 MB
-    Delta Memory :                               -12436.00 MB
-    Max Swap :                                   53380 MB
-    Max Processes :                              6
-    Max Threads :                                9
-    Run time :                                   2741 sec.
-    Turnaround time :                            2743 sec.
-
-The output (if any) is above this job summary.
-
-
-
-PS:
-
-Read file </nfs/research1/marioni/Leah/scNMTseq/ModelSystems/mapping_TetTKO/20200405/errfiles/Mapping/TettKOchimera_liger_WT.txt> for stderr output of this job.
-
