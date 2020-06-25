@@ -31,7 +31,7 @@
 *.Rproj.user
 
 # Ignore .ipynb stuff
-*.ipynb*
+#*.ipynb*
 
 # Ignore snakemake stuff
 .snakemake/
