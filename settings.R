@@ -115,7 +115,11 @@ opts$celltype.colors = c(
 	"Visceral_endoderm" = "#F6BFCB",
 	"ExE_endoderm" = "#7F6874",
 	"ExE_ectoderm" = "#989898",
-	"Parietal_endoderm" = "#1A1A1A"
+	"Parietal_endoderm" = "#1A1A1A",
+	
+	# Additional
+	"Erythroid" = "#EF4E22",
+	"Blood_progenitors" = "#c9a997"
 )
 
 opts$batches <- c(
@@ -124,20 +128,20 @@ opts$batches <- c(
   "E85_Rep1_TET_TKO_L004", 
   "E85_Rep1_WT_Host_L003", 
   "E85_Rep2_TET_TKO_L006", 
-  "E85_Rep2_WT_Host_L005", 
-  "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
-  "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
-  "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
-  "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
+  "E85_Rep2_WT_Host_L005"
+  # "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
+  # "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
+  # "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
+  # "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
 )
 
 opts$classes <- c(
   "E7.5_Host", 
   "E7.5_TET_TKO", 
   "E8.5_Host", 
-  "E8.5_TET_TKO", 
-  "E10.5_Host", 
-  "E10.5_TET_TKO"
+  "E8.5_TET_TKO"
+  # "E10.5_Host", 
+  # "E10.5_TET_TKO"
 )
 
 ##########################
@@ -146,7 +150,8 @@ opts$classes <- c(
 
 sample_metadata <- fread(io$metadata) %>% .[pass_QC==T] %>% 
   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped," ","_")] %>%
-  .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,"/","_")]
+  .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,"/","_")] %>%
+  .[,celltype.mapped:=factor(celltype.mapped, levels=names(opts$celltype.colors))]
   
 ##################
 ## IGNORE BELOW ##

@@ -1,5 +1,5 @@
 ---
-title: "Dimensionality reduction"
+title: "TKO: Dimensionality reduction using Seurat"
 ---
   
 ```{r load_modules, echo=FALSE, include=FALSE}
@@ -106,41 +106,43 @@ seurat <- subset(seurat, features = names(which(foo>1e-6)))
 Normalise
 ```{r}
 # SCTransform
-# seurat <- SCTransform(seurat)
+seurat <- SCTransform(seurat)
+```
 
+```{r}
 # LogNormalize
-seurat <- NormalizeData(seurat, normalization.method = "LogNormalize")
+# seurat <- NormalizeData(seurat, normalization.method = "LogNormalize")
 
 # Scale
-seurat <- ScaleData(seurat)
+# seurat <- ScaleData(seurat)
 ```
 
 Change gene names from ENSEMBL to symbols
 ```{r}
-gene_metadata <- fread(io$gene_metadata) %>% .[,c("ens_id","symbol")] %>%
-  .[symbol!="" & ens_id%in%rownames(seurat)]
-
-gene_metadata$symbol[duplicated(gene_metadata$symbol)]
-seurat <- seurat[rownames(seurat)%in%gene_metadata$ens_id,]
-foo <- gene_metadata$symbol; names(foo) <- gene_metadata$ens_id
-new.names <- foo[rownames(seurat)]
-
-# Sanity cehcks
-stopifnot(sum(is.na(new.names))==0)
-stopifnot(sum(duplicated(new.names))==0)
-
-# Rename seurat objects manually
-rownames(seurat@assays$RNA@counts) <- new.names
-rownames(seurat@assays$RNA@data) <- new.names
-rownames(seurat@assays$RNA@scale.data) <- new.names
-seurat[["RNA"]]@meta.features <- data.frame(row.names=new.names)
+# gene_metadata <- fread(io$gene_metadata) %>% .[,c("ens_id","symbol")] %>%
+#   .[symbol!="" & ens_id%in%rownames(seurat)]
+# 
+# gene_metadata$symbol[duplicated(gene_metadata$symbol)]
+# seurat <- seurat[rownames(seurat)%in%gene_metadata$ens_id,]
+# foo <- gene_metadata$symbol; names(foo) <- gene_metadata$ens_id
+# new.names <- foo[rownames(seurat)]
+# 
+# # Sanity cehcks
+# stopifnot(sum(is.na(new.names))==0)
+# stopifnot(sum(duplicated(new.names))==0)
+# 
+# # Rename seurat objects manually
+# rownames(seurat@assays$RNA@counts) <- new.names
+# rownames(seurat@assays$RNA@data) <- new.names
+# rownames(seurat@assays$RNA@scale.data) <- new.names
+# seurat[["RNA"]]@meta.features <- data.frame(row.names=new.names)
 ```
 
 # Select HVG
 
 Option 1, using FindVariableFeatures
 ```{r}
-seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1000)
+seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1000, assay = "SCT")
 # head(seurat@assays$RNA@var.features)
 ```
 
@@ -158,8 +160,9 @@ Option 2, using precomputed marker genes
 PCA 
 ```{r message=FALSE}
 seurat <- RunPCA(seurat, 
-  features = VariableFeatures(seurat),
-  npcs = ,
+  features = VariableFeatures(seurat, assay="SCT"),
+  assay = "SCT",
+  npcs = 25,
   verbose = FALSE
 )
 ```
@@ -177,8 +180,9 @@ UMAP
 ```{r}
 seurat <- RunUMAP(seurat, 
   dims = 1:25,
-  # dims = which(r<=0.5),
-  reduction = "pca"
+  reduction = "pca",
+  n.neighbors = 30,
+  min.dist = 0.3
 )
 ```
 
@@ -186,22 +190,35 @@ seurat <- RunUMAP(seurat,
 
 ```{r}
 Idents(seurat) <- "celltype.mapped"
-DimPlot(seurat, label = FALSE, reduction = 'umap', cols = opts$celltype.colors) + NoLegend()
-```
 
-```{r}
-Idents(seurat) <- "class"
-DimPlot(seurat, label = FALSE, reduction = 'umap')
+p <- DimPlot(seurat, label = FALSE, reduction = 'umap', cols = opts$celltype.colors) + 
+  NoLegend() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank()
+  )
+
+print(p)
 ```
 
 ```{r}
 Idents(seurat) <- "batch"
-DimPlot(seurat, label = FALSE, reduction = 'umap')
+
+p <- DimPlot(seurat, label = FALSE, reduction = 'umap') + 
+  NoLegend() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank()
+  )
+
+print(p)
 ```
 
 Explore marker genes
 ```{r}
-genes.to.plot <- c("Hba-x")
-FeaturePlot(seurat, features = genes.to.plot, reduction='umap')
+# genes.to.plot <- c("Hba-x")
+# FeaturePlot(seurat, features = genes.to.plot, reduction='umap')
 ```
 

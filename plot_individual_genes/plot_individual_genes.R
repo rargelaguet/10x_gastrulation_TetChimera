@@ -21,9 +21,9 @@ opts$celltypes = c(
 	"Epiblast",
 	"Primitive_Streak",
 	"Caudal_epiblast",
-	"PGC",
-	"Anterior_Primitive_Streak",
-	"Notochord",
+	# "PGC",
+	# "Anterior_Primitive_Streak",
+	# "Notochord",
 	"Def._endoderm",
 	"Gut",
 	"Nascent_mesoderm",
@@ -33,7 +33,7 @@ opts$celltypes = c(
 	"Paraxial_mesoderm",
 	"Somitic_mesoderm",
 	"Pharyngeal_mesoderm",
-	"Cardiomyocytes",
+	# "Cardiomyocytes",
 	"Allantois",
 	"ExE_mesoderm",
 	"Mesenchyme",
@@ -50,21 +50,30 @@ opts$celltypes = c(
 	"Neural_crest",
 	"Forebrain_Midbrain_Hindbrain",
 	"Spinal_cord",
-	"Surface_ectoderm",
-	"Visceral_endoderm",
-	"ExE_endoderm",
-	"ExE_ectoderm",
-	"Parietal_endoderm"
+	"Surface_ectoderm"
+	# "Visceral_endoderm",
+	# "ExE_endoderm",
+	# "ExE_ectoderm",
+	# "Parietal_endoderm"
 )
+opts$celltypes <- c("Blood_progenitors_1")
 
 # Define classes to plot
 opts$classes <- c(
-  "E7.5_Host", 
-  "E7.5_TET_TKO",
+  # "E7.5_Host", 
+  # "E7.5_TET_TKO",
   "E8.5_Host",
   "E8.5_TET_TKO"
   # "E10.5_Host", 
   # "E10.5_TET_TKO"
+)
+
+# Define colors
+opts$colors <- c(
+  "E7.5_Host" = "#CCCCCC", 
+  "E7.5_TET_TKO" = "#FF7F50", 
+  "E8.5_Host" = "#B0B0B0", 
+  "E8.5_TET_TKO" = "#EE4000"
 )
 
 # Update sample metadata
@@ -107,12 +116,11 @@ stopifnot(sum(duplicated(new.names))==0)
 ## Plot ##
 ##########
 
-# genes.to.plot <- c("Dnmt3l","Apoe")
-# genes.to.plot <- rownames(sce)
-# genes.to.plot <- c("Hba-x","Hbb-y","Hba-a1","Hbb-bh1")
-# genes.to.plot <- c("Lefty1","Cd34","Tmsb4x","Fgf3")
-genes.to.plot <- c("Dppa3","Dppa2")
-# genes.to.plot <- c("Spata7","Cer1","Spink1","Dppa4","Dppa5a","Prc1","Lefty2","Ube2c")
+# genes.to.plot <- c("Lefty1","Cd34","Tmsb4x","Fgf3","Spata7","Cer1","Spink1","Dppa4","Dppa5a","Prc1","Lefty2","Ube2c","Hba-x","Hbb-y","Hba-a1","Hbb-bh1")
+# genes.to.plot <- c("Vegfa","Vegfb","Vegfc","Vegfd","Kdr","Flt1","Tal1","Runx1","Etv2)
+# genes.to.plot <- c("Tet1","Tet2","Tet3","Dnmt1","Dnmt3a","Dnmt3b","Dnmt3l")
+genes.to.plot <- c("Cd34","Fgf3")
+# genes.to.plot <- rownames(sce)[grep("Hox",rownames(sce))]
 
 for (i in 1:length(genes.to.plot)) {
   gene <- genes.to.plot[i]
@@ -125,24 +133,32 @@ for (i in 1:length(genes.to.plot)) {
   ) %>% merge(sample_metadata, by="cell")
 
   # Plot
-  p <- ggplot(to.plot, aes(x=celltype.mapped, y=expr, fill=celltype.mapped)) +
-    # geom_jitter(size=0.8) +
-    geom_violin(scale = "width") +
-    geom_boxplot(width=0.5, outlier.shape=NA) +
-    scale_fill_manual(values=opts$celltype.colors) +
-    facet_wrap(~class) +
+  p <- ggplot(to.plot, aes(x=class, y=expr, fill=class)) +
+    geom_violin(scale = "width", alpha=0.8) +
+    geom_boxplot(width=0.5, outlier.shape=NA, alpha=0.8) +
+    geom_jitter(size=2, shape=21, stroke=0.2, alpha=0.5) +
+    scale_fill_manual(values=opts$colors) +
+    facet_wrap(~celltype.mapped, scales="fixed") +
     theme_classic() +
-    labs(title=gene, x="",y="RNA expression") +
+    labs(title=gene, x="",y=sprintf("%s expression",gene)) +
     theme(
-      plot.title = element_text(hjust = 0.5, size=rel(1.1), color="black"),
-      axis.text.x = element_text(colour="black",size=rel(1.2), angle=50, hjust=1),
+      strip.text = element_text(size=rel(1.0)),
+      # plot.title = element_text(hjust = 0.5, size=rel(1.1), color="black"),
+      plot.title = element_blank(),
+      # axis.text.x = element_text(colour="black",size=rel(1.2), angle=50, hjust=1),
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
       axis.text.y = element_text(colour="black",size=rel(1.0)),
-      legend.position="none"
+      axis.title.y = element_text(colour="black",size=rel(1.2)),
+      legend.position="top",
+      legend.title = element_blank(),
+      legend.text = element_text(size=rel(1.1))
     )
     
-  # pdf(sprintf("%s/%s.pdf",io$outdir,i), width=8, height=3.5, useDingbats = F)
+  pdf(sprintf("%s/test_%s.pdf",io$outdir,i), width=5, height=3.5, useDingbats = F)
   # ggsave("ggtest.png", width = 3.25, height = 3.25, dpi = 1200)
-  jpeg(sprintf("%s/%s.jpeg",io$outdir,gene), width = 1300, height = 430)
+  # jpeg(sprintf("%s/%s.jpeg",io$outdir,gene), width = 1300, height = 430)
+  # jpeg(sprintf("%s/test_%s.jpeg",io$outdir,gene), width = 900, height = 900)
   print(p)
   dev.off()
 }
