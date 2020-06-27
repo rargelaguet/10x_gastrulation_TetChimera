@@ -11,7 +11,7 @@ if (grepl("ricard",Sys.info()['nodename'])) {
   io$script <- "/homes/ricard/10x_gastrulation_TetChimera/mapping/run/mnn/mapping_mnn.R"
   io$tmpdir <- paste0(io$basedir,"/results/second_batch/mapping/tmp"); dir.create(io$tmpdir)
 }
-io$outdir <- paste0(io$basedir,"/results/second_batch/mapping")
+io$outdir <- paste0(io$basedir,"/results/first_batch/mapping")
 
 ####################
 ## Define options ##
@@ -30,17 +30,28 @@ opts$atlas_stages <- c(
   "mixed_gastrulation"
 )
 
+# opts$query_batches <- c(
+#   "E75_TET_TKO_L002", 
+#   "E75_WT_Host_L001", 
+#   "E85_Rep1_TET_TKO_L004", 
+#   "E85_Rep2_TET_TKO_L006", 
+#   "E85_Rep1_WT_Host_L003",
+#   "E85_Rep2_WT_Host_L005"
+#   # "E125_DNMT3A_HET_A_L001", 
+#   # "E125_DNMT3A_HET_A_L003",
+#   # "E125_DNMT3A_KO_B_L002", 
+#   # "E125_DNMT3A_KO_E_L004"
+# )
+
 opts$query_batches <- c(
-  "E75_TET_TKO_L002", 
-  "E75_WT_Host_L001", 
-  "E85_Rep1_TET_TKO_L004", 
-  "E85_Rep2_TET_TKO_L006", 
-  "E85_Rep1_WT_Host_L003",
-  "E85_Rep2_WT_Host_L005"
-  # "E125_DNMT3A_HET_A_L001", 
-  # "E125_DNMT3A_HET_A_L003",
-  # "E125_DNMT3A_KO_B_L002", 
-  # "E125_DNMT3A_KO_E_L004"
+  # "SIGAA3_E8.5_pool1_Host-WT_L001"
+  # "SIGAB3_E8.5_pool1_TET-TKO_L002",
+  "SIGAC3_E8.5_pool2_Host-WT_L003",
+  # "SIGAD3_E8.5_pool2_TET-TKO_L004", 
+  # "SIGAE3_E7.5_pool1_Host-WT_L005", 
+  # "SIGAF3_E7.5_pool1_TET-TKO_L006", 
+  "SIGAG3_E8.5_hashing_Host-WT_L007",
+  "SIGAH3_E8.5_hasting_TET-TKO_L008"
 )
 
 # Test mode (subsetting cells)?
