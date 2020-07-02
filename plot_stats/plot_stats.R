@@ -28,7 +28,7 @@ io$outdir <- paste0(io$basedir,"/results/general_stats/pdf")
 sample_metadata <- sample_metadata %>% 
   .[batch%in%opts$batches]
 
-sample_metadata <- fread("/Users/ricard/data/10x_gastrulation_TetChimera/processed/first_batch/sample_metadata.txt.gz")
+# sample_metadata <- fread("/Users/ricard/data/10x_gastrulation_TetChimera/processed/first_batch/sample_metadata.txt.gz")
 
 ###############################################
 ## Boxplots of general statistics per batch ##

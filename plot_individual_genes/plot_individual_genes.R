@@ -56,12 +56,12 @@ opts$celltypes = c(
 	# "ExE_ectoderm",
 	# "Parietal_endoderm"
 )
-opts$celltypes <- c("Blood_progenitors_1")
+# opts$celltypes <- c("Blood_progenitors_1")
 
 # Define classes to plot
 opts$classes <- c(
-  # "E7.5_Host", 
-  # "E7.5_TET_TKO",
+  "E7.5_Host",
+  "E7.5_TET_TKO",
   "E8.5_Host",
   "E8.5_TET_TKO"
   # "E10.5_Host", 
@@ -119,8 +119,8 @@ stopifnot(sum(duplicated(new.names))==0)
 # genes.to.plot <- c("Lefty1","Cd34","Tmsb4x","Fgf3","Spata7","Cer1","Spink1","Dppa4","Dppa5a","Prc1","Lefty2","Ube2c","Hba-x","Hbb-y","Hba-a1","Hbb-bh1")
 # genes.to.plot <- c("Vegfa","Vegfb","Vegfc","Vegfd","Kdr","Flt1","Tal1","Runx1","Etv2)
 # genes.to.plot <- c("Tet1","Tet2","Tet3","Dnmt1","Dnmt3a","Dnmt3b","Dnmt3l")
-genes.to.plot <- c("Cd34","Fgf3")
-# genes.to.plot <- rownames(sce)[grep("Hox",rownames(sce))]
+genes.to.plot <- c("Nodal")
+genes.to.plot <- rownames(sce)[grep("Bmp",rownames(sce))]
 
 for (i in 1:length(genes.to.plot)) {
   gene <- genes.to.plot[i]
@@ -155,9 +155,9 @@ for (i in 1:length(genes.to.plot)) {
       legend.text = element_text(size=rel(1.1))
     )
     
-  pdf(sprintf("%s/test_%s.pdf",io$outdir,i), width=5, height=3.5, useDingbats = F)
+  # pdf(sprintf("%s/%s.pdf",io$outdir,i), width=5, height=3.5, useDingbats = F)
   # ggsave("ggtest.png", width = 3.25, height = 3.25, dpi = 1200)
-  # jpeg(sprintf("%s/%s.jpeg",io$outdir,gene), width = 1300, height = 430)
+  jpeg(sprintf("%s/%s.jpeg",io$outdir,gene), width = 1300, height = 800)
   # jpeg(sprintf("%s/test_%s.jpeg",io$outdir,gene), width = 900, height = 900)
   print(p)
   dev.off()

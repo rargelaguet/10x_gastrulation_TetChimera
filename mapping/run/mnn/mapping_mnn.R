@@ -1,5 +1,6 @@
 suppressPackageStartupMessages(library(Seurat))
 suppressPackageStartupMessages(library(batchelor))
+suppressPackageStartupMessages(library(scran))
 suppressPackageStartupMessages(library(SingleCellExperiment))
 suppressPackageStartupMessages(library(argparse))
 
@@ -15,31 +16,33 @@ p$add_argument('--outdir',          type="character",               help='Output
 args <- p$parse_args(commandArgs(TRUE))
 
 ## START TEST ##
-args$atlas_stages <- c(
-  "E6.5",
-  "E6.75",
-  "E7.0",
-  "E7.25",
-  "E7.5",
-  "E7.75",
-  "E8.0",
-  "E8.25",
-  "E8.5",
-  "mixed_gastrulation"
-)
-
-args$query_batches <- c(
-  # "SIGAA3_E8.5_pool1_Host-WT_L001"
-  # "SIGAB3_E8.5_pool1_TET-TKO_L002",
-  "SIGAC3_E8.5_pool2_Host-WT_L003",
-  # "SIGAD3_E8.5_pool2_TET-TKO_L004", 
-  # "SIGAE3_E7.5_pool1_Host-WT_L005", 
-  # "SIGAF3_E7.5_pool1_TET-TKO_L006", 
-  "SIGAG3_E8.5_hashing_Host-WT_L007",
-  "SIGAH3_E8.5_hasting_TET-TKO_L008"
-)
-
-args$test <- FALSE
+# args$atlas_stages <- c(
+#   "E6.5",
+#   "E6.75",
+#   "E7.0",
+#   "E7.25",
+#   "E7.5",
+#   "E7.75",
+#   "E8.0",
+#   "E8.25",
+#   "E8.5",
+#   "mixed_gastrulation"
+# )
+# 
+# args$query_batches <- c(
+#   # "SIGAA3_E8.5_pool1_Host-WT_L001"
+#   # "SIGAB3_E8.5_pool1_TET-TKO_L002",
+#   "SIGAC3_E8.5_pool2_Host-WT_L003"
+#   # "SIGAD3_E8.5_pool2_TET-TKO_L004", 
+#   # "SIGAE3_E7.5_pool1_Host-WT_L005", 
+#   # "SIGAF3_E7.5_pool1_TET-TKO_L006", 
+#   # "SIGAG3_E8.5_hashing_Host-WT_L007",
+#   # "SIGAH3_E8.5_hasting_TET-TKO_L008"
+# )
+# 
+# args$test <- FALSE
+# 
+# args$outdir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/results/first_batch"
 ## END TEST ##
 
 ################
@@ -78,11 +81,13 @@ sce_atlas <- sce_atlas[,meta_atlas$cell]
 ################
 
 # Load SingleCellExperiment
-io$sce <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/first_batch/SingleCellExperiment.rds"
+# io$sce <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/first_batch/SingleCellExperiment.rds"
+io$sce <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/first_batch/SingleCellExperiment.rds"
 sce_query <- readRDS(io$sce)
 
 # Load cell metadata
-io$metadata <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/first_batch/sample_metadata.txt.gz"
+# io$metadata <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/first_batch/sample_metadata.txt.gz"
+io$metadata <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/first_batch/sample_metadata.txt.gz"
 # meta_query <- fread(io$metadata) %>% .[pass_QC==T & batch%in%args$query_batches]
 # meta_query <- fread(io$metadata) %>% .[nFeature_RNA>1000 & batch%in%args$query_batches]
 meta_query <- fread(io$metadata) %>% .[nCount_RNA>1250 & batch%in%args$query_batches]

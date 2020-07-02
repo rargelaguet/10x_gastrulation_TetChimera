@@ -149,6 +149,7 @@ opts$classes <- c(
 ##########################
 
 sample_metadata <- fread(io$metadata) %>% .[pass_QC==T] %>% 
+  .[batch%in%opts$batches] %>%
   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped," ","_")] %>%
   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,"/","_")] %>%
   .[,celltype.mapped:=factor(celltype.mapped, levels=names(opts$celltype.colors))]
