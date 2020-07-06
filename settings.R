@@ -16,6 +16,10 @@ if (grepl("ricard",Sys.info()['nodename'])) {
   io$basedir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera"
   io$atlas.basedir <- "/hps/nobackup2/research/stegle/users/ricard/gastrulation10x"
   io$gene_metadata <- "/hps/nobackup2/research/stegle/users/ricard/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
+} else if (grepl("pebble|headstone",Sys.info()['nodename'])) {
+  io$basedir <- "/bi/scratch/Stephen_Clark/tet_chimera_10x/"
+  io$atlas.basedir <- ""
+  io$gene_metadata <- ""
 } else {
   stop("Computer not recognised")
 }
