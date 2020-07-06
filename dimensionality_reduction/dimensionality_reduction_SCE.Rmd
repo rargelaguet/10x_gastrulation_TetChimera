@@ -18,17 +18,28 @@ io$outdir <- paste0(io$basedir,"/results/dimensionality_reduction")
 
 Define options
 ```{r}
+# opts$batches <- c(
+#   # "E75_TET_TKO_L002", 
+#   # "E75_WT_Host_L001"
+#   "E85_Rep1_TET_TKO_L004",
+#   "E85_Rep1_WT_Host_L003",
+#   "E85_Rep2_TET_TKO_L006",
+#   "E85_Rep2_WT_Host_L005"
+#   # "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
+#   # "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
+#   # "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
+#   # "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
+# )
+
 opts$batches <- c(
-  # "E75_TET_TKO_L002", 
-  # "E75_WT_Host_L001"
-  "E85_Rep1_TET_TKO_L004",
-  "E85_Rep1_WT_Host_L003",
-  "E85_Rep2_TET_TKO_L006",
-  "E85_Rep2_WT_Host_L005"
-  # "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
-  # "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
-  # "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
-  # "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
+  # "SIGAA3_E8.5_pool1_Host-WT_L001",
+  # "SIGAB3_E8.5_pool1_TET-TKO_L002",
+  # "SIGAC3_E8.5_pool2_Host-WT_L003"
+  # "SIGAD3_E8.5_pool2_TET-TKO_L004", 
+  # "SIGAE3_E7.5_pool1_Host-WT_L005", 
+  # "SIGAF3_E7.5_pool1_TET-TKO_L006", 
+  # "SIGAG3_E8.5_hashing_Host-WT_L007",
+  "SIGAH3_E8.5_hasting_TET-TKO_L008"
 )
 
 # opts$celltypes = c(
@@ -72,6 +83,19 @@ opts$batches <- c(
 # )
 ```
 
+```{r}
+sample_metadata <- fread("/Users/ricard/data/10x_gastrulation_TetChimera/processed/first_batch/sample_metadata.txt.gz")
+
+io$mapping.results <- "/Users/ricard/data/10x_gastrulation_TetChimera/results/first_batch/mapping"
+mapping.dt <- opts$batches %>% 
+  map(~ fread(sprintf("%s/mapping_mnn_%s.txt.gz",io$mapping.results,.)) ) %>%
+  rbindlist
+  
+sample_metadata <- sample_metadata %>% merge(mapping.dt,by="cell")
+
+io$sce <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/first_batch/SingleCellExperiment.rds"
+```
+
 Update sample metadata
 ```{r load_metadata, echo=FALSE}
 sample_metadata <- sample_metadata %>%
@@ -86,6 +110,12 @@ Load RNA expression data as SingleCellExperiment object
 ```{r load_data, echo=FALSE}
 sce <- readRDS(io$sce)[,sample_metadata$cell]
 dim(sce)
+```
+
+Add sample metadata to SCE
+```{r}
+colData(sce) <- sample_metadata %>% as.data.frame %>% tibble::column_to_rownames("cell") %>%
+  .[colnames(sce),] %>% DataFrame()
 ```
 
 Change gene names from ENSEMBL to symbols
@@ -112,22 +142,29 @@ rownames(sce) <- new.names
 Select HVG
 ```{r}
 decomp <- modelGeneVar(sce)
-decomp <- decomp[decomp$mean > 0.01,]
+# decomp <- decomp[decomp$mean > 0.01,]
+decomp <- decomp[decomp$mean > 0.001,]
 hvgs <- rownames(decomp)[decomp$p.value <= 0.01]
 
 # Subset SingleCellExperiment
 sce_filt <- sce[hvgs,]
 ```
 
+```{r}
+plot(decomp$mean, decomp$total, xlab="Mean log-expression", ylab="Variance")
+curve(metadata(decomp)$trend(x), col="blue", add=TRUE)
+```
+
+
 Use gene markers as HVGs
 ```{r}
-io$atlas.marker_genes <- "/Users/ricard/data/gastrulation10x/results/marker_genes/E8.5/marker_genes.txt.gz"
-
-marker_genes.dt <- fread(io$atlas.marker_genes)
-marker_genes.dt <- marker_genes.dt[,head(.SD,n=50),by="celltype"]
-marker_genes <- unique(marker_genes.dt$gene)
-marker_genes <- marker_genes[marker_genes%in%rownames(sce)]
-length(marker_genes)
+# io$atlas.marker_genes <- "/Users/ricard/data/gastrulation10x/results/marker_genes/E8.5/marker_genes.txt.gz"
+# 
+# marker_genes.dt <- fread(io$atlas.marker_genes)
+# marker_genes.dt <- marker_genes.dt[,head(.SD,n=50),by="celltype"]
+# marker_genes <- unique(marker_genes.dt$gene)
+# marker_genes <- marker_genes[marker_genes%in%rownames(sce)]
+# length(marker_genes)
 ```
 
 Regress out covariates
@@ -143,7 +180,7 @@ data <- scale(t(logcounts(sce_filt)), center = T, scale = F)
 
 Run PCA
 ```{r}
-npcs <- 15
+npcs <- 25
 reducedDim(sce_filt, "PCA") <- irlba::prcomp_irlba(data, n=npcs)$x[,1:npcs]
 ```
 
