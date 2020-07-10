@@ -1,17 +1,28 @@
-library(Seurat)
+# library(Seurat)
 library(SingleCellExperiment)
 library(scater)
 library(scran)
 
 # Load default settings
-source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
-io$outfile <- paste0(io$basedir,"/processed/SingleCellExperiment.rds")
+# source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
+source("/homes/ricard/10x_gastrulation_TetChimera/settings.R")
 
-# Load Seurat object
+# Define I/O
+# io$seurat <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/first_batch/seurat.rds"
+# io$outfile <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/first_batch/SingleCellExperiment.rds"
+
+io$seurat <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/first_batch/seurat.rds"
+io$outfile <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/first_batch/SingleCellExperiment.rds"
+io$metadata <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/first_batch/sample_metadata.txt.gz"
+
+# Load sample metadata
+sample_metadata <- fread(io$metadata)
+
+# Load seurat 
 seurat <- readRDS(io$seurat)
 
 # Convert to SingleCellExperiment
-sce <- as.SingleCellExperiment(seurat)
+sce <- Seurat::as.SingleCellExperiment(seurat)
 
 # Add metadata
 stopifnot(sample_metadata$cell%in%colnames(sce))

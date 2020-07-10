@@ -25,13 +25,15 @@
 *.html
 *.log
 *.tsv
+*.out
 
 # Ignore local folders
 **/local-data
 *.Rproj.user
 
 # Ignore .ipynb stuff
-*.ipynb*
+#*.ipynb*
 
 # Ignore snakemake stuff
 .snakemake/
+.Rproj.user
