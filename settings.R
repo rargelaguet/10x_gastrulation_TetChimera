@@ -104,12 +104,15 @@ opts$celltype.colors = c(
 	"Mesenchyme" = "#cc7818",
 	"Haematoendothelial_progenitors" = "#FBBE92",
 	"Endothelium" = "#ff891c",
+	"Blood_progenitors" = "#c9a997",
 	"Blood_progenitors_1" = "#f9decf",
 	"Blood_progenitors_2" = "#c9a997",
+	"Erythroid" = "#EF4E22",
 	"Erythroid1" = "#C72228",
 	"Erythroid2" = "#f79083",
 	"Erythroid3" = "#EF4E22",
 	"NMP" = "#8EC792",
+	"Neurectoderm" = "#65A83E",
 	"Rostral_neurectoderm" = "#65A83E",
 	"Caudal_neurectoderm" = "#354E23",
 	"Neural_crest" = "#C3C388",
@@ -119,20 +122,31 @@ opts$celltype.colors = c(
 	"Visceral_endoderm" = "#F6BFCB",
 	"ExE_endoderm" = "#7F6874",
 	"ExE_ectoderm" = "#989898",
-	"Parietal_endoderm" = "#1A1A1A",
-	
-	# Additional
-	"Erythroid" = "#EF4E22",
-	"Blood_progenitors" = "#c9a997"
+	"Parietal_endoderm" = "#1A1A1A"
 )
 
+
 opts$batches <- c(
+  
+  # First batches that all failed QC
+  # SIGAA3_E8.5_pool1_Host-WT_L001
+  # SIGAB3_E8.5_pool1_TET-TKO_L002
+  # SIGAC3_E8.5_pool2_Host-WT_L003
+  # SIGAD3_E8.5_pool2_TET-TKO_L004
+  # SIGAE3_E7.5_pool1_Host-WT_L005
+  # SIGAF3_E7.5_pool1_TET-TKO_L006
+  # SIGAG3_E8.5_hashing_Host-WT_L007
+  # SIGAH3_E8.5_hasting_TET-TKO_L00
+  
+  # Second batch
   "E75_TET_TKO_L002", 
   "E75_WT_Host_L001", 
   "E85_Rep1_TET_TKO_L004", 
   "E85_Rep1_WT_Host_L003", 
   "E85_Rep2_TET_TKO_L006", 
   "E85_Rep2_WT_Host_L005"
+  
+  # Third batch
   # "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
   # "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
   # "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
