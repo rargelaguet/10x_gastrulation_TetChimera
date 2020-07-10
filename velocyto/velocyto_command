@@ -1,1 +1,1 @@
-ssub --mem=50G --srun velocyto run10x /bi/scratch/Felix/For_Stephen_Clark/200624_10X_tomato/Samples5176_5181/lane1/E75_WT_Host  /bi/scratch/Stephen_Clark/annotations/gtf/Mus_musculus.GRCm38.98.gtf.gz
+ssub --mem=50G --srun velocyto run10x /bi/scratch/Stephen_Clark/tet_chimera_10x/velocyto/E75_WT_Host /bi/scratch/Stephen_Clark/annotations/gtf/Mus_musculus.GRCm38.98.gtf
