@@ -1,0 +1,182 @@
+---
+title: "Velocyto"
+author: "Stephen Clark"
+date: "04/26/2018"
+output: html_document
+---
+
+```{r setup}
+
+
+library(data.table)
+library(purrr)
+library(velocyto.R)
+library(parallel)
+library(RColorBrewer)
+
+
+
+io <- list()
+io$data_dir <- "/bi/scratch/Stephen_Clark/gastrulation_data"
+io$bam_dir <- "/bi/sequencing"
+io$sample_meta <- paste0(io$data_dir, "/sample_metadata.txt")
+io$refFlat_file <- paste0(io$data_dir, "/rna/mm10_refFlat_modified.txt.gz")
+# io$gtf_file <- "/bi/group/reik/Stephen/gastrulation/rna_preproc/Mus_musculus.GRCm38.87.gtf"
+io$out_file <- paste0(io$data_dir, "/rna/velocyto/velocyto.rds")
+
+opts <- list()
+opts$stages <- c("E4.5", "E5.5", "E6.5_late", "E6.75", "E7.5")
+
+```
+
+```{r}
+meta <- fread(io$sample_meta) %>%
+    .[method=="scNMT" & pass_rnaQC==TRUE & stage %in% opts$stages]
+
+file_names <- meta[, id_rna]
+lane_names <- map(file_names, ~strsplit(., split="_") %>% .[[1]] %>% .[1]) %>%
+    unlist() %>%
+    unique() %>%
+    gsub("lane|Lane|lane|_", "", .)
+
+
+bam_files <- list.dirs(io$bam_dir, recursive=FALSE) %>%
+    map(dir, pattern=paste(lane_names, collapse="|"), full=TRUE) %>%
+    unlist() %>%
+    paste0("/Aligned") %>%
+    map(dir, pattern="bam", full=TRUE, recursive=TRUE) %>%
+    unlist()
+
+names(bam_files) <- basename(bam_files) %>%
+    sub(".bam", "", .)
+
+```
+
+```{r}
+# compare bam files with those supplied in the velocyto tutorial
+# library(Rsamtools)
+# 
+# my_bam = scanBam(bam_files[10])
+# vel_bam = scanBam("e12.5.bams/A1/A1_unique.bam")
+# vel_ref = "genes.refFlat"
+# vel_ref = "/bi/scratch/Stephen_Clark/gastrulation_data/rna/hg19_refFlat.txt.gz"
+# 
+# 
+# vel_test = read.smartseq2.bams("e12.5.bams/A1/A1_unique.bam", vel_ref, n.cores=1)
+# my_test = read.smartseq2.bams(bam_files[10], io$refFlat_file, min.exon.count = 1, n.cores=1)
+# 
+# mean(vel_test$emat)
+# mean(vel_test$smat)
+# mean(vel_test$iomat)
+# 
+# 
+# 
+# mean(my_test$emat)
+
+```
+
+
+
+```{r}
+cores <- detectCores()
+dir.create(dirname(io$out_file), recursive=TRUE)
+# need to do this in chunks as files are too big
+# chunks <- list(1:500, 501:1000, 1001:length(bam_files))
+chunks <- 1:length(bam_files) %>%
+    split(., ceiling(seq_along(.)/100))
+# chunks <- chunks[14]
+walk(seq_along(chunks), ~{
+    chunk <- chunks[[.]]
+    dat <- read.smartseq2.bams(bam_files[chunk], io$refFlat_file, n.cores=cores)
+    file_name <- sub(".rds", paste0("_re-chunk", ., ".rds"), io$out_file)
+    saveRDS(dat, file_name)
+})
+
+
+
+# read in all rds files
+dat <- dir(dirname(io$out_file), pattern="re-chunk", full=TRUE) %>%
+    map(readRDS)
+
+# check rownames are all the same
+map(2:length(dat), ~all(rownames(dat[[1]]$emat)==rownames(dat[[.]]$emat))) %>%
+    unlist %>%
+    all
+
+# now cbind to join all cells for each matrix
+combine_matrices <- function(data_list, slot){
+    map(data_list, ~.[[slot]]) %>%
+        reduce(cbind)
+}
+
+emat <- combine_matrices(dat, "emat")
+nmat <- combine_matrices(dat, "iomat")
+smat <- combine_matrices(dat, "smat")
+
+saveRDS(list(emat=emat, nmat=nmat, smat=smat), io$out_file)
+```
+
+
+
+
+```{r gene_filt}
+# gene filtering  
+# Set up expression matrices, filtering genes to leave those that exceed some pre-defined (we use defaults) g to the average expression magnitude. 
+
+#hist(log10(rowSums(dat$emat)+1),col='wheat',xlab='log10[ number of reads + 1]',main='number of reads per gene')
+
+
+# first subset to just E6.75 and E7.5
+#meta_sub <- meta[KO_3b=="not" & lineage %in% c("EPI", "PS", "Mesoderm", "Ectoderm")]
+# meta_sub <- meta[stage %in% c("E6.75",  "E7.5") & KO_3b=="not" & lineage %in% c("EPI", "PS", "Mesoderm", "Ectoderm")]
+#meta_sub <- meta[stage %in% c("E6.75",  "E7.5") & KO_3b=="not" & lineage %in% c("EPI", "PS", "Mesoderm", "Ectoderm")]
+# meta_sub <- meta[stage %in% c("E4.5",  "E5.5") & KO_3b=="not" & lineage %in% c("EPI", "PE")]
+meta_sub <- meta[stage %in% c("E4.5",  "E5.5", "E6.5_late", "E6.75", "E7.5") & KO_3b=="not" & lineage %in% c("EPI", "PE", "PS", "Mesoderm", "Ectoderm")]
+
+cells <- meta_sub[, id_rna]
+
+
+# filter expression matrices based on some minimum max-cluster averages
+cell.colors <- meta_sub[, paste0(stage, "_", lineage)] 
+# cell.colors <- meta_sub[, stage] 
+names(cell.colors) <- meta_sub[, id_rna]
+
+
+
+emat <- filter.genes.by.cluster.expression(emat[, cells],cell.colors,min.max.cluster.average = 5)
+nmat <- filter.genes.by.cluster.expression(nmat[, cells],cell.colors,min.max.cluster.average = 1)
+smat <- filter.genes.by.cluster.expression(smat[, cells],cell.colors,min.max.cluster.average = 0.5)
+# look at the resulting gene set
+str(intersect(intersect(rownames(emat),rownames(nmat)),rownames(smat)))
+
+```
+
+
+
+```{r}
+# if we want to generate velocity plots....
+
+#rvel.qf <- gene.relative.velocity.estimates(emat,nmat,deltaT=1,kCells = 5,fit.quantile = 0.02)
+# rvel.qf <- gene.relative.velocity.estimates(emat,nmat, smat=smat,deltaT=1,kCells = 5,min.nmat.emat.slope=0.1, min.nmat.smat.correlation=0.1)
+# rvel.qf <- gene.relative.velocity.estimates(emat,nmat,deltaT=1,deltaT2=1, kCells = 1)
+```
+
+
+
+```{r}
+# We visualize the velocities by projecting observed and extrapolated cells onto the first 5 PCs:  
+
+# palette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000", "#FFFFFF")
+# legend <- unique(cell.colors)
+# 
+# for (i in seq_along(legend)){
+#     cell.colors[cell.colors==legend[i]] <- palette[i]
+# }
+# 
+# pca.velocity.plot(rvel.qf,nPcs=2,plot.cols=1,cell.colors=ac(cell.colors,alpha=1),cex=1.2,pcount=0.1)
+# legend("topleft", legend=legend, fill=palette[1:length(legend)])
+```
+
+
+
+

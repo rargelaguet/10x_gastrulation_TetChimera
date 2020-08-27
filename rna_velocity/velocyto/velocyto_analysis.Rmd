@@ -1,0 +1,230 @@
+---
+title: "Velocyto analysis"
+---
+
+```{r}
+library(velocyto.R)
+```
+
+## Define settings
+
+Load default settings
+```{r}
+source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
+```
+
+Define I/O
+```{r}
+io$loom.dir <- paste0(io$basedir,"/processed/velocyto")
+io$outdir <- paste0(io$basedir,"/results/velocyto")
+```
+
+Define options
+```{r}
+# opts$batch
+```
+
+## Data loading
+
+Update sample metadata
+```{r load_metadata, echo=FALSE}
+sample_metadata <- sample_metadata %>%
+  .[batch%in%c("E75_WT_Host_L001")]
+table(sample_metadata$batch)
+```
+
+Load SingleCellExperiment
+```{r}
+sce <- readRDS(io$sce)[,sample_metadata$cell]
+colData(sce) <- sample_metadata %>% as.data.frame %>% tibble::column_to_rownames("cell") %>%
+  .[colnames(sce),] %>% DataFrame()
+dim(sce)
+```
+
+
+Load loom data
+```{r}
+ldat <- read.loom.matrices(paste0(io$loom.dir,"/E75_WT_Host.loom"))
+# ldat <- read.loom.matrices(sprintf("%s/%s.loom",io$loom.dir,opts$batch))
+lapply(ldat,dim)
+```
+
+Load gene metadata
+```{r}
+gene_metadata <- fread(io$gene_metadata) %>% .[,c("ens_id","symbol")] %>%
+  .[symbol!="" & ens_id%in%rownames(sce)]
+```
+
+# Parse data 
+
+Update cell names to match HDF5 idiosyncrasies
+```{r}
+colnames(sce) <- colnames(sce) %>% 
+  map_chr(~ sub("E75_WT_Host_L001_","E75_WT_Host:",.) %>% substr(1,28) %>% paste0("x")
+)
+
+sample_metadata[,cell := sub("E75_WT_Host_L001_","E75_WT_Host:",cell) %>% substr(1,28) %>% paste0("x")]
+```
+
+Sanity checks
+```{r}
+mean(colnames(sce) %in% colnames(ldat$spliced))
+mean(colnames(ldat$spliced) %in% colnames(sce))
+```
+
+Subset cells from the velocyto matrices
+```{r}
+ldat$spliced <- ldat$spliced[,colnames(sce)]
+ldat$unspliced <- ldat$unspliced[,colnames(sce)]
+ldat$ambiguous <- ldat$ambiguous[,colnames(sce)]
+lapply(ldat,dim)
+```
+
+Subset genes from the velocyto matrices
+```{r}
+# genes <- rownames(sce)
+genes.symbol <- intersect(rownames(ldat$spliced),gene_metadata$symbol)
+genes.ensid <- gene_metadata[symbol%in%genes.symbol & ens_id%in%rownames(sce),ens_id]
+ldat$spliced <- ldat$spliced[genes.symbol,]
+```
+
+Subset genes from the SCE
+```{r}
+sce <- sce[genes.ensid,]
+```
+
+# Dimensionality reduction
+
+Select HVG
+```{r}
+decomp <- modelGeneVar(sce)
+# decomp <- decomp[decomp$mean > 0.01,]
+decomp <- decomp[decomp$mean > 0.001,]
+hvgs <- rownames(decomp)[decomp$p.value <= 0.01]
+
+# Subset SingleCellExperiment
+sce_filt <- sce[hvgs,]
+dim(sce_filt)
+```
+
+
+# PCA
+
+Run PCA
+```{r}
+sce_filt <- runPCA(sce_filt, ntop = 9999, ncomponents = 25)
+reducedDim(sce, "PCA") <- reducedDim(sce_filt, "PCA") 
+```
+
+
+Run UMAP
+```{r}
+set.seed(42)
+# sce_filt <- runUMAP(sce_filt, dimred="PCA")
+sce_filt <- runUMAP(sce_filt, dimred="PCA", n_neighbors = 35, min_dist = 0.45)
+reducedDim(sce, "UMAP") <- reducedDim(sce_filt, "UMAP") 
+```
+
+Plot UMAP
+
+```{r}
+to.plot <- reducedDim(sce_filt,"UMAP") %>% as.data.table %>% 
+  .[,cell:=colnames(sce_filt)] %>%
+    merge(sample_metadata, by="cell")
+
+p <- ggplot(to.plot, aes(x=V1, y=V2, fill=celltype.mapped)) +
+  geom_point(size=1.5, shape=21, stroke=0.2) +
+  # scale_color_manual(values=opts$stage.colors) +
+  scale_fill_manual(values=opts$celltype.colors) +
+  theme_classic() +
+  theme(
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    legend.position="none",
+    legend.title=element_blank()
+  )
+
+# pdf(paste0(io$outdir,"/rna_umap.pdf"), width=5, height=3, useDingbats = F)
+print(p)
+# dev.off()
+```
+
+## Velocity estimation
+
+Prepare matrices and clustering data:
+```{r}
+emat <- ldat$spliced
+nmat <- ldat$unspliced
+
+# take embedding
+emb <- reducedDim(sce_filt,"UMAP")
+```
+
+Calculate cell-cell distance matrix using PCA space
+```{r}
+cell.dist <- dist(reducedDim(sce_filt,"PCA"))
+class(cell.dist)
+```
+
+```{r}
+all(colnames(emat) == colnames(sce))
+all(colnames(nmat) == colnames(sce))
+```
+
+Filter genes based on the minimum average expresion magnitude (in at least one of the clusters), output total number of resulting valid genes:
+```{r}
+clusters <- sce$celltype.mapped; names(clusters) <- colnames(sce)
+
+emat <- filter.genes.by.cluster.expression(emat,
+  clusters = clusters,
+  min.max.cluster.average = 0.5
+)
+
+nmat <- filter.genes.by.cluster.expression(nmat,
+  clusters = clusters,
+  min.max.cluster.average = 0.05
+)
+
+length(intersect(rownames(emat),rownames(emat)))
+```
+
+Estimate RNA velocity (using gene-relative model with k=20 cell kNN pooling and using top/bottom 2% quantiles for gamma fit):
+```{r}
+fit.quantile <- 0.02
+
+rvel.cd <- gene.relative.velocity.estimates(
+  emat = emat,   # exonic count matric
+  nmat = nmat,   # intronic count matric
+  deltaT = 1,    # amount of time to project the cell forward
+  kCells = 20,   # 	number of k nearest neighbors (NN) to use in slope calculation smoothing
+  cell.dist = cell.dist,  # cell distance to use in cell kNN pooling calculations
+  fit.quantile = fit.quantile # perform gamma fit on a top/bottom quantiles of expression magnitudes
+)
+```
+
+
+Visualize velocity on the embedding, using velocity vector fields:
+```{r fig.height=6,fig.width=6}
+show.velocity.on.embedding.cor(emb, 
+  rvel.cd, 
+  n = 300, 
+  scale = 'sqrt',
+  # cell.colors = ac(cell.colors,alpha = 0.5),
+  cex = 0.8,
+  arrow.scale = 5,
+  show.grid.flow = TRUE,
+  min.grid.cell.mass = 0.5,
+  grid.n = 40,
+  arrow.lwd = 1,
+  do.par = F,
+  cell.border.alpha = 0.1
+)
+```
+
+
+Visualize a fit for a particular gene (we reuse rvel.cd to save on calcualtions here):
+```{r fig.height=2.3,fig.width=8}
+gene <- "Nfib"
+gene.relative.velocity.estimates(emat,nmat,deltaT=1,kCells = 20,kGenes=1,fit.quantile=fit.quantile,cell.emb=emb,cell.colors=cell.colors,cell.dist=cell.dist,show.gene=gene,old.fit=rvel.cd,do.par=T)
+```

@@ -9,9 +9,9 @@ if (grepl("ricard",Sys.info()['nodename'])) {
 } else {
   source("/homes/ricard/10x_gastrulation_TetChimera/settings.R")
   io$script <- "/homes/ricard/10x_gastrulation_TetChimera/mapping/run/mnn/mapping_mnn.R"
-  io$tmpdir <- paste0(io$basedir,"/results/first_batch/mapping/tmp"); dir.create(io$tmpdir)
+  io$tmpdir <- paste0(io$basedir,"/results/fourth_batch/mapping/tmp"); dir.create(io$tmpdir)
 }
-io$outdir <- paste0(io$basedir,"/results/first_batch/mapping")
+io$outdir <- paste0(io$basedir,"/results/fourth_batch/mapping")
 
 ####################
 ## Define options ##
@@ -22,10 +22,10 @@ opts$atlas_stages <- c(
   # "E6.75",
   # "E7.0",
   # "E7.25",
-  "E7.5",
-  "E7.75",
-  "E8.0",
-  "E8.25",
+  # "E7.5",
+  # "E7.75",
+  # "E8.0",
+  # "E8.25",
   "E8.5"
   # "mixed_gastrulation"
 )
@@ -43,19 +43,19 @@ opts$atlas_stages <- c(
 #   # "E125_DNMT3A_KO_E_L004"
 # )
 
-opts$query_batches <- c(
-  "SIGAA3_E8.5_pool1_Host-WT_L001",
-  "SIGAB3_E8.5_pool1_TET-TKO_L002",
-  "SIGAC3_E8.5_pool2_Host-WT_L003",
-  "SIGAD3_E8.5_pool2_TET-TKO_L004", 
-  "SIGAE3_E7.5_pool1_Host-WT_L005", 
-  "SIGAF3_E7.5_pool1_TET-TKO_L006", 
-  "SIGAG3_E8.5_hashing_Host-WT_L007",
-  "SIGAH3_E8.5_hasting_TET-TKO_L008"
+opts$batches <- c(
+  "SIGAC2_TET_TKO_E9_5_Head1_L002",
+  "SIGAD2_TET_TKO_E9_5_Trunk1_L002",
+  "SIGAE2_TET_TKO_E9_5_Tail1_L002",
+  "SIGAE6_TET_TKO_E9_5_Head2_L003",
+  "SIGAF2_TET_TKO_E9_5_YS1_L002",
+  "SIGAF6_TET_TKO_E9_5_Trunk2_L003",
+  "SIGAG6_TET_TKO_E9_5_Tail2_L003",
+  "SIGAH6_TET_TKO_E9_5_YS2_L003"
 )
 
 # Test mode (subsetting cells)?
-opts$test_mode <- FALSE
+opts$test_mode <- TRUE
 
 #########
 ## Run ##

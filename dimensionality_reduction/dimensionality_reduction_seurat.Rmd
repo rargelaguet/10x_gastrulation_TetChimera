@@ -16,18 +16,18 @@ io$outdir <- paste0(io$basedir,"/results/dimensionality_reduction")
 
 Define options
 ```{r}
-opts$batches <- c(
-  # "E75_TET_TKO_L002", 
-  # "E75_WT_Host_L001"
-  # "E85_Rep1_TET_TKO_L004", 
-  "E85_Rep1_WT_Host_L003",
-  # "E85_Rep2_TET_TKO_L006", 
-  "E85_Rep2_WT_Host_L005"
-  # "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
-  # "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
-  # "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
-  # "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
-)
+# opts$batches <- c(
+#   # "E75_TET_TKO_L002", 
+#   # "E75_WT_Host_L001"
+#   # "E85_Rep1_TET_TKO_L004", 
+#   "E85_Rep1_WT_Host_L003",
+#   # "E85_Rep2_TET_TKO_L006", 
+#   "E85_Rep2_WT_Host_L005"
+#   # "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
+#   # "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
+#   # "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
+#   # "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
+# )
 
 opts$celltypes = c(
 	"Epiblast",
@@ -72,8 +72,9 @@ opts$celltypes = c(
 
 Update sample metadata
 ```{r load_metadata, echo=FALSE}
-sample_metadata <- sample_metadata %>%
-  .[batch%in%opts$batches & celltype.mapped%in%opts$celltypes]
+sample_metadata <- fread("/Users/ricard/data/10x_gastrulation_TetChimera/processed/fourth_batch/metadata.txt.gz")
+# sample_metadata <- sample_metadata %>%
+#   .[batch%in%opts$batches & celltype.mapped%in%opts$celltypes]
 table(sample_metadata$batch)
 ```
 
@@ -81,7 +82,8 @@ table(sample_metadata$batch)
 
 Load RNA expression data as Seurat object
 ```{r load_data, echo=FALSE}
-seurat <- readRDS(io$seurat)[,sample_metadata$cell]
+seurat <- readRDS("/Users/ricard/data/10x_gastrulation_TetChimera/processed/fourth_batch/seurat.rds")
+# seurat <- readRDS(io$seurat)[,sample_metadata$cell]
 dim(seurat)
 ```
 
@@ -100,7 +102,8 @@ seurat@meta.data <- foo
 Remove genes that are not expressed
 ```{r}
 foo <- Matrix::rowMeans(seurat@assays$RNA@counts)
-seurat <- subset(seurat, features = names(which(foo>1e-6)))
+seurat <- subset(seurat, features = names(which(foo>1e-4)))
+dim(seurat)
 ```
 
 Normalise
@@ -206,7 +209,8 @@ print(p)
 Idents(seurat) <- "batch"
 
 p <- DimPlot(seurat, label = FALSE, reduction = 'umap') + 
-  NoLegend() +
+  scale_color_brewer(palette="Dark2") +
+  # NoLegend() +
   theme(
     axis.text = element_blank(),
     axis.title = element_blank(),
@@ -218,7 +222,8 @@ print(p)
 
 Explore marker genes
 ```{r}
-# genes.to.plot <- c("Hba-x")
-# FeaturePlot(seurat, features = genes.to.plot, reduction='umap')
+# genes.to.plot <- rownames(seurat)[grep("Hba-|Hbb-",rownames(seurat))]
+genes.to.plot <- "Hbb-y"
+FeaturePlot(seurat, features = genes.to.plot, reduction='umap')
 ```
 

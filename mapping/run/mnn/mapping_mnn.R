@@ -15,34 +15,32 @@ p$add_argument('--test',            action = "store_true",          help='Testin
 p$add_argument('--outdir',          type="character",               help='Output directory')
 args <- p$parse_args(commandArgs(TRUE))
 
-## START TEST ##
+# # START TEST ##
 # args$atlas_stages <- c(
-#   "E6.5",
-#   "E6.75",
-#   "E7.0",
-#   "E7.25",
-#   "E7.5",
-#   "E7.75",
-#   "E8.0",
-#   "E8.25",
-#   "E8.5",
-#   "mixed_gastrulation"
+#   # "E6.5",
+#   # "E6.75",
+#   # "E7.0",
+#   # "E7.25",
+#   # "E7.5",
+#   # "E7.75",
+#   # "E8.0",
+#   # "E8.25",
+#   "E8.5"
+#   # "mixed_gastrulation"
 # )
-# 
 # args$query_batches <- c(
-#   # "SIGAA3_E8.5_pool1_Host-WT_L001"
-#   # "SIGAB3_E8.5_pool1_TET-TKO_L002",
-#   "SIGAC3_E8.5_pool2_Host-WT_L003"
-#   # "SIGAD3_E8.5_pool2_TET-TKO_L004", 
-#   # "SIGAE3_E7.5_pool1_Host-WT_L005", 
-#   # "SIGAF3_E7.5_pool1_TET-TKO_L006", 
-#   # "SIGAG3_E8.5_hashing_Host-WT_L007",
-#   # "SIGAH3_E8.5_hasting_TET-TKO_L008"
+#   "SIGAC2_TET_TKO_E9_5_Head1_L002"
+#   # "SIGAD2_TET_TKO_E9_5_Trunk1_L002",
+#   # "SIGAE2_TET_TKO_E9_5_Tail1_L002",
+#   # "SIGAE6_TET_TKO_E9_5_Head2_L003",
+#   # "SIGAF2_TET_TKO_E9_5_YS1_L002",
+#   # "SIGAF6_TET_TKO_E9_5_Trunk2_L003",
+#   # "SIGAG6_TET_TKO_E9_5_Tail2_L003",
+#   # "SIGAH6_TET_TKO_E9_5_YS2_L003"
 # )
-# 
-# args$test <- FALSE
-# 
-# args$outdir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/results/first_batch"
+# args$test <- TRUE
+# # args$outdir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/results/fourth_batch/mapping"
+# args$outdir <- "/Users/ricard/data/10x_gastrulation_TetChimera/results/fourth_batch/mapping"
 ## END TEST ##
 
 ################
@@ -68,6 +66,15 @@ if (isTRUE(args$test)) print("Test mode activated...")
 # Load SingleCellExperiment
 sce_atlas  <- readRDS(io$atlas.sce)
 
+# Rename genes from ENSEMBLE IDs to gene names
+gene_metadata <- fread(io$gene_metadata) %>% .[,c("ens_id","symbol")] %>%
+  .[ens_id%in%rownames(sce_atlas) & !is.na(symbol) & symbol!=""]
+foo <- gene_metadata$symbol; names(foo) <- gene_metadata$ens_id
+sce_atlas <- sce_atlas[rownames(sce_atlas)%in%gene_metadata$ens_id,]
+rownames(sce_atlas) <- foo[rownames(sce_atlas)]
+stopifnot(sum(is.na(rownames(sce_atlas)))==0)
+stopifnot(sum(duplicated(rownames(sce_atlas)))==0)
+
 # Load cell metadata
 meta_atlas <- fread(io$atlas.metadata) %>%
   .[stripped==F & doublet==F & stage%in%args$atlas_stages]
@@ -81,16 +88,16 @@ sce_atlas <- sce_atlas[,meta_atlas$cell]
 ################
 
 # Load SingleCellExperiment
-# io$sce <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/first_batch/SingleCellExperiment.rds"
-io$sce <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/first_batch/SingleCellExperiment.rds"
+# io$sce <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/fourth_batch/SingleCellExperiment.rds"
+io$sce <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/fourth_batch/SingleCellExperiment.rds"
 sce_query <- readRDS(io$sce)
 
 # Load cell metadata
-# io$metadata <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/first_batch/sample_metadata.txt.gz"
-io$metadata <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/first_batch/sample_metadata.txt.gz"
-# meta_query <- fread(io$metadata) %>% .[pass_QC==T & batch%in%args$query_batches]
+# io$metadata <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/fourth_batch/sample_metadata.txt.gz"
+io$metadata <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/fourth_batch/sample_metadata.txt.gz"
+meta_query <- fread(io$metadata) %>% .[pass_QC==TRUE & batch%in%args$query_batches]
 # meta_query <- fread(io$metadata) %>% .[nFeature_RNA>1000 & batch%in%args$query_batches]
-meta_query <- fread(io$metadata) %>% .[nCount_RNA>1250 & batch%in%args$query_batches]
+# meta_query <- fread(io$metadata) %>% .[nCount_RNA>1250 & batch%in%args$query_batches]
 table(meta_query$batch)
 
 # Filter
@@ -127,6 +134,8 @@ mapping  <- mapWrap(
   map_sce = sce_query, map_meta = meta_query, 
   genes = NULL, npcs = 50, k = 25
 )
+
+head(mapping$mapping)
 
 ##########
 ## Save ##

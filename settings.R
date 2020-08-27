@@ -128,7 +128,7 @@ opts$celltype.colors = c(
 
 opts$batches <- c(
   
-  # First batches that all failed QC
+  # First batches (all failed QC)
   # SIGAA3_E8.5_pool1_Host-WT_L001
   # SIGAB3_E8.5_pool1_TET-TKO_L002
   # SIGAC3_E8.5_pool2_Host-WT_L003
@@ -139,18 +139,28 @@ opts$batches <- c(
   # SIGAH3_E8.5_hasting_TET-TKO_L00
   
   # Second batch
-  "E75_TET_TKO_L002", 
-  "E75_WT_Host_L001", 
-  "E85_Rep1_TET_TKO_L004", 
-  "E85_Rep1_WT_Host_L003", 
-  "E85_Rep2_TET_TKO_L006", 
-  "E85_Rep2_WT_Host_L005"
+  "E75_TET_TKO_L002",
+  "E75_WT_Host_L001",
+  "E85_Rep1_TET_TKO_L004",
+  "E85_Rep1_WT_Host_L003",
+  "E85_Rep2_TET_TKO_L006",
+  "E85_Rep2_WT_Host_L005",
   
-  # Third batch
+  # Third batch (failed QC)
   # "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
   # "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
   # "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
   # "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
+  
+  # Fourth batch
+  "SIGAC2_TET_TKO_E9_5_Head1_L002",
+  "SIGAD2_TET_TKO_E9_5_Trunk1_L002",
+  "SIGAE2_TET_TKO_E9_5_Tail1_L002",
+  "SIGAE6_TET_TKO_E9_5_Head2_L003",
+  "SIGAF2_TET_TKO_E9_5_YS1_L002",
+  "SIGAF6_TET_TKO_E9_5_Trunk2_L003",
+  "SIGAG6_TET_TKO_E9_5_Tail2_L003",
+  "SIGAH6_TET_TKO_E9_5_YS2_L003"
 )
 
 opts$classes <- c(
@@ -158,6 +168,7 @@ opts$classes <- c(
   "E7.5_TET_TKO", 
   "E8.5_Host", 
   "E8.5_TET_TKO"
+  # "E9.5_TET_TKO",
   # "E10.5_Host", 
   # "E10.5_TET_TKO"
 )
@@ -166,8 +177,9 @@ opts$classes <- c(
 ## Load sample metadata ##
 ##########################
 
-sample_metadata <- fread(io$metadata) %>% .[pass_QC==T] %>% 
-  .[batch%in%opts$batches] %>%
+sample_metadata <- fread(io$metadata) %>% 
+  # .[pass_QC==T] %>% 
+  # .[batch%in%opts$batches] %>%
   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped," ","_")] %>%
   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,"/","_")] %>%
   .[,celltype.mapped:=factor(celltype.mapped, levels=names(opts$celltype.colors))]

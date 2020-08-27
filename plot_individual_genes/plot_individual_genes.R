@@ -119,8 +119,8 @@ stopifnot(sum(duplicated(new.names))==0)
 # genes.to.plot <- c("Lefty1","Cd34","Tmsb4x","Fgf3","Spata7","Cer1","Spink1","Dppa4","Dppa5a","Prc1","Lefty2","Ube2c","Hba-x","Hbb-y","Hba-a1","Hbb-bh1")
 # genes.to.plot <- c("Vegfa","Vegfb","Vegfc","Vegfd","Kdr","Flt1","Tal1","Runx1","Etv2)
 # genes.to.plot <- c("Tet1","Tet2","Tet3","Dnmt1","Dnmt3a","Dnmt3b","Dnmt3l")
-genes.to.plot <- c("Nodal")
-genes.to.plot <- rownames(sce)[grep("Bmp",rownames(sce))]
+genes.to.plot <- c("Klf1")
+genes.to.plot <- rownames(sce)[grep("Gata",rownames(sce))]
 
 for (i in 1:length(genes.to.plot)) {
   gene <- genes.to.plot[i]
@@ -136,7 +136,7 @@ for (i in 1:length(genes.to.plot)) {
   p <- ggplot(to.plot, aes(x=class, y=expr, fill=class)) +
     geom_violin(scale = "width", alpha=0.8) +
     geom_boxplot(width=0.5, outlier.shape=NA, alpha=0.8) +
-    geom_jitter(size=2, shape=21, stroke=0.2, alpha=0.5) +
+    # geom_jitter(size=2, shape=21, stroke=0.2, alpha=0.5) +
     scale_fill_manual(values=opts$colors) +
     facet_wrap(~celltype.mapped, scales="fixed") +
     theme_classic() +
