@@ -43,7 +43,7 @@ opts$atlas_stages <- c(
 #   # "E125_DNMT3A_KO_E_L004"
 # )
 
-opts$batches <- c(
+opts$query_batches <- c(
   "SIGAC2_TET_TKO_E9_5_Head1_L002",
   "SIGAD2_TET_TKO_E9_5_Trunk1_L002",
   "SIGAE2_TET_TKO_E9_5_Tail1_L002",
@@ -55,7 +55,7 @@ opts$batches <- c(
 )
 
 # Test mode (subsetting cells)?
-opts$test_mode <- TRUE
+opts$test_mode <- FALSE
 
 #########
 ## Run ##

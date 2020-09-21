@@ -121,7 +121,7 @@ for (i in opts$stages) {
   p <- plot.dimred.wtko(to.plot, wt.label = "WT", ko.label = i, nomapped.label = "Atlas") +
     theme(legend.position = "none", axis.line = element_blank())
   
-  pdf(sprintf("%s/umap_mapped_%s.pdf",io$outdir,i), width=5, height=6)
+  pdf(sprintf("%s/umap_mapped_%s.pdf",io$outdir,i), width=8, height=6.5)
   print(p)
   dev.off()
 }

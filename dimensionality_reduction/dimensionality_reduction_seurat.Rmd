@@ -72,7 +72,8 @@ opts$celltypes = c(
 
 Update sample metadata
 ```{r load_metadata, echo=FALSE}
-sample_metadata <- fread("/Users/ricard/data/10x_gastrulation_TetChimera/processed/fourth_batch/metadata.txt.gz")
+sample_metadata <- fread("/Users/ricard/data/10x_gastrulation_TetChimera/processed/fourth_batch/sample_metadata.txt.gz") %>%
+  .[pass_QC==TRUE]
 # sample_metadata <- sample_metadata %>%
 #   .[batch%in%opts$batches & celltype.mapped%in%opts$celltypes]
 table(sample_metadata$batch)
@@ -109,15 +110,15 @@ dim(seurat)
 Normalise
 ```{r}
 # SCTransform
-seurat <- SCTransform(seurat)
+# seurat <- SCTransform(seurat)
 ```
 
 ```{r}
 # LogNormalize
-# seurat <- NormalizeData(seurat, normalization.method = "LogNormalize")
+seurat <- NormalizeData(seurat, normalization.method = "LogNormalize")
 
 # Scale
-# seurat <- ScaleData(seurat)
+seurat <- ScaleData(seurat)
 ```
 
 Change gene names from ENSEMBL to symbols
@@ -145,7 +146,8 @@ Change gene names from ENSEMBL to symbols
 
 Option 1, using FindVariableFeatures
 ```{r}
-seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1000, assay = "SCT")
+seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1000)
+# seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1000, assay = "SCT")
 # head(seurat@assays$RNA@var.features)
 ```
 
@@ -162,12 +164,14 @@ Option 2, using precomputed marker genes
 
 PCA 
 ```{r message=FALSE}
-seurat <- RunPCA(seurat, 
-  features = VariableFeatures(seurat, assay="SCT"),
-  assay = "SCT",
-  npcs = 25,
-  verbose = FALSE
-)
+seurat <- RunPCA(seurat, features = VariableFeatures(seurat), npcs = 50, verbose = FALSE)
+
+# seurat <- RunPCA(seurat, 
+#   features = VariableFeatures(seurat, assay="SCT"),
+#   assay = "SCT",
+#   npcs = 25,
+#   verbose = FALSE
+# )
 ```
 
 Correlation between PCs and batch
@@ -182,7 +186,7 @@ Correlation between PCs and batch
 UMAP
 ```{r}
 seurat <- RunUMAP(seurat, 
-  dims = 1:25,
+  dims = 1:50,
   reduction = "pca",
   n.neighbors = 30,
   min.dist = 0.3
@@ -206,7 +210,7 @@ print(p)
 ```
 
 ```{r}
-Idents(seurat) <- "batch"
+Idents(seurat) <- "region"
 
 p <- DimPlot(seurat, label = FALSE, reduction = 'umap') + 
   scale_color_brewer(palette="Dark2") +

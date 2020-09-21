@@ -144,7 +144,7 @@ opts$batches <- c(
   "E85_Rep1_TET_TKO_L004",
   "E85_Rep1_WT_Host_L003",
   "E85_Rep2_TET_TKO_L006",
-  "E85_Rep2_WT_Host_L005",
+  "E85_Rep2_WT_Host_L005"
   
   # Third batch (failed QC)
   # "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
@@ -153,14 +153,14 @@ opts$batches <- c(
   # "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
   
   # Fourth batch
-  "SIGAC2_TET_TKO_E9_5_Head1_L002",
-  "SIGAD2_TET_TKO_E9_5_Trunk1_L002",
-  "SIGAE2_TET_TKO_E9_5_Tail1_L002",
-  "SIGAE6_TET_TKO_E9_5_Head2_L003",
-  "SIGAF2_TET_TKO_E9_5_YS1_L002",
-  "SIGAF6_TET_TKO_E9_5_Trunk2_L003",
-  "SIGAG6_TET_TKO_E9_5_Tail2_L003",
-  "SIGAH6_TET_TKO_E9_5_YS2_L003"
+  # "SIGAC2_TET_TKO_E9_5_Head1_L002",
+  # "SIGAD2_TET_TKO_E9_5_Trunk1_L002",
+  # "SIGAE2_TET_TKO_E9_5_Tail1_L002",
+  # "SIGAE6_TET_TKO_E9_5_Head2_L003",
+  # "SIGAF2_TET_TKO_E9_5_YS1_L002",
+  # "SIGAF6_TET_TKO_E9_5_Trunk2_L003",
+  # "SIGAG6_TET_TKO_E9_5_Tail2_L003",
+  # "SIGAH6_TET_TKO_E9_5_YS2_L003"
 )
 
 opts$classes <- c(
@@ -203,4 +203,12 @@ sample_metadata <- fread(io$metadata) %>%
 # )
 # sample_metadata <- fread(io$metadata)
 # sample_metadata[,embryo:=stringr::str_replace_all(batch,opts$batch.to.embryo)]
+# fwrite(sample_metadata, io$metadata, sep="\t", na="NA", quote=F)
+
+
+##########
+## E9.5 ##
+##########
+
+# sample_metadata[,region:=sample_metadata$batch %>% strsplit("_")  %>% map_chr(6) %>% substr(.,1,nchar(.)-1)]
 # fwrite(sample_metadata, io$metadata, sep="\t", na="NA", quote=F)
