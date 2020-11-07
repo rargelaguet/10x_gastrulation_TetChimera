@@ -9,25 +9,25 @@ if (grepl("ricard",Sys.info()['nodename'])) {
 } else {
   source("/homes/ricard/10x_gastrulation_TetChimera/settings.R")
   io$script <- "/homes/ricard/10x_gastrulation_TetChimera/mapping/run/mnn/mapping_mnn.R"
-  io$tmpdir <- paste0(io$basedir,"/results/fourth_batch/mapping/tmp"); dir.create(io$tmpdir)
+  io$tmpdir <- paste0(io$basedir,"/results/mapping/tmp"); dir.create(io$tmpdir)
 }
-io$outdir <- paste0(io$basedir,"/results/fourth_batch/mapping")
+io$outdir <- paste0(io$basedir,"/results/mapping")
 
 ####################
 ## Define options ##
 ####################
 
 opts$atlas_stages <- c(
-  # "E6.5",
-  # "E6.75",
-  # "E7.0",
-  # "E7.25",
-  # "E7.5",
-  # "E7.75",
-  # "E8.0",
-  # "E8.25",
-  "E8.5"
-  # "mixed_gastrulation"
+  "E6.5",
+  "E6.75",
+  "E7.0",
+  "E7.25",
+  "E7.5",
+  "E7.75",
+  "E8.0",
+  "E8.25",
+  "E8.5",
+  "mixed_gastrulation"
 )
 
 # opts$query_batches <- c(
@@ -44,18 +44,21 @@ opts$atlas_stages <- c(
 # )
 
 opts$query_batches <- c(
-  "SIGAC2_TET_TKO_E9_5_Head1_L002",
-  "SIGAD2_TET_TKO_E9_5_Trunk1_L002",
-  "SIGAE2_TET_TKO_E9_5_Tail1_L002",
-  "SIGAE6_TET_TKO_E9_5_Head2_L003",
-  "SIGAF2_TET_TKO_E9_5_YS1_L002",
-  "SIGAF6_TET_TKO_E9_5_Trunk2_L003",
-  "SIGAG6_TET_TKO_E9_5_Tail2_L003",
-  "SIGAH6_TET_TKO_E9_5_YS2_L003"
+    # Second batch
+    "E75_TET_TKO_L002",
+    "E75_WT_Host_L001",
+    "E85_Rep1_TET_TKO_L004",
+    "E85_Rep1_WT_Host_L003",
+    "E85_Rep2_TET_TKO_L006",
+    "E85_Rep2_WT_Host_L005",
+    
+    # Fifth batch
+    "E8_5_TET_WT_rep1_SIGAG8",
+    "E8_5_TET_WT_rep2_SIGAH8"
 )
 
 # Test mode (subsetting cells)?
-opts$test_mode <- FALSE
+opts$test_mode <- TRUE
 
 #########
 ## Run ##

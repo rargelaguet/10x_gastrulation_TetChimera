@@ -122,126 +122,57 @@ seurat <- NormalizeData(seurat, normalization.method = "LogNormalize")
 seurat <- ScaleData(seurat, do.scale = F)
 ```
 
-Change gene names from ENSEMBL to symbols
 ```{r}
-# gene_metadata <- fread(io$gene_metadata) %>% .[,c("ens_id","symbol")] %>%
-#   .[symbol!="" & ens_id%in%rownames(seurat)]
-# 
-# gene_metadata$symbol[duplicated(gene_metadata$symbol)]
-# seurat <- seurat[rownames(seurat)%in%gene_metadata$ens_id,]
-# foo <- gene_metadata$symbol; names(foo) <- gene_metadata$ens_id
-# new.names <- foo[rownames(seurat)]
-# 
-# # Sanity cehcks
-# stopifnot(sum(is.na(new.names))==0)
-# stopifnot(sum(duplicated(new.names))==0)
-# 
-# # Rename seurat objects manually
-# rownames(seurat@assays$RNA@counts) <- new.names
-# rownames(seurat@assays$RNA@data) <- new.names
-# rownames(seurat@assays$RNA@scale.data) <- new.names
-# seurat[["RNA"]]@meta.features <- data.frame(row.names=new.names)
+seurat$target <- stringr::str_replace_all(seurat$class, "E7.5_|E8.5_","")
+table(seurat$target)
+```
+
+Split seurat objects
+```{r}
+seurat.split <- SplitObject(seurat, split.by="target")
+lapply(seurat.split,dim)
+```
+
+Find Integration Anchors
+```{r message=FALSE}
+options(future.globals.maxSize=850*1024^2) # 850mb
+
+# k.anchor = 5  # was 5
+# k.filter = 40  # was 200
+# k.score = 20
+# k.weight = 25
+ngene = 2500
+pc = 50
+
+data.merge.anchors <- FindIntegrationAnchors(
+  object.list = seurat.split,  
+  reference = which(names(seurat.split)=="Host"),
+  anchor.features = ngene, 
+  verbose = FALSE, 
+  dims = 1:pc
+  # k.anchor = k.anchor, 
+  # k.filter = k.filter, 
+  # k.score = k.score, 
+)
+```
+
+Integrate Data
+```{r}
+seurat.merged <- IntegrateData(
+  anchorset = data.merge.anchors, 
+  normalization.method = "LogNormalize",
+  k.weight = k.weight,
+  verbose = FALSE
+)
+```
+
+```{r}
+DefaultAssay(seurat.merged) <- "integrated"
 ```
 
 # Select HVG
 
-Option 1, using FindVariableFeatures
-```{r}
-seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1000)
-# seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1000, assay = "SCT")
-# head(seurat@assays$RNA@var.features)
+FindVariableFeatures
+```{r message=F}
+seurat.merged <- FindVariableFeatures(seurat.merged)
 ```
-
-Option 2, using precomputed marker genes
-```{r}
-# marker_genes.dt <- fread(io$atlas.marker_genes)
-# hvg <- unique(marker_genes.dt$ens_id)
-# hvg <- hvg[hvg%in%rownames(seurat)]
-# 
-# seurat@assays$RNA@var.features <- hvg
-```
-
-# Dimensionality reduction
-
-PCA 
-```{r message=FALSE}
-seurat <- RunPCA(seurat, features = VariableFeatures(seurat), npcs = 50, verbose = FALSE)
-
-# seurat <- RunPCA(seurat, 
-#   features = VariableFeatures(seurat, assay="SCT"),
-#   assay = "SCT",
-#   npcs = 25,
-#   verbose = FALSE
-# )
-```
-
-Correlation between PCs and batch
-```{r}
-# r <- cor(
-#   seurat@reductions$pca@cell.embeddings,
-#   as.numeric(as.factor(seurat@meta.data$batch))
-# )[,1]
-# r
-```
-
-UMAP
-```{r}
-seurat <- RunUMAP(seurat, 
-  dims = 1:50,
-  reduction = "pca",
-  n.neighbors = 30,
-  min.dist = 0.3
-)
-```
-
-# Plot 
-
-```{r}
-Idents(seurat) <- "celltype.mapped"
-
-p <- DimPlot(seurat, label = FALSE, reduction = 'umap', cols = opts$celltype.colors) + 
-  NoLegend() +
-  theme(
-    axis.text = element_blank(),
-    axis.title = element_blank(),
-    axis.ticks = element_blank()
-  )
-
-print(p)
-```
-
-```{r}
-Idents(seurat) <- "stage"
-
-p <- DimPlot(seurat, label = FALSE, reduction = 'umap') + 
-  scale_color_brewer(palette="Dark2") +
-  theme(
-    axis.text = element_blank(),
-    axis.title = element_blank(),
-    axis.ticks = element_blank()
-  )
-
-print(p)
-```
-
-```{r}
-Idents(seurat) <- "class"
-
-p <- DimPlot(seurat, label = FALSE, reduction = 'umap') + 
-  scale_color_brewer(palette="Dark2") +
-  theme(
-    axis.text = element_blank(),
-    axis.title = element_blank(),
-    axis.ticks = element_blank()
-  )
-
-print(p)
-```
-
-Explore marker genes
-```{r}
-# genes.to.plot <- rownames(seurat)[grep("Hba-|Hbb-",rownames(seurat))]
-genes.to.plot <- "Hbb-y"
-FeaturePlot(seurat, features = genes.to.plot, reduction='umap')
-```
-

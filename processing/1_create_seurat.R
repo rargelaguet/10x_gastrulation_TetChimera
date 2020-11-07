@@ -14,8 +14,8 @@ source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
 # Define options
 
 # Define I/O
-io$inputdir <- paste0(io$basedir,"/original/td_tomato/second_batch")
-io$outputdir <- paste0(io$basedir,"/processed/second_batch")
+io$inputdir <- paste0(io$basedir,"/original/td_tomato/all_batches_symbolic")
+io$outputdir <- paste0(io$basedir,"/processed/all_batches")
 
 ##############################
 ## Load and merge data sets ##
@@ -32,6 +32,7 @@ colnames(gene.info) <- c("ens_id","symbol")
 rownames(gene.info) <- NULL
 
 for (i in opts$batches) {
+  print(i)
     
   # Load cell metadata
   barcode.loc <- sprintf("%s/%s/barcodes.tsv.gz",io$inputdir,i)
@@ -42,7 +43,7 @@ for (i in opts$batches) {
   
   # Load matrix  
   # matrix.loc <- sprintf("%s/%s/matrix.mtx.gz",io$inputdir,i)
-  matrix.loc <- sprintf("%s/%s/soupX_adjusted_matrix.mtx.gz",io$inputdir,i)
+  matrix.loc <- sprintf("%s/%s/soup/soupX_adjusted_matrix.mtx.gz",io$inputdir,i)
   mtx[[i]] <- Matrix::readMM(matrix.loc)
   rownames(mtx[[i]]) <- gene.info$symbol
   colnames(mtx[[i]]) <- cell.info[[i]]$barcode

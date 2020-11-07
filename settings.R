@@ -1,6 +1,9 @@
 suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(purrr))
 suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(Seurat))
+suppressPackageStartupMessages(library(SingleCellExperiment))
 
 #########
 ## I/O ##
@@ -10,12 +13,11 @@ io <- list()
 if (grepl("ricard",Sys.info()['nodename'])) {
   io$basedir <- "/Users/ricard/data/10x_gastrulation_TetChimera"
   io$atlas.basedir <- "/Users/ricard/data/gastrulation10x"
-  # io$gene_metadata <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
   io$gene_metadata <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/all_genes/Mmusculus_genes_BioMart.87.txt"
 } else if (grepl("ebi",Sys.info()['nodename'])) {
   io$basedir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera"
   io$atlas.basedir <- "/hps/nobackup2/research/stegle/users/ricard/gastrulation10x"
-  io$gene_metadata <- "/hps/nobackup2/research/stegle/users/ricard/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
+  # io$gene_metadata <- "/hps/nobackup2/research/stegle/users/ricard/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
 } else if (grepl("pebble|headstone",Sys.info()['nodename'])) {
   io$basedir <- "/bi/scratch/Stephen_Clark/tet_chimera_10x/"
   io$atlas.basedir <- ""
@@ -30,9 +32,9 @@ io$sce <- paste0(io$basedir,"/processed/SingleCellExperiment.rds")
 
 # Atlas information
 io$atlas.metadata <- paste0(io$atlas.basedir,"/sample_metadata.txt.gz")
-io$atlas.marker_genes <- paste0(io$atlas.basedir,"/results/marker_genes/marker_genes.txt.gz")
+io$atlas.marker_genes <- paste0(io$atlas.basedir,"/results/marker_genes/all_stages/marker_genes.txt.gz")
 io$atlas.differential <- paste0(io$atlas.basedir,"/results/differential")
-io$atlas.average_expression_per_celltype <- paste0(io$atlas.basedir,"/results/marker_genes/avg_expr_per_celltype_and_gene.txt.gz")
+io$atlas.average_expression_per_celltype <- paste0(io$atlas.basedir,"/results/marker_genes/all_stages/avg_expr_per_celltype_and_gene.txt.gz")
 io$atlas.sce <- paste0(io$atlas.basedir,"/processed/SingleCellExperiment.rds")
 
 
@@ -144,9 +146,9 @@ opts$batches <- c(
   "E85_Rep1_TET_TKO_L004",
   "E85_Rep1_WT_Host_L003",
   "E85_Rep2_TET_TKO_L006",
-  "E85_Rep2_WT_Host_L005"
+  "E85_Rep2_WT_Host_L005",
   
-  # Third batch (failed QC)
+  # Third batch (all failed QC)
   # "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
   # "SIGAF4_E105_3_TET123_Chimera_TKO_L006", 
   # "SIGAG4_E105_5_TET123_Chimera_Host_L007", 
@@ -160,14 +162,19 @@ opts$batches <- c(
   # "SIGAF2_TET_TKO_E9_5_YS1_L002",
   # "SIGAF6_TET_TKO_E9_5_Trunk2_L003",
   # "SIGAG6_TET_TKO_E9_5_Tail2_L003",
-  # "SIGAH6_TET_TKO_E9_5_YS2_L003"
+  # "SIGAH6_TET_TKO_E9_5_YS2_L003",
+  
+  # Fifth batch
+  "E8_5_TET_WT_rep1_SIGAG8",
+  "E8_5_TET_WT_rep2_SIGAH8"
 )
 
 opts$classes <- c(
   "E7.5_Host", 
   "E7.5_TET_TKO", 
   "E8.5_Host", 
-  "E8.5_TET_TKO"
+  "E8.5_TET_TKO",
+  "E8.5_WT"
   # "E9.5_TET_TKO",
   # "E10.5_Host", 
   # "E10.5_TET_TKO"
@@ -177,12 +184,12 @@ opts$classes <- c(
 ## Load sample metadata ##
 ##########################
 
-sample_metadata <- fread(io$metadata) %>% 
-  # .[pass_QC==T] %>% 
-  # .[batch%in%opts$batches] %>%
-  .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped," ","_")] %>%
-  .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,"/","_")] %>%
-  .[,celltype.mapped:=factor(celltype.mapped, levels=names(opts$celltype.colors))]
+# sample_metadata <- fread(io$metadata) %>% 
+#   # .[pass_QC==T] %>% 
+#   # .[batch%in%opts$batches] %>%
+#   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped," ","_")] %>%
+#   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,"/","_")] %>%
+#   .[,celltype.mapped:=factor(celltype.mapped, levels=names(opts$celltype.colors))]
   
 ##################
 ## IGNORE BELOW ##

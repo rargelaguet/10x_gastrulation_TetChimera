@@ -32,7 +32,7 @@
 *.Rproj.user
 
 # Ignore .ipynb stuff
-#*.ipynb*
+*.ipynb_checkpoints*
 
 # Ignore snakemake stuff
 .snakemake/
