@@ -12,12 +12,16 @@ suppressPackageStartupMessages(library(SingleCellExperiment))
 io <- list()
 if (grepl("ricard",Sys.info()['nodename'])) {
   io$basedir <- "/Users/ricard/data/10x_gastrulation_TetChimera"
+  io$Rscript <- "/Library/Frameworks/R.framework/Versions/Current/Resources/bin/Rscript"
   io$atlas.basedir <- "/Users/ricard/data/gastrulation10x"
-  io$gene_metadata <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/all_genes/Mmusculus_genes_BioMart.87.txt"
+  # io$gene_metadata <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/all_genes/Mmusculus_genes_BioMart.87.txt"
+  io$gene_metadata <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
 } else if (grepl("ebi",Sys.info()['nodename'])) {
   io$basedir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera"
+  io$Rscript <- "/nfs/research1/stegle/users/ricard/R-4.0.3/bin/Rscript"
   io$atlas.basedir <- "/hps/nobackup2/research/stegle/users/ricard/gastrulation10x"
-  # io$gene_metadata <- "/hps/nobackup2/research/stegle/users/ricard/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
+  # io$gene_metadata <- "/hps/nobackup2/research/stegle/users/ricard/ensembl/mouse/v87/BioMart/all_genes/Mmusculus_genes_BioMart.87.txt"
+  io$gene_metadata <- "/hps/nobackup2/research/stegle/users/ricard/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
 } else if (grepl("pebble|headstone",Sys.info()['nodename'])) {
   io$basedir <- "/bi/scratch/Stephen_Clark/tet_chimera_10x/"
   io$atlas.basedir <- ""
@@ -194,6 +198,11 @@ opts$classes <- c(
 ##################
 ## IGNORE BELOW ##
 ##################
+
+# Assign stage
+# sample_metadata <- fread(io$metadata) %>%
+#   .[,stage:=sapply(stringr::str_split(batch,"_"),"[[",1)] %>%
+#   .[stage=="E75",stage:="E7.5"] %>% .[stage%in%c("E8","E85"),stage:="E8.5"]
 
 # Assign embryos
 # opts$batch.to.embryo <- c(

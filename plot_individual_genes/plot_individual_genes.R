@@ -77,8 +77,9 @@ opts$colors <- c(
 )
 
 # Update sample metadata
-sample_metadata <- sample_metadata %>% 
-  .[class%in%opts$classes & celltype.mapped%in%opts$celltypes] %>%
+sample_metadata <- fread(io$metadata) %>% 
+  # .[class%in%opts$classes & celltype.mapped%in%opts$celltypes] %>%
+  .[celltype.mapped%in%opts$celltypes] %>%
   .[,celltype.mapped:=factor(celltype.mapped, levels=opts$celltypes)]
 
 table(sample_metadata$class)
@@ -96,21 +97,19 @@ sce <- sce[rowMeans(counts(sce))>0,]
 
 # Load gene metadata
 gene_metadata <- fread(io$gene_metadata) %>%
-  .[symbol!="" & ens_id%in%rownames(sce)]
+  .[symbol!="" & symbol%in%rownames(sce)]
 
 ################
 ## Parse data ##
 ################
 
 # Rename genes
-new.names <- gene_metadata$symbol
-names(new.names) <- gene_metadata$ens_id
-sce <- sce[rownames(sce) %in% names(new.names),]
-rownames(sce) <- new.names[rownames(sce)]
-
-# Sanity cehcks
-stopifnot(sum(is.na(new.names))==0)
-stopifnot(sum(duplicated(new.names))==0)
+# new.names <- gene_metadata$symbol
+# names(new.names) <- gene_metadata$ens_id
+# sce <- sce[rownames(sce) %in% names(new.names),]
+# rownames(sce) <- new.names[rownames(sce)]
+# stopifnot(sum(is.na(new.names))==0)
+# stopifnot(sum(duplicated(new.names))==0)
 
 ##########
 ## Plot ##
@@ -119,8 +118,8 @@ stopifnot(sum(duplicated(new.names))==0)
 # genes.to.plot <- c("Lefty1","Cd34","Tmsb4x","Fgf3","Spata7","Cer1","Spink1","Dppa4","Dppa5a","Prc1","Lefty2","Ube2c","Hba-x","Hbb-y","Hba-a1","Hbb-bh1")
 # genes.to.plot <- c("Vegfa","Vegfb","Vegfc","Vegfd","Kdr","Flt1","Tal1","Runx1","Etv2)
 # genes.to.plot <- c("Tet1","Tet2","Tet3","Dnmt1","Dnmt3a","Dnmt3b","Dnmt3l")
-genes.to.plot <- c("Klf1")
-genes.to.plot <- rownames(sce)[grep("Gata",rownames(sce))]
+genes.to.plot <- rownames(sce)[grep("Tet",rownames(sce))]
+genes.to.plot <- rownames(sce)[grep("tomato",rownames(sce))]
 
 for (i in 1:length(genes.to.plot)) {
   gene <- genes.to.plot[i]
@@ -133,11 +132,12 @@ for (i in 1:length(genes.to.plot)) {
   ) %>% merge(sample_metadata, by="cell")
 
   # Plot
-  p <- ggplot(to.plot, aes(x=class, y=expr, fill=class)) +
-    geom_violin(scale = "width", alpha=0.8) +
+  # p <- ggplot(to.plot, aes(x=class, y=expr, fill=class)) +
+  p <- ggplot(to.plot, aes(x=stage, y=expr, fill=batch)) +
+    # geom_violin(scale = "width", alpha=0.8) +
     geom_boxplot(width=0.5, outlier.shape=NA, alpha=0.8) +
     # geom_jitter(size=2, shape=21, stroke=0.2, alpha=0.5) +
-    scale_fill_manual(values=opts$colors) +
+    # scale_fill_manual(values=opts$colors) +
     facet_wrap(~celltype.mapped, scales="fixed") +
     theme_classic() +
     labs(title=gene, x="",y=sprintf("%s expression",gene)) +
@@ -150,14 +150,14 @@ for (i in 1:length(genes.to.plot)) {
       axis.ticks.x = element_blank(),
       axis.text.y = element_text(colour="black",size=rel(1.0)),
       axis.title.y = element_text(colour="black",size=rel(1.2)),
-      legend.position="top",
+      legend.position="right",
       legend.title = element_blank(),
       legend.text = element_text(size=rel(1.1))
     )
     
   # pdf(sprintf("%s/%s.pdf",io$outdir,i), width=5, height=3.5, useDingbats = F)
   # ggsave("ggtest.png", width = 3.25, height = 3.25, dpi = 1200)
-  jpeg(sprintf("%s/%s.jpeg",io$outdir,gene), width = 1300, height = 800)
+  jpeg(sprintf("%s/%s.jpeg",io$outdir,gene), width = 1500, height = 800)
   # jpeg(sprintf("%s/test_%s.jpeg",io$outdir,gene), width = 900, height = 900)
   print(p)
   dev.off()

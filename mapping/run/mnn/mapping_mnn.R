@@ -20,27 +20,20 @@ args <- p$parse_args(commandArgs(TRUE))
 #   # "E6.5",
 #   # "E6.75",
 #   # "E7.0",
-#   # "E7.25",
-#   # "E7.5",
-#   # "E7.75",
-#   # "E8.0",
-#   # "E8.25",
+#   "E7.25",
+#   "E7.5",
+#   "E7.75",
+#   "E8.0",
+#   "E8.25",
 #   "E8.5"
 #   # "mixed_gastrulation"
 # )
 # args$query_batches <- c(
-#   "SIGAC2_TET_TKO_E9_5_Head1_L002"
-#   # "SIGAD2_TET_TKO_E9_5_Trunk1_L002",
-#   # "SIGAE2_TET_TKO_E9_5_Tail1_L002",
-#   # "SIGAE6_TET_TKO_E9_5_Head2_L003",
-#   # "SIGAF2_TET_TKO_E9_5_YS1_L002",
-#   # "SIGAF6_TET_TKO_E9_5_Trunk2_L003",
-#   # "SIGAG6_TET_TKO_E9_5_Tail2_L003",
-#   # "SIGAH6_TET_TKO_E9_5_YS2_L003"
+#   "E85_Rep1_WT_Host_L003"
 # )
 # args$test <- TRUE
-# # args$outdir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/results/fourth_batch/mapping"
-# args$outdir <- "/Users/ricard/data/10x_gastrulation_TetChimera/results/fourth_batch/mapping"
+# args$outdir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/results/mapping"
+# args$outdir <- "/Users/ricard/data/10x_gastrulation_TetChimera/results/mapping"
 ## END TEST ##
 
 ################
@@ -88,13 +81,9 @@ sce_atlas <- sce_atlas[,meta_atlas$cell]
 ################
 
 # Load SingleCellExperiment
-# io$sce <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/fourth_batch/SingleCellExperiment.rds"
-io$sce <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/fourth_batch/SingleCellExperiment.rds"
 sce_query <- readRDS(io$sce)
 
 # Load cell metadata
-# io$metadata <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/fourth_batch/sample_metadata.txt.gz"
-io$metadata <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera/processed/fourth_batch/sample_metadata.txt.gz"
 meta_query <- fread(io$metadata) %>% .[pass_QC==TRUE & batch%in%args$query_batches]
 # meta_query <- fread(io$metadata) %>% .[nFeature_RNA>1000 & batch%in%args$query_batches]
 # meta_query <- fread(io$metadata) %>% .[nCount_RNA>1250 & batch%in%args$query_batches]

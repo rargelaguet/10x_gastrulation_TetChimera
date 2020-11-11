@@ -5,20 +5,23 @@
 source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
 # source("/Users/ricard/10x_gastrulation_TetChimera/mapping/plot/plot_utils.R")
 
-io$metadata <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/fourth_batch/sample_metadata.txt.gz"
-io$mapping.results <- "/Users/ricard/data/10x_gastrulation_TetChimera/results/fourth_batch/mapping"
-io$outdir <- paste0(io$basedir,"/results/fourth_batch/mapping/pdf")
+# io$metadata <- "/Users/ricard/data/10x_gastrulation_TetChimera/processed/fourth_batch/sample_metadata.txt.gz"
+# io$mapping.results <- "/Users/ricard/data/10x_gastrulation_TetChimera/results/fourth_batch/mapping"
+io$outdir <- paste0(io$basedir,"/results/mapping/pdf")
 
 
-opts$query_batches <- c(
-  "SIGAC2_TET_TKO_E9_5_Head1_L002",
-  "SIGAE6_TET_TKO_E9_5_Head2_L003",
-  "SIGAF2_TET_TKO_E9_5_YS1_L002",
-  "SIGAH6_TET_TKO_E9_5_YS2_L003",
-  "SIGAE2_TET_TKO_E9_5_Tail1_L002",
-  "SIGAG6_TET_TKO_E9_5_Tail2_L003",
-  "SIGAD2_TET_TKO_E9_5_Trunk1_L002",
-  "SIGAF6_TET_TKO_E9_5_Trunk2_L003"
+opts$batches <- c(
+  # Second batch
+  "E75_TET_TKO_L002",
+  "E75_WT_Host_L001",
+  "E85_Rep1_TET_TKO_L004",
+  "E85_Rep1_WT_Host_L003",
+  "E85_Rep2_TET_TKO_L006",
+  "E85_Rep2_WT_Host_L005",
+  
+  # Fifth batch
+  "E8_5_TET_WT_rep1_SIGAG8",
+  "E8_5_TET_WT_rep2_SIGAH8"
 )
 
 ###############
@@ -26,10 +29,11 @@ opts$query_batches <- c(
 ###############
 
 # Load sample metadata
-sample_metadata <- fread(io$metadata) %>% .[pass_QC==TRUE]
+sample_metadata <- fread(io$metadata) %>% 
+  .[pass_QC==TRUE & batch%in%opts$batches]
 
 # Load mapping results
-# mapping.dt <- opts$query_batches %>% 
+# mapping.dt <- opts$batches %>% 
 #   map(~ readRDS(sprintf("%s/mapping_mnn_%s.rds",io$mapping.results,.))[["mapping"]] ) %>%
 #   rbindlist %>% merge(sample_metadata,by="cell")
 
@@ -42,7 +46,7 @@ sample_metadata <- fread(io$metadata) %>% .[pass_QC==TRUE]
 
 to.plot <- sample_metadata %>%
   # .[class%in%opts$classes] %>%
-  .[!is.na(celltype.mapped),.N, by=c("stage","celltype.mapped","batch","region")] %>%
+  .[!is.na(celltype.mapped),.N, by=c("stage","celltype.mapped","batch")] %>%
   # .[!celltype.mapped%in%c("ExE_ectoderm","ExE_endoderm","Parietal_endoderm","Visceral_endoderm")] %>%
   # .[, celltype.mapped:=stringr::str_replace_all( celltype.mapped,"_"," ")] %>%
   # .[, celltype.mapped:=factor( celltype.mapped,levels=names(opts$celltype.colors))] 
@@ -52,8 +56,9 @@ to.plot <- sample_metadata %>%
 ## Plot ##
 ##########
 
-for (i in unique(to.plot$region)) {
-  p <- ggplot(to.plot[region==i], aes(x=celltype.mapped, y=N)) +
+for (i in unique(to.plot$stage)) {
+  
+  p <- ggplot(to.plot[stage==i], aes(x=celltype.mapped, y=N)) +
     geom_bar(aes(fill=celltype.mapped), stat="identity", color="black") +
     scale_fill_manual(values=opts$celltype.colors, drop=F) + 
     scale_x_discrete(drop=FALSE) +
