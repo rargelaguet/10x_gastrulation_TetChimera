@@ -2,7 +2,6 @@
 ## Plot dimensionality reduction of EB cells mapped to the atlas ##
 ###################################################################
 
-source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
 source("/Users/ricard/10x_gastrulation_TetChimera/mapping/analysis/plot_utils.R")
 
 io$outdir <- paste0(io$basedir,"/results/mapping/pdf")

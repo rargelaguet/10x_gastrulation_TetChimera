@@ -1,9 +1,3 @@
-matrix.please <- function(x) {
-  m<-as.matrix(x[,-1])
-  rownames(m)<-x[[1]]
-  m
-}
-
 #####################
 ## Define settings ##
 #####################
@@ -67,6 +61,7 @@ matrix <- dt %>% dcast(batch~celltype, fill=0, value.var="celltype_proportion") 
 
 # PCA
 pca <- prcomp(matrix, rank.=5)
+pca.var.explained <- 100*(pca$sdev**2 / sum(pca$sdev**2)) %>% round(4)
 
 # UMAP
 # umap <- uwot::umap(pca)
