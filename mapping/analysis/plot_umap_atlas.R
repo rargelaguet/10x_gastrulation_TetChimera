@@ -2,9 +2,12 @@
 ## Plot dimensionality reduction of EB cells mapped to the atlas ##
 ###################################################################
 
+source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
+source("/Users/ricard/10x_gastrulation_TetChimera/utils.R")
 source("/Users/ricard/10x_gastrulation_TetChimera/mapping/analysis/plot_utils.R")
 
-io$outdir <- paste0(io$basedir,"/results/mapping/pdf")
+io$outdir <- paste0(io$basedir,"/results/mapping/pdf/umap_overlayed_atlas")
+dir.create(io$outdir, showWarnings = F)
 
 #############
 ## Options ##
@@ -14,9 +17,8 @@ opts$classes <- c(
   "E7.5_Host", 
   "E7.5_TET_TKO", 
   "E8.5_Host", 
-  "E8.5_TET_TKO"
-  # "E10.5_Host", 
-  # "E10.5_TET_TKO"
+  "E8.5_TET_TKO",
+  "E8.5_WT"
 )
 
 
@@ -61,12 +63,27 @@ opts$celltypes = c(
 )
 
 # Dot size
-opts$size.mapped <- 0.18
+opts$size.mapped <- 0.25
 opts$size.nomapped <- 0.1
 
 # Transparency
-opts$alpha.mapped <- 0.65
-opts$alpha.nomapped <- 0.35
+opts$alpha.mapped <- 0.8
+opts$alpha.nomapped <- 0.30
+
+##########################
+## Load sample metadata ##
+##########################
+
+sample_metadata <- fread(io$metadata) %>% 
+  .[pass_QC==TRUE & celltype.mapped%in%opts$celltypes & class%in%opts$classes]# %>%
+  # .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped," ","_")] %>%
+  # .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,"/","_")]
+
+# Rename samplees
+foo <- sample_metadata[,c("batch","class")] %>% unique %>% .[,sample:=paste(class,1:.N,sep="_"),by="class"]
+sample_metadata <- sample_metadata %>% merge(foo,by=c("batch","class"))
+
+table(sample_metadata$class)
 
 ####################
 ## Load 10x atlas ##
@@ -74,7 +91,7 @@ opts$alpha.nomapped <- 0.35
 
 # Load atlas cell metadata
 meta_atlas <- fread(io$atlas.metadata) %>%
-  .[celltype%in%opts$celltypes] %>%
+  # .[celltype%in%opts$celltypes] %>%
   .[stripped==F & doublet==F]
 
 # Extract precomputed dimensionality reduction coordinates
@@ -82,7 +99,7 @@ umap.dt <- meta_atlas[,c("cell","umapX","umapY","celltype")] %>%
   setnames(c("umapX","umapY"),c("V1","V2"))
 
 ########################################################
-## Plot dimensionality reduction: one batch at a time ##
+## Plot dimensionality reduction: one class at a time ##
 ########################################################
 
 for (i in opts$classes) {
@@ -95,7 +112,7 @@ for (i in opts$classes) {
   
   p <- plot.dimred(to.plot, query.label = i, atlas.label = "Atlas")
   
-  pdf(sprintf("%s/umap_mapped_%s.pdf",io$outdir,i), width=8, height=6.5)
+  pdf(sprintf("%s/umap_atlas_%s.pdf",io$outdir,i), width=8, height=6.5)
   print(p)
   
   dev.off()
@@ -120,7 +137,7 @@ for (i in opts$stages) {
   p <- plot.dimred.wtko(to.plot, wt.label = "WT", ko.label = i, nomapped.label = "Atlas") +
     theme(legend.position = "none", axis.line = element_blank())
   
-  pdf(sprintf("%s/umap_mapped_%s.pdf",io$outdir,i), width=8, height=6.5)
+  pdf(sprintf("%s/umap_atlas_%s.pdf",io$outdir,i), width=8, height=6.5)
   print(p)
   dev.off()
 }

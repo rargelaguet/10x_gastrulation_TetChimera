@@ -2,8 +2,8 @@ suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(purrr))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(ggpubr))
-suppressPackageStartupMessages(library(Seurat))
-suppressPackageStartupMessages(library(SingleCellExperiment))
+# suppressPackageStartupMessages(library(Seurat))
+# suppressPackageStartupMessages(library(SingleCellExperiment))
 
 #########
 ## I/O ##
@@ -194,33 +194,6 @@ opts$classes <- c(
 #   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped," ","_")] %>%
 #   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,"/","_")] %>%
 #   .[,celltype.mapped:=factor(celltype.mapped, levels=names(opts$celltype.colors))]
-  
-##################
-## IGNORE BELOW ##
-##################
-
-# Assign stage
-# sample_metadata <- fread(io$metadata) %>%
-#   .[,stage:=sapply(stringr::str_split(batch,"_"),"[[",1)] %>%
-#   .[stage=="E75",stage:="E7.5"] %>% .[stage%in%c("E8","E85"),stage:="E8.5"]
-
-# Assign embryos
-# opts$batch.to.embryo <- c(
-#   "E75_TET_TKO_L002" = "E7.5_embryo1", 
-#   "E75_WT_Host_L001" = "E7.5_embryo1", 
-#   "E85_Rep1_TET_TKO_L004" = "E8.5_embryo1", 
-#   "E85_Rep1_WT_Host_L003" = "E8.5_embryo1", 
-#   "E85_Rep2_TET_TKO_L006" = "E8.5_embryo2", 
-#   "E85_Rep2_WT_Host_L005" = "E8.5_embryo2", 
-#   "SIGAE4_E105_3_TET123_Chimera_Host_L005" = "E10.5_embryo1", 
-#   "SIGAF4_E105_3_TET123_Chimera_TKO_L006" = "E10.5_embryo1", 
-#   "SIGAG4_E105_5_TET123_Chimera_Host_L007" = "E10.5_embryo2", 
-#   "SIGAH4_E105_5_TET123_Chimera_TKO_L008" = "E10.5_embryo2"
-# )
-# sample_metadata <- fread(io$metadata)
-# sample_metadata[,embryo:=stringr::str_replace_all(batch,opts$batch.to.embryo)]
-# fwrite(sample_metadata, io$metadata, sep="\t", na="NA", quote=F)
-
 
 ##########
 ## E9.5 ##
