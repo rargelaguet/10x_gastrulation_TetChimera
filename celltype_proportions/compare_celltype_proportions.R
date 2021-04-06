@@ -63,8 +63,8 @@ opts$celltypes = c(
   "Surface_ectoderm",
   "Visceral_endoderm",
   "ExE_endoderm",
-  "ExE_ectoderm"
-  # "Parietal_endoderm"
+  "ExE_ectoderm",
+  "Parietal_endoderm"
 )
 
 opts$to.merge <- c(
@@ -82,8 +82,7 @@ opts$to.merge <- c(
 
 opts$remove.ExE.celltypes <- TRUE
 opts$remove.blood <- FALSE
-opts$remove.small.lineages <- TRUE
-
+opts$remove.small.lineages <- FALSE
 
 ##########################
 ## Load sample metadata ##
@@ -109,57 +108,136 @@ if (opts$remove.small.lineages) {
     .[,N:=.N,by=c("celltype.mapped")] %>% .[N>opts$min.cells] %>% .[,N:=NULL]
 }
 
-# Rename samples
-# foo <- sample_metadata[,c("batch","class")] %>% unique %>% .[,sample:=paste(class,1:.N,sep="_"),by="class"]
-# sample_metadata <- sample_metadata %>% merge(foo,by=c("batch","class"))
-
 # Print statistics
 table(sample_metadata$sample)
 table(sample_metadata$celltype.mapped)
-# sample_metadata[celltype.mapped=="Primitive_Streak",.N,by="sample"]
 
-##############################
-## Calculate WT proportions ##
-##############################
+####################################
+## Calculate celltype proportions ##
+####################################
 
-# Calculate background proportions
-# wt.dt <- sample_metadata %>%
+# Calculate celltype proportions for WT
+# wt_proportions.dt <- sample_metadata %>%
 #   .[class%in%opts$wt.classes] %>%
 #   .[,ncells:=.N, by="sample"] %>%
 #   .[,.(proportion=.N/unique(ncells), N=.N),by=c("celltype.mapped","class")]# %>%
 # # .[,.(proportion=mean(proportion), N=mean(N)),by="celltype.mapped"]
-wt.dt <- sample_metadata %>%
+wt_proportions.dt <- sample_metadata %>%
   .[class%in%opts$wt.classes] %>%
   .[,ncells:=.N] %>%
   .[,.(proportion=.N/unique(ncells), N=.N),by=c("celltype.mapped")]
+
+# Calculate celltype proportions for KO samples
+ko_proportions_per_sample.dt <- sample_metadata %>%
+  .[!class%in%opts$wt.classes] %>%
+  .[,ncells:=.N, by="sample"] %>%
+  .[,.(proportion=.N/unique(ncells), N=.N),by=c("celltype.mapped","sample","class")]
+
+# Calculate celltype proportions for KO classes
+ko_proportions_per_class.dt <- sample_metadata %>%
+  .[!class%in%opts$wt.classes] %>%
+  .[,ncells:=.N, by="class"] %>%
+  .[,.(proportion=.N/unique(ncells), N=.N),by=c("celltype.mapped","class")]
+
+# Merge
+proportions_per_sample.dt <- merge(
+  ko_proportions_per_sample.dt, 
+  wt_proportions.dt, 
+  by = c("celltype.mapped"), allow.cartesian=T, suffixes = c(".ko",".wt")
+) %>% .[,c("diff_proportion","diff_N"):=list(log2(proportion.ko/proportion.wt),N.ko-N.wt)] 
+
+proportions_per_class.dt <- merge(
+  ko_proportions_per_class.dt, 
+  wt_proportions.dt, 
+  by = c("celltype.mapped"), allow.cartesian=T, suffixes = c(".ko",".wt")
+) %>% .[,c("diff_proportion","diff_N"):=list(log2(proportion.ko/proportion.wt),N.ko-N.wt)] 
+
+#########################
+## Barplots per sample ##
+#########################
+
+ylim <- max(abs(proportions_per_sample.dt$diff_proportion))
+
+for (i in unique(proportions_per_sample.dt$sample)) {
+  
+  celltype.order <- proportions_per_sample.dt[sample==i,mean(diff_proportion),by="celltype.mapped"] %>% setorder(-V1) %>% .$celltype.mapped
+  to.plot <- proportions_per_sample.dt[sample==i] %>% 
+    .[,celltype.mapped:=factor(celltype.mapped,levels=celltype.order)]
+  
+  p <- ggplot(to.plot, aes(x=factor(celltype.mapped), y=diff_proportion)) +
+    geom_point(aes(fill = celltype.mapped), shape=21, size=1) +
+    geom_bar(aes(fill = celltype.mapped), stat="identity", alpha=0.5) +
+    geom_text(y=-ylim, aes(label=N.wt), size=2.5) +
+    geom_text(y=ylim, aes(label=N.ko), size=2.5) +
+    coord_flip(ylim=c(-ylim,ylim)) +
+    geom_hline(yintercept=0, linetype="dashed", size=0.5) +
+    scale_fill_manual(values=opts$celltype.colors, drop=F) +
+    theme_classic() +
+    labs(y="Difference in proportions (log2)", x="") +
+    theme(
+      legend.position = "none",
+      # axis.title = element_blank(),
+      axis.text.y = element_text(color="black"),
+      axis.text.x = element_text(color="black")
+    )
+  
+  pdf(sprintf("%s/boxplots/per_sample/%s_barplots.pdf",io$outdir,i))
+  print(p)
+  dev.off()
+}
+
+########################
+## Boxplots per class ##  
+#######################
+
+ylim <- max(abs(proportions_per_sample.dt$diff_proportion))
+
+for (i in unique(proportions_per_sample.dt$class)) {
+  
+  celltype.order <- proportions_per_sample.dt[class==i,mean(diff_proportion),by="celltype.mapped"] %>% setorder(-V1) %>% .$celltype.mapped
+  to.plot <- proportions_per_sample.dt %>% 
+    .[class==i] %>% 
+    .[,celltype.mapped:=factor(celltype.mapped,levels=celltype.order)]
+  
+  tmp <- proportions_per_class.dt %>% 
+    .[class==i] %>% 
+    .[,celltype.mapped:=factor(celltype.mapped,levels=celltype.order)]
+  
+  p <- ggplot(to.plot, aes(x=factor(celltype.mapped), y=diff_proportion)) +
+    geom_point(aes(fill = celltype.mapped), shape=21, size=1) +
+    geom_boxplot(aes(fill = celltype.mapped), alpha=0.5) +
+    geom_text(y=-ylim, aes(label=N.wt), size=2.5, data=tmp) +
+    geom_text(y=ylim, aes(label=N.ko), size=2.5, data=tmp) +
+    coord_flip(ylim=c(-ylim,ylim)) +
+    geom_hline(yintercept=0, linetype="dashed", size=0.5) +
+    scale_fill_manual(values=opts$celltype.colors, drop=F) +
+    theme_classic() +
+    labs(y="Difference in proportions (log2)", x="") +
+    theme(
+      legend.position = "none",
+      # axis.title = element_blank(),
+      axis.text.y = element_text(color="black"),
+      axis.text.x = element_text(color="black")
+    )
+  
+  pdf(sprintf("%s/boxplots/per_class/%s_boxplots.pdf",io$outdir,i))
+  print(p)
+  dev.off()
+}
 
 ############################
 ## Polar plots per sample ##
 ############################
 
-# Calculate proportions for KO samples
-ko.dt <- sample_metadata %>%
-  .[!class%in%opts$wt.classes] %>%
-  .[,ncells:=.N, by="sample"] %>%
-  .[,.(proportion=.N/unique(ncells), N=.N),by=c("celltype.mapped","sample","class")]
-
-# Merge
-dt <- merge(ko.dt, wt.dt, by=c("celltype.mapped"), allow.cartesian=T, suffixes = c(".ko",".wt"))
-
-# Plot
-to.plot <- dt %>%
-  # .[N.ko+N.wt>25] %>% # only consider cell types with enough observations
-  # .[,.(diff_proportion=log2(proportion.ko/proportion.wt), diff_N=N.ko-N.wt), by=c("sample","celltype.mapped","class")] %>% 
-  .[,.(diff_proportion=log2(proportion.ko/proportion.wt), diff_N=N.ko-N.wt), by=c("celltype.mapped","sample","class")] %>% 
-  .[,diff_N_norm:=linMap(abs(diff_N), from=0.15, to=1.5)]
+# %>% .[,diff_N_norm:=linMap(abs(diff_N), from=0.15, to=1.5)]
 
 to.plot.wt_line <- data.table(
-  celltype.mapped = unique(dt$celltype.mapped),
+  celltype.mapped = unique(proportions_per_sample.dt$celltype.mapped),
   diff_proportion = log2(1),
   diff_N = 0 #+  0.01
 )
 
-p <- ggplot(to.plot, aes(x=factor(celltype.mapped), y=diff_proportion, group=1)) +
+p <- ggplot(proportions_per_sample.dt, aes(x=factor(celltype.mapped), y=diff_proportion, group=1)) +
   # geom_point(aes(color = celltype.mapped, size = diff_N_norm), stat = 'identity') + 
   geom_point(aes(color = celltype.mapped), size=2.5, stat = 'identity') + 
   geom_polygon(color="black", fill=NA, alpha=0.5, linetype="dashed", data=to.plot.wt_line) +
@@ -180,104 +258,26 @@ p <- ggplot(to.plot, aes(x=factor(celltype.mapped), y=diff_proportion, group=1))
     axis.line=element_blank(),
     axis.text.x = element_blank()
   )
-  
+
 pdf(sprintf("%s/polar_plots_by_sample.pdf",io$outdir), width=8, height=7)
 print(p)
 dev.off()
 
-
-########################
-## Barplots per sample ##
-########################
-
-ylim <- max(abs(to.plot$diff_proportion))
-
-for (i in unique(to.plot$sample)) {
-  
-  celltype.order <- to.plot[sample==i,mean(diff_proportion),by="celltype.mapped"] %>% setorder(-V1) %>% .$celltype.mapped
-  to.plot2 <- to.plot[sample==i] %>% 
-    .[,celltype.mapped:=factor(celltype.mapped,levels=celltype.order)]
-  
-  p <- ggplot(to.plot2, aes(x=factor(celltype.mapped), y=diff_proportion)) +
-    geom_point(aes(fill = celltype.mapped), shape=21, size=1) +
-    geom_bar(aes(fill = celltype.mapped), stat="identity", alpha=0.5) +
-    coord_flip(ylim=c(-ylim,ylim)) +
-    geom_hline(yintercept=0, linetype="dashed", size=0.5) +
-    scale_fill_manual(values=opts$celltype.colors, drop=F) +
-    theme_classic() +
-    labs(y="Difference in proportions (log2)", x="") +
-    theme(
-      legend.position = "none",
-      # axis.title = element_blank(),
-      axis.text.y = element_text(color="black"),
-      axis.text.x = element_text(color="black")
-    )
-  
-  pdf(sprintf("%s/boxplots/per_sample/%s_barplots.pdf",io$outdir,i))
-  print(p)
-  dev.off()
-}
-
-########################
-## Boxplots per class ##
-########################
-
-ylim <- max(abs(to.plot$diff_proportion))
-
-for (i in unique(to.plot$class)) {
-  
-  celltype.order <- to.plot[class==i,mean(diff_proportion),by="celltype.mapped"] %>% setorder(-V1) %>% .$celltype.mapped
-  to.plot2 <- to.plot %>% 
-    .[class==i] %>% 
-    .[,celltype.mapped:=factor(celltype.mapped,levels=celltype.order)]
-  
-  p <- ggplot(to.plot2, aes(x=factor(celltype.mapped), y=diff_proportion)) +
-    geom_point(aes(fill = celltype.mapped), shape=21, size=1) +
-    geom_boxplot(aes(fill = celltype.mapped), alpha=0.5) +
-    coord_flip(ylim=c(-ylim,ylim)) +
-    geom_hline(yintercept=0, linetype="dashed", size=0.5) +
-    scale_fill_manual(values=opts$celltype.colors, drop=F) +
-    theme_classic() +
-    labs(y="Difference in proportions (log2)", x="") +
-    theme(
-      legend.position = "none",
-      # axis.title = element_blank(),
-      axis.text.y = element_text(color="black"),
-      axis.text.x = element_text(color="black")
-    )
-  
-  pdf(sprintf("%s/boxplots/per_class/%s_boxplots.pdf",io$outdir,i))
-  print(p)
-  dev.off()
-}
 
 
 ###########################
 ## Polar plots per class ##
 ###########################
 
-# Calculate proportions for KO classes
-ko.dt <- sample_metadata %>%
-  # .[!class%in%opts$wt.classes] %>%
-  .[,ncells:=.N, by="class"] %>%
-  .[,.(proportion=.N/unique(ncells), N=.N),by=c("celltype.mapped","class")]
-
-# Merge
-dt <- merge(ko.dt, wt.dt, by=c("celltype.mapped"), allow.cartesian=T, suffixes = c(".ko",".wt"))
-
-# Plot
-to.plot <- dt %>%
-  .[N.ko+N.wt>25] %>% # only consider cell types with enough observations
-  .[,.(diff_proportion=log2(proportion.ko/proportion.wt), diff_N=N.ko-N.wt), by=c("celltype.mapped","class")] %>% 
-  .[,diff_N_norm:=linMap(abs(diff_N), from=0.15, to=1.5)]
+# proportions_per_class.dt %>% .[,diff_N_norm:=linMap(abs(diff_N), from=0.15, to=1.5)]
 
 to.plot.wt_line <- data.table(
-  celltype.mapped = unique(dt$celltype.mapped),
+  celltype.mapped = unique(proportions_per_class.dt$celltype.mapped),
   diff_proportion = log2(1),
   diff_N = 0 #+  0.01
 )
 
-p <- ggplot(to.plot, aes(x=factor(celltype.mapped), y=diff_proportion, group=1)) +
+p <- ggplot(proportions_per_class.dt, aes(x=factor(celltype.mapped), y=diff_proportion, group=1)) +
   # geom_point(aes(color = celltype.mapped, size = diff_N_norm), stat = 'identity') + 
   geom_point(aes(color = celltype.mapped), size=2.5, stat = 'identity') + 
   geom_polygon(color="black", fill=NA, alpha=0.5, linetype="dashed", data=to.plot.wt_line) +

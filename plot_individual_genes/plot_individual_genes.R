@@ -6,8 +6,10 @@ suppressPackageStartupMessages(library(SingleCellExperiment))
 
 if (grepl("ricard",Sys.info()['nodename'])) {
   source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
+  source("/Users/ricard/10x_gastrulation_TetChimera/utils.R")
 } else if (grepl("ebi",Sys.info()['nodename'])) {
   source("/homes/ricard/10x_gastrulation_TetChimera/settings.R")
+  source("/homes/ricard/10x_gastrulation_TetChimera/utils.R")
 }
 
 ## I/O ##
@@ -22,8 +24,8 @@ opts$celltypes = c(
 	"Primitive_Streak",
 	"Caudal_epiblast",
 	# "PGC",
-	# "Anterior_Primitive_Streak",
-	# "Notochord",
+	"Anterior_Primitive_Streak",
+	"Notochord",
 	"Def._endoderm",
 	"Gut",
 	"Nascent_mesoderm",
@@ -33,7 +35,7 @@ opts$celltypes = c(
 	"Paraxial_mesoderm",
 	"Somitic_mesoderm",
 	"Pharyngeal_mesoderm",
-	# "Cardiomyocytes",
+	"Cardiomyocytes",
 	"Allantois",
 	"ExE_mesoderm",
 	"Mesenchyme",
@@ -63,9 +65,8 @@ opts$classes <- c(
   "E7.5_Host",
   "E7.5_TET_TKO",
   "E8.5_Host",
-  "E8.5_TET_TKO"
-  # "E10.5_Host", 
-  # "E10.5_TET_TKO"
+  "E8.5_TET_TKO",
+  "E8.5_WT"
 )
 
 # Define colors
@@ -73,14 +74,15 @@ opts$colors <- c(
   "E7.5_Host" = "#CCCCCC", 
   "E7.5_TET_TKO" = "#FF7F50", 
   "E8.5_Host" = "#B0B0B0", 
-  "E8.5_TET_TKO" = "#EE4000"
+  "E8.5_TET_TKO" = "#EE4000",
+  "E8.5_WT" = "#B0B0B0"
 )
 
 # Update sample metadata
 sample_metadata <- fread(io$metadata) %>% 
-  # .[class%in%opts$classes & celltype.mapped%in%opts$celltypes] %>%
-  .[celltype.mapped%in%opts$celltypes] %>%
-  .[,celltype.mapped:=factor(celltype.mapped, levels=opts$celltypes)]
+  .[pass_QC==TRUE & class%in%opts$classes & celltype.mapped%in%opts$celltypes] %>%
+  .[,celltype.mapped:=factor(celltype.mapped, levels=opts$celltypes)] %>%
+  .[,class:=factor(class,levels=opts$classes)]
 
 table(sample_metadata$class)
 table(sample_metadata$celltype.mapped)
@@ -90,18 +92,89 @@ table(sample_metadata$celltype.mapped)
 ###############
 
 # Load SingleCellExperiment object
-sce <- readRDS(io$sce)[,sample_metadata$cell]
+sce <- load_SingleCellExperiment(io$sce, cells=sample_metadata$cell, normalise = FALSE)
 
-# Remove genes that are not expressed
-sce <- sce[rowMeans(counts(sce))>0,]
+# Add sample metadata as colData
+colData(sce) <- sample_metadata %>% tibble::column_to_rownames("cell") %>% DataFrame
+
+# Normalise
+sce <- logNormCounts(sce)
+
+##########
+## Plot ##
+##########
+
+genes.to.plot <- c("Eomes","Dppa4")
+# genes.to.plot <- c("Lefty1","Cd34","Tmsb4x","Fgf3","Spata7","Cer1","Spink1","Dppa4","Dppa5a","Prc1","Lefty2","Ube2c","Hba-x","Hbb-y","Hba-a1","Hbb-bh1")
+# genes.to.plot <- c("Vegfa","Vegfb","Vegfc","Vegfd","Kdr","Flt1","Tal1","Runx1","Etv2)
+# genes.to.plot <- c("Tet1","Tet2","Tet3","Dnmt1","Dnmt3a","Dnmt3b","Dnmt3l")
+# genes.to.plot <- rownames(sce)[grep("tomato",rownames(sce))]
+# genes.to.plot <- fread(io$atlas.marker_genes)$gene %>% unique %>% .[!grepl("Rik$",.)]
+genes.to.plot <- fread("/Users/ricard/data/gastrulation10x/results/differential/celltypes/E8.5/Neural_crest_vs_Forebrain_Midbrain_Hindbrain.txt.gz") %>% .[sig==T & logFC<(-2),gene]
+
+for (i in 1:length(genes.to.plot)) {
+  
+  gene <- genes.to.plot[i]
+  
+  if (gene %in% rownames(sce)) {
+    print(sprintf("%s/%s: %s",i,length(genes.to.plot),gene))
+    outfile <- sprintf("%s/Tim/%s.jpeg",io$outdir,gene)
+    
+    if (!file.exists(outfile)) {
+      
+      to.plot <- data.table(
+        cell = colnames(sce),
+        expr = logcounts(sce)[gene,]
+      ) %>% merge(sample_metadata[,c("cell","sample","class","celltype.mapped")], by="cell") %>%
+        .[,N:=.N,by=c("sample","celltype.mapped")] %>% .[N>=10]
+      
+      p <- ggplot(to.plot, aes(x=class, y=expr, fill=class)) +
+        geom_violin(scale = "width", alpha=0.8) +
+        geom_boxplot(width=0.5, outlier.shape=NA, alpha=0.8) +
+        # stat_summary(fun.data = give.n, geom = "text", size=2.5) + 
+        # geom_jitter(size=2, shape=21, stroke=0.2, alpha=0.5) +
+        scale_fill_manual(values=opts$colors) +
+        facet_wrap(~celltype.mapped, scales="fixed") +
+        theme_classic() +
+        labs(title=gene, x="",y=sprintf("%s expression",gene)) +
+        guides(x = guide_axis(angle = 90)) +
+        theme(
+          strip.text = element_text(size=rel(0.85)),
+          # plot.title = element_text(hjust = 0.5, size=rel(1.1), color="black"),
+          plot.title = element_blank(),
+          axis.text.x = element_text(colour="black",size=rel(0.95)),
+          # axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.text.y = element_text(colour="black",size=rel(1.0)),
+          axis.title.y = element_text(colour="black",size=rel(1.0)),
+          legend.position = "top",
+          legend.title = element_blank(),
+          legend.text = element_text(size=rel(0.85))
+        )
+      
+        # pdf(outfile, width=11, height=10)
+        # png(outfile, width = 1100, height = 1000)
+        jpeg(outfile, width = 700, height = 600)
+        print(p)
+        dev.off()
+        
+    } else {
+      print(sprintf("%s already exists...",outfile))
+    }
+
+  } else {
+    print(sprintf("%s not found",gene))
+  }
+}
+
+
+#########
+## Old ##
+#########
 
 # Load gene metadata
-gene_metadata <- fread(io$gene_metadata) %>%
-  .[symbol!="" & symbol%in%rownames(sce)]
-
-################
-## Parse data ##
-################
+# gene_metadata <- fread(io$gene_metadata) %>%
+#   .[symbol!="" & symbol%in%rownames(sce)]
 
 # Rename genes
 # new.names <- gene_metadata$symbol
@@ -110,55 +183,3 @@ gene_metadata <- fread(io$gene_metadata) %>%
 # rownames(sce) <- new.names[rownames(sce)]
 # stopifnot(sum(is.na(new.names))==0)
 # stopifnot(sum(duplicated(new.names))==0)
-
-##########
-## Plot ##
-##########
-
-# genes.to.plot <- c("Lefty1","Cd34","Tmsb4x","Fgf3","Spata7","Cer1","Spink1","Dppa4","Dppa5a","Prc1","Lefty2","Ube2c","Hba-x","Hbb-y","Hba-a1","Hbb-bh1")
-# genes.to.plot <- c("Vegfa","Vegfb","Vegfc","Vegfd","Kdr","Flt1","Tal1","Runx1","Etv2)
-# genes.to.plot <- c("Tet1","Tet2","Tet3","Dnmt1","Dnmt3a","Dnmt3b","Dnmt3l")
-genes.to.plot <- rownames(sce)[grep("Tet",rownames(sce))]
-genes.to.plot <- rownames(sce)[grep("tomato",rownames(sce))]
-
-for (i in 1:length(genes.to.plot)) {
-  gene <- genes.to.plot[i]
-  print(sprintf("%s/%s: %s",i,length(genes.to.plot),gene))
-  
-  # Create data.table to plot
-  to.plot <- data.table(
-    cell = colnames(sce),
-    expr = logcounts(sce[gene,])[1,]
-  ) %>% merge(sample_metadata, by="cell")
-
-  # Plot
-  # p <- ggplot(to.plot, aes(x=class, y=expr, fill=class)) +
-  p <- ggplot(to.plot, aes(x=stage, y=expr, fill=batch)) +
-    # geom_violin(scale = "width", alpha=0.8) +
-    geom_boxplot(width=0.5, outlier.shape=NA, alpha=0.8) +
-    # geom_jitter(size=2, shape=21, stroke=0.2, alpha=0.5) +
-    # scale_fill_manual(values=opts$colors) +
-    facet_wrap(~celltype.mapped, scales="fixed") +
-    theme_classic() +
-    labs(title=gene, x="",y=sprintf("%s expression",gene)) +
-    theme(
-      strip.text = element_text(size=rel(1.0)),
-      # plot.title = element_text(hjust = 0.5, size=rel(1.1), color="black"),
-      plot.title = element_blank(),
-      # axis.text.x = element_text(colour="black",size=rel(1.2), angle=50, hjust=1),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank(),
-      axis.text.y = element_text(colour="black",size=rel(1.0)),
-      axis.title.y = element_text(colour="black",size=rel(1.2)),
-      legend.position="right",
-      legend.title = element_blank(),
-      legend.text = element_text(size=rel(1.1))
-    )
-    
-  # pdf(sprintf("%s/%s.pdf",io$outdir,i), width=5, height=3.5, useDingbats = F)
-  # ggsave("ggtest.png", width = 3.25, height = 3.25, dpi = 1200)
-  jpeg(sprintf("%s/%s.jpeg",io$outdir,gene), width = 1500, height = 800)
-  # jpeg(sprintf("%s/test_%s.jpeg",io$outdir,gene), width = 900, height = 900)
-  print(p)
-  dev.off()
-}

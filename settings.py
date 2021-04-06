@@ -1,5 +1,5 @@
 import numpy as np
-import AnnData as anndata
+import anndata
 import scipy as s
 import scanpy as sc
 import matplotlib.pyplot as pl
@@ -18,19 +18,21 @@ io = {}
 host = os.uname()[1]
 if search("ricard", host):
 	io["basedir"] = "/Users/ricard/data/10x_gastrulation_TetChimera"
-	io["atlas.basedir"] = "/Users/ricard/data/gastrulation10x"
+	io["atlas_basedir"] = "/Users/ricard/data/gastrulation10x"
 	io["gene_metadata"] = "/Users/ricard/data/ensembl/mouse/v87/BioMart/all_genes/Mmusculus_genes_BioMart.87.txt"
 elif search("ebi", host):
 	io["basedir"] = "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera"
-	io["atlas.basedir"] = "/hps/nobackup2/research/stegle/users/ricard/gastrulation10x"
+	io["atlas_basedir"] = "/hps/nobackup2/research/stegle/users/ricard/gastrulation10x"
 	io["gene_metadata"] = "/hps/nobackup2/research/stegle/users/ricard/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
 else:
 	print("Computer not recognised"); exit()
 
 io["metadata"] = io["basedir"] + "/sample_metadata.txt.gz"
+io["anndata"] = io["basedir"] + "/processed/anndata.h5ad"
 
 # Atlas information
-io["atlas.metadata"] = io["atlas.basedir"] + "/sample_metadata.txt.gz"
+io["atlas.metadata"] = io["atlas_basedir"] + "/sample_metadata.txt.gz"
+io["atlas_anndata"] = io["atlas_basedir"] + "/processed/anndata.h5ad"
 
 
 #############
@@ -79,7 +81,7 @@ opts["celltypes"] = [
 	"Parietal_endoderm"
 ]
 
-opts["celltype.colors"] = {
+opts["celltype_colors"] = {
 	"Epiblast" : "#635547",
 	"Primitive_Streak" : "#DABE99",
 	"Caudal_epiblast" : "#9e6762",
@@ -137,9 +139,9 @@ opts["stages_colors"] = {
 }
 
 
-opts["batches"] = [
+opts["samples"] = [
 
-	# First batches (all failed QC)
+	# First samples (all failed QC)
 	# SIGAA3_E8.5_pool1_Host-WT_L001
 	# SIGAB3_E8.5_pool1_TET-TKO_L002
 	# SIGAC3_E8.5_pool2_Host-WT_L003
@@ -155,7 +157,7 @@ opts["batches"] = [
 	"E85_Rep1_TET_TKO_L004",
 	"E85_Rep1_WT_Host_L003",
 	"E85_Rep2_TET_TKO_L006",
-	"E85_Rep2_WT_Host_L005"
+	"E85_Rep2_WT_Host_L005",
 
 	# Third batch (failed QC)
 	# "SIGAE4_E105_3_TET123_Chimera_Host_L005", 
@@ -172,13 +174,18 @@ opts["batches"] = [
 	# "SIGAF6_TET_TKO_E9_5_Trunk2_L003",
 	# "SIGAG6_TET_TKO_E9_5_Tail2_L003",
 	# "SIGAH6_TET_TKO_E9_5_YS2_L003"
+
+  # Fifth batch
+  "E8_5_TET_WT_rep1_SIGAG8",
+  "E8_5_TET_WT_rep2_SIGAH8"
 ]
 
 opts["classes"] = [
 	"E7.5_Host", 
 	"E7.5_TET_TKO", 
 	"E8.5_Host", 
-	"E8.5_TET_TKO"
+	"E8.5_TET_TKO",
+	"E8.5_WT"
 	# "E9.5_TET_TKO",
 	# "E10.5_Host", 
 	# "E10.5_TET_TKO"

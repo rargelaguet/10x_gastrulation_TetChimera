@@ -33,6 +33,7 @@ if (grepl("ricard",Sys.info()['nodename'])) {
 io$metadata <- paste0(io$basedir,"/sample_metadata.txt.gz")
 io$seurat <- paste0(io$basedir,"/processed/seurat.rds")
 io$sce <- paste0(io$basedir,"/processed/SingleCellExperiment.rds")
+io$anndata <- paste0(io$basedir,"/processed/anndata.h5ad")
 
 # Atlas information
 io$atlas.metadata <- paste0(io$atlas.basedir,"/sample_metadata.txt.gz")
@@ -132,9 +133,9 @@ opts$celltype.colors = c(
 )
 
 
-opts$batches <- c(
+opts$samples <- c(
   
-  # First batches (all failed QC)
+  # First samples (all failed QC)
   # SIGAA3_E8.5_pool1_Host-WT_L001
   # SIGAB3_E8.5_pool1_TET-TKO_L002
   # SIGAC3_E8.5_pool2_Host-WT_L003
@@ -190,7 +191,7 @@ opts$classes <- c(
 
 # sample_metadata <- fread(io$metadata) %>% 
 #   # .[pass_QC==T] %>% 
-#   # .[batch%in%opts$batches] %>%
+#   # .[batch%in%opts$samples] %>%
 #   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped," ","_")] %>%
 #   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,"/","_")] %>%
 #   .[,celltype.mapped:=factor(celltype.mapped, levels=names(opts$celltype.colors))]
