@@ -1,8 +1,11 @@
-suppressPackageStartupMessages(library(SingleCellExperiment))
 suppressPackageStartupMessages(library(scds))
 suppressPackageStartupMessages(library(scran))
 suppressPackageStartupMessages(library(scater))
-suppressPackageStartupMessages(library(argparse))
+
+here::i_am("rna/processing/4_doublet_detection.R")
+
+source(here::here("settings.R"))
+source(here::here("utils.R"))
 
 ######################
 ## Define arguments ##
@@ -21,9 +24,6 @@ args <- p$parse_args(commandArgs(TRUE))
 ## Define settings ##
 #####################
 
-here::i_am("rna/processing/4_doublet_detection.R")
-source(here::here("settings.R"))
-source(here::here("utils.R"))
 
 ## START TEST ##
 # args <- list()

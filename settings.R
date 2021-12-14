@@ -169,14 +169,14 @@ opts$samples <- c(
   # "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
   
   # Fourth batch
-  "SIGAC2_TET_TKO_E9_5_Head1_L002",
-  "SIGAD2_TET_TKO_E9_5_Trunk1_L002",
-  "SIGAE2_TET_TKO_E9_5_Tail1_L002",
-  "SIGAE6_TET_TKO_E9_5_Head2_L003",
-  "SIGAF2_TET_TKO_E9_5_YS1_L002",
-  "SIGAF6_TET_TKO_E9_5_Trunk2_L003",
-  "SIGAG6_TET_TKO_E9_5_Tail2_L003",
-  "SIGAH6_TET_TKO_E9_5_YS2_L003",
+  "SIGAC2_TET_TKO_E9_5_Head1",
+  "SIGAD2_TET_TKO_E9_5_Trunk1",
+  "SIGAE2_TET_TKO_E9_5_Tail1",
+  "SIGAE6_TET_TKO_E9_5_Head2",
+  "SIGAF2_TET_TKO_E9_5_YS1",
+  "SIGAF6_TET_TKO_E9_5_Trunk2",
+  "SIGAG6_TET_TKO_E9_5_Tail2",
+  "SIGAH6_TET_TKO_E9_5_YS2",
   
   # Fifth batch
   "E8_5_TET_WT_rep1_SIGAG8",
@@ -193,6 +193,17 @@ opts$classes <- c(
   # "E10.5_Host", 
   # "E10.5_TET_TKO"
 )
+
+
+opts$stages <- c(
+  "E7.5", 
+  "E8.5", 
+  "E9.5"
+)
+
+
+opts$stage.colors <- viridis::viridis(n=length(opts$stages))
+names(opts$stage.colors) <- rev(opts$stages)
 
 ##########################
 ## Load sample metadata ##

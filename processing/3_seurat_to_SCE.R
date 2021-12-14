@@ -1,8 +1,10 @@
+here::i_am("10x_gastrulation_TetChimera/processing/2_QC.R")
+
 suppressPackageStartupMessages(library(Seurat))
-suppressPackageStartupMessages(library(SingleCellExperiment))
 suppressPackageStartupMessages(library(scater))
 suppressPackageStartupMessages(library(scran))
-suppressPackageStartupMessages(library(argparse))
+
+source(here::here("settings.R"))
 
 ######################
 ## Define arguments ##
@@ -20,9 +22,6 @@ args <- p$parse_args(commandArgs(TRUE))
 #####################
 ## Define settings ##
 #####################
-
-# Load default settings
-source(here::here("settings.R"))
 
 ## START TEST ##
 # args <- list()

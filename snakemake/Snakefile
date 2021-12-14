@@ -26,9 +26,10 @@ else:
 
 rule all:
     input: 
-        config["directories"]["processed_data"]+"/seurat.rds"
-        # config["directories"]["results"]+"/qc/sample_metadata_after_qc.txt.gz",
-        # config["directories"]["processed_data"]+"/SingleCellExperiment.rds",
+        config["directories"]["processed_data"]+"/seurat.rds",
+        config["directories"]["results"]+"/qc/sample_metadata_after_qc.txt.gz",
+        config["directories"]["processed_data"]+"/SingleCellExperiment.rds"
+        # config["directories"]["results"]+"/doublet_detection/sample_metadata_after_doublets.txt.gz"
         # expand("%s/mapping/mapping_mnn_all_samples.txt.gz" % config["directories"]["results"]),
         # expand("%s/mapping/mapping_mnn_{sample}.txt.gz" % config["directories"]["results"], sample=config["samples"])
         # config["directories"]["results"]+"/mapping/sample_metadata_after_mapping.txt.gz",
@@ -64,7 +65,7 @@ rule create_seurat:
     resources:
         mem_mb = config["slurm"]["create_seurat"]["memory"]
     shell:
-        "Rscript {input.script} --inputdir {input.inputdir} --outdir {params.outdir} --samples {params.samples} --test > {log}"
+        "Rscript {input.script} --inputdir {input.inputdir} --outdir {params.outdir} --samples {params.samples} > {log}"
 
 #####################
 ## Quality control ##
@@ -118,6 +119,50 @@ rule seurat_to_sce:
         mem_mb = config["slurm"]["seurat_to_sce"]["memory"]
     shell:
         "Rscript {input.script} --seurat {input.seurat} --metadata {input.metadata} --outfile {output} > {log}"
+
+#######################
+## Doublet detection ##
+#######################
+
+rule doublet_detection:
+    input:
+        sce = rules.seurat_to_sce.output,
+        metadata = rules.qc.output.metadata,
+        script = config["scripts"]["doublet_detection"]
+    output:
+        outfile=config["directories"]["results"]+"/doublet_detection/doublets_{sample}_{doublet_score_threshold}.txt.gz"
+        # metadata=config["directories"]["results"]+"/doublet_detection/sample_metadata_after_doublet_detection.txt.gz"
+    conda:
+        "environment.yaml"
+    log: 
+        "logs/doublet_detection_{sample}_{doublet_score_threshold}.log"
+    threads: 
+        config["slurm"]["doublet_detection"]["threads"]
+    resources:
+        mem_mb = config["slurm"]["doublet_detection"]["memory"]
+    shell:
+        "Rscript {input.script} --metadata {input.metadata} --sce {input.sce} --samples {wildcards.sample} \
+        --hybrid_score_threshold {wildcards.doublet_score_threshold}  --outfile {output} > {log}"
+
+rule parse_doublet_results:
+    input:
+        metadata = rules.qc.output.metadata,
+        script = config["scripts"]["parse_doublets"],
+        doublet_files=expand(config["directories"]["results"]+"/doublet_detection/doublets_{sample}_{doublet_score_threshold}.txt.gz", 
+            sample=config["samples"], doublet_score_threshold=config["doublet_detection"]["doublet_score_threshold"])
+        # doublet_files = rules.doublet_detection.output
+    output:
+        config["directories"]["results"]+"/doublet_detection/sample_metadata_after_doublets.txt.gz"
+    conda:
+        "environment.yaml"
+    log: 
+        "logs/parse_doublet_results.log"
+    threads: 
+        config["slurm"]["parse_doublet_results"]["threads"]
+    resources:
+        mem_mb = config["slurm"]["parse_doublet_results"]["memory"]
+    shell:
+        "Rscript {input.script} --metadata {input.metadata} --doublet_files {input.doublet_files} --outfile {output} > {log}"
 
 ##########################
 ## Mapping to the atlas ##

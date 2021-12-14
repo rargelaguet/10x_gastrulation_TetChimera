@@ -5,14 +5,14 @@ samples:
     - E85_Rep1_WT_Host_L003
     - E85_Rep2_TET_TKO_L006
     - E85_Rep2_WT_Host_L005
-    - SIGAC2_TET_TKO_E9_5_Head1_L002
-    - SIGAD2_TET_TKO_E9_5_Trunk1_L002
-    - SIGAE2_TET_TKO_E9_5_Tail1_L002
-    - SIGAE6_TET_TKO_E9_5_Head2_L003
-    - SIGAF2_TET_TKO_E9_5_YS1_L002
-    - SIGAF6_TET_TKO_E9_5_Trunk2_L003
-    - SIGAG6_TET_TKO_E9_5_Tail2_L003
-    - SIGAH6_TET_TKO_E9_5_YS2_L003
+    - SIGAC2_TET_TKO_E9_5_Head1
+    - SIGAD2_TET_TKO_E9_5_Trunk1
+    - SIGAE2_TET_TKO_E9_5_Tail1
+    - SIGAE6_TET_TKO_E9_5_Head2
+    - SIGAF2_TET_TKO_E9_5_YS1
+    - SIGAF6_TET_TKO_E9_5_Trunk2
+    - SIGAG6_TET_TKO_E9_5_Tail2
+    - SIGAH6_TET_TKO_E9_5_YS2
     - E8_5_TET_WT_rep1_SIGAG8
     - E8_5_TET_WT_rep2_SIGAH8
 
@@ -54,6 +54,7 @@ scripts:
     create_seurat: ../processing/1_create_seurat_rna.R
     qc: ../processing/2_QC.R
     seurat_to_sce: ../processing/3_seurat_to_SCE.R
+    doublet_detection: ../processing/4_doublet_detection.R
     mapping_mnn: ../mapping/run/mnn/mapping_mnn.R
     parse_mapping: ../mapping/run/parse_sample_metadata_after_mapping.R
     dimensionality_reduction_sce: ../dimensionality_reduction/dimensionality_reduction_sce.R
@@ -70,20 +71,23 @@ scripts:
 ################
 
 params:
-    pseudobulk_rna:
-        group_by: ["celltype.mapped"]
-        normalisation_method: "cpm"
-        
+    qc:
+        min_nFeature_RNA: 1000
+        max_nFeature_RNA: 10000
+        percent_mt: 30
+        percent_rib: 35
+
+    doublet_detection:
+        doublet_score_threshold: 1.25
+
     mapping_mnn:
         atlas_stages: ["E6.5","E6.75","E7.0","E7.25","E7.5","E7.75","E8.0","E8.25","E8.5"]
         npcs: 50
         n_neighbours: 25
 
-    qc:
-        min_nFeature_RNA: 4000
-        max_nFeature_RNA: 10000
-        percent_mt: 10
-        percent_rib: 20
+    pseudobulk_rna:
+        group_by: ["celltype.mapped"]
+        normalisation_method: "cpm"
         
     dimensionality_reduction_sce:
         npcs: 30
@@ -113,36 +117,39 @@ params:
 
 slurm:  # memory in MB
     create_seurat: 
-        memory: 5000
+        memory: 25000
         threads: 1
     qc: 
-        memory: 2000
+        memory: 5000
         threads: 1
     seurat_to_sce:
-        memory: 5000
+        memory: 25000
         threads: 1
-    pseudobulk_rna:
-        memory: 5000
+    doublet_detection:
+        memory: 25000
         threads: 1
     mapping_mnn:
-        memory: 30000
+        memory: 80000
         threads: 1
     mapping_mnn_all_samples:
-        memory: 30000
+        memory: 100000
         threads: 1
     parse_mapping_results:
-        memory: 2000
+        memory: 3000
+        threads: 1
+    pseudobulk_rna:
+        memory: 15000
         threads: 1
     dimensionality_reduction_sce:
-        memory: 20000
+        memory: 25000
         threads: 1
     dimensionality_reduction_seurat:
-        memory: 10000
+        memory: 40000
         threads: 1
     plot_mapping_results:
-        memory: 3000
+        memory: 4000
         threads: 1
     plot_celltype_proportions:
-        memory: 3000
+        memory: 4000
         threads: 1
 
