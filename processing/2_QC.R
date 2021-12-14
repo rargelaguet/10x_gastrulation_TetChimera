@@ -1,101 +1,134 @@
-library(ggpubr)
-library(SingleCellExperiment)
-library(scran)
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(argparse))
+
+#####################
+## Define arguments ##
+#####################
+
+p <- ArgumentParser(description='')
+p$add_argument('--metadata',       type="character",                    help='Metadata')
+p$add_argument('--outputdir',       type="character",                    help='Output directory')
+p$add_argument('--min_nFeature_RNA',       type="integer",                    help='Minimum number of expressed genes')
+p$add_argument('--max_nFeature_RNA',       type="integer",                    help='Maximum number of expressed genes')
+p$add_argument('--mit_percent_RNA',       type="integer",                    help='Maximum percentage of mit reads')
+p$add_argument('--rib_percent_RNA',       type="integer",                    help='Maximum percentage of rib reads')
+p$add_argument('--samples',         type="character",       nargs="+",   help='Samples')
+args <- p$parse_args(commandArgs(TRUE))
+
 
 #####################
 ## Define settings ##
 #####################
 
-# Load default settings
-source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
+source(here::here("settings.R"))
 
-# I/O
-io$outdir <- paste0(io$basedir,"/results/qc")
-# io$seurat <- paste0(io$basedir,"/processed/all_batches/seurat.rds")
-# io$metadata <- paste0(io$basedir,"/processed/all_batches/metadata.txt.gz")
+## START TEST ##
+args <- list()
+args$samples <- opts$samples
+# args$metadata <- paste0(io$basedir,"/processed_new/rna_new/metadata.txt.gz")
+args$metadata <- io$metadata
+args$min_nFeature_RNA <- 2000
+args$max_nFeature_RNA <- 10000
+args$mit_percent_RNA <- 40
+args$rib_percent_RNA <- 20
+args$outputdir <- paste0(io$basedir,"/results_new/qc")
+## END TEST ##
 
-# Options
-opts$nFeature_RNA <- 2000
-opts$nCount_RNA <- 4000
-opts$percent.mt <- 10
+# Sanity checks
+stopifnot(args$samples%in%opts$samples)
 
 ###############
 ## Load data ##
 ###############
 
-# Load Seurat object
-srat <- readRDS(io$seurat)
+metadata <- fread(args$metadata) %>% 
+    .[sample%in%args$samples] %>%
+    # .[,pass_rnaQC:=nFeature_RNA>args$min_nFeature_RNA & nCount_RNA>2**args$log_nCount_RNA & mit_percent_RNA<args$mit_percent_RNA]
+    .[,pass_rnaQC:=nFeature_RNA<=args$max_nFeature_RNA & nFeature_RNA>=args$min_nFeature_RNA & mit_percent_RNA<args$mit_percent_RNA & rib_percent_RNA<args$rib_percent_RNA]
 
-# Load cell metadata
-metadata <- fread(io$metadata)
+table(metadata$pass_rnaQC)
 
 #####################
 ## Plot QC metrics ##
 #####################
 
-to.plot <- srat@meta.data %>% as.data.table %>%
-    melt(id.vars=c("batch","cell"), measure.vars=c("nCount_RNA","nFeature_RNA","percent.mt"))
+to.plot <- metadata %>% .[pass_rnaQC==TRUE] %>%
+    .[nFeature_RNA<=8000 & mit_percent_RNA<=60 & rib_percent_RNA<=16] %>% # remove massive outliers for plotting
+    # .[,log_nFeature_RNA:=log10(nFeature_RNA)] %>%
+    melt(id.vars=c("sample","cell","stage"), measure.vars=c("nFeature_RNA","mit_percent_RNA","rib_percent_RNA"))
+    # melt(id.vars=c("sample","cell"), measure.vars=c("nFeature_RNA"))
 
-tmp <- data.table(
-    variable = c("nCount_RNA", "nFeature_RNA", "percent.mt"),
-    value = c(opts$nCount_RNA, opts$nFeature_RNA, opts$percent.mt)
-)
-
-p <- gghistogram(to.plot, x="value", fill="batch", bins=50) +
-    geom_vline(aes(xintercept=value), linetype="dashed", data=tmp) +
-    facet_wrap(~variable, scales="free") +
-    theme(
-        axis.text =  element_text(size=rel(0.8)),
-        axis.title.x = element_blank(),
-        legend.position = "right"
-    )
+facet.labels <- c("nFeature_RNA" = "Num. of genes", "mit_percent_RNA" = "mit %", "rib_percent_RNA" = "rib %")
     
-pdf(sprintf("%s/qc_metrics.pdf",io$outdir), width=12, height=5, useDingbats = F)
+## Box plot 
+
+p <- ggplot(to.plot, aes_string(x="sample", y="value", fill="stage")) +
+    geom_boxplot(outlier.shape=NA, coef=1) +
+    facet_wrap(~variable, scales="free_y", nrow=1, labeller = as_labeller(facet.labels)) +
+    scale_fill_manual(values=opts$stage.colors) +
+    theme_classic() +
+    theme(
+        axis.text.y = element_text(colour="black",size=rel(1)),
+        axis.text.x = element_text(colour="black",size=rel(0.65), angle=20, hjust=1, vjust=1),
+        axis.title.x = element_blank()
+    )
+
+pdf(sprintf("%s/qc_metrics_boxplot.pdf",args$outputdir), width=9, height=5)
+# pdf(sprintf("%s/qc_metrics_boxplot.pdf",args$outputdir))
 print(p)
 dev.off()
 
-#############################
-## Calculate doublet score ##
-#############################
+## histogram 
 
-# opts$max_doublet_score <- 10000
-# 
-# sce <- as.SingleCellExperiment(srat)
-# metadata[,doublet_score:=doubletCells(sce)]
-# 
-# # Plot
-# to.plot <- metadata %>% 
-#     melt(id.vars=c("batch","cell"), measure.vars=c("doublet_score"))
-# 
-# p <- gghistogram(to.plot, x="value", fill="batch", bins=50) +
-#     geom_vline(xintercept=opts$max_doublet_score, linetype="dashed") +
-#     theme(
-#         axis.text =  element_text(size=rel(0.8)),
-#         legend.position = "right"
-#     )
-# 
-# table(metadata$doublet_score<opts$max_doublet_score)
-# 
-# pdf(sprintf("%s/doublet_score.pdf",io$outdir), width=9, height=5, useDingbats = F)
-# print(p)
-# dev.off()
+tmp <- data.table(
+    variable = c("nFeature_RNA", "mit_percent_RNA", "rib_percent_RNA"),
+    value = c(args$min_nFeature_RNA, args$mit_percent_RNA, args$rib_percent_RNA)
+)
+# tmp <- data.table(
+#     variable = c("nFeature_RNA"),
+#     value = c(args$min_nFeature_RNA)
+# )
 
-############
-## Filter ##
-############
+p <- gghistogram(to.plot, x="value", fill="sample", bins=50) +
+# p <- ggdensity(to.plot, x="value", fill="sample") +
+    geom_vline(aes(xintercept=value), linetype="dashed", data=tmp) +
+    facet_wrap(~variable, scales="free", nrow=1) +
+    theme(
+        axis.text =  element_text(size=rel(0.8)),
+        axis.title.x = element_blank(),
+        legend.position = "right",
+        legend.text = element_text(size=rel(0.75))
+    )
+    
+pdf(sprintf("%s/qc_metrics_histogram.pdf",args$outputdir), width=13, height=6)
+print(p)
+dev.off()
 
-cells <- metadata %>%
-    .[ nFeature_RNA>opts$nFeature_RNA & nCount_RNA>opts$nCount_RNA & percent.mt<opts$percent.mt,cell]
-length(cells) / nrow(srat@meta.data)
 
-# Subset cells that pass quality control
-metadata[,pass_QC:=cell%in%cells]
-srat <- srat[,cells]
+#########################################################
+## Plot fraction of cells that pass QC for each sample ##
+#########################################################
+
+to.plot <- metadata %>%
+    .[,mean(pass_rnaQC,na.rm=T),by=c("sample","stage")]
+
+p <- ggbarplot(to.plot, x="sample", y="V1", fill="stage") +
+    scale_fill_manual(values=opts$stage.colors) +
+    labs(x="", y="Fraction of cells that pass QC (RNA)") +
+    # facet_wrap(~stage)
+    theme(
+        legend.position = "none",
+        axis.text.y = element_text(colour="black",size=rel(0.8)),
+        axis.text.x = element_text(colour="black",size=rel(0.65), angle=20, hjust=1, vjust=1),
+    )
+
+pdf(sprintf("%s/qc_metrics_barplot.pdf",args$outputdir), width=6, height=5)
+print(p)
+dev.off()
 
 ##########
 ## Save ##
 ##########
 
-saveRDS(srat, io$seurat)
-fwrite(metadata, io$metadata, quote=F, na="NA", sep="\t")
+fwrite(metadata, paste0(args$outputdir,"/sample_metadata_after_qc.txt.gz"), quote=F, na="NA", sep="\t")
 

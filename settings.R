@@ -1,9 +1,10 @@
+suppressPackageStartupMessages(library(SingleCellExperiment))
 suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(purrr))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(argparse))
 # suppressPackageStartupMessages(library(Seurat))
-# suppressPackageStartupMessages(library(SingleCellExperiment))
 
 #########
 ## I/O ##
@@ -22,10 +23,18 @@ if (grepl("ricard",Sys.info()['nodename'])) {
   io$atlas.basedir <- "/hps/nobackup2/research/stegle/users/ricard/gastrulation10x"
   # io$gene_metadata <- "/hps/nobackup2/research/stegle/users/ricard/ensembl/mouse/v87/BioMart/all_genes/Mmusculus_genes_BioMart.87.txt"
   io$gene_metadata <- "/hps/nobackup2/research/stegle/users/ricard/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
-} else if (grepl("pebble|headstone",Sys.info()['nodename'])) {
-  io$basedir <- "/bi/scratch/Stephen_Clark/tet_chimera_10x/"
-  io$atlas.basedir <- ""
-  io$gene_metadata <- ""
+} else if (Sys.info()[['nodename']]=="BI2404M") {
+  io$basedir <- "/Users/argelagr/data/10x_gastrulation_TetChimera"
+  io$atlas.basedir <- "/Users/argelagr/data/gastrulation10x"
+  io$gene_metadata <- "/bi/group/reik/ricard/data/ensembl/mouse/v87/BioMart/all_genes/Mmusculus_genes_BioMart.87.txt"
+} else if (grepl("pebble|headstone", Sys.info()['nodename'])) {
+  if (grepl("Clark", Sys.info()['effective_user'])) {
+    io$basedir <- "/bi/scratch/Stephen_Clark/tet_chimera_10x/"
+    io$gene_metadata <- "/bi/scratch/Stephen_Clark/annotations/Mmusculus_genes_BioMart.87.txt"
+  } else if (grepl("argelag", Sys.info()['effective_user'])) {
+    io$basedir <- "/bi/group/reik/ricard/data/10x_gastrulation_TetChimera"
+    io$atlas.basedir <- "/bi/group/reik/ricard/data/pijuansala2019_gastrulation10x"
+  }
 } else {
   stop("Computer not recognised")
 }
@@ -160,14 +169,14 @@ opts$samples <- c(
   # "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
   
   # Fourth batch
-  # "SIGAC2_TET_TKO_E9_5_Head1_L002",
-  # "SIGAD2_TET_TKO_E9_5_Trunk1_L002",
-  # "SIGAE2_TET_TKO_E9_5_Tail1_L002",
-  # "SIGAE6_TET_TKO_E9_5_Head2_L003",
-  # "SIGAF2_TET_TKO_E9_5_YS1_L002",
-  # "SIGAF6_TET_TKO_E9_5_Trunk2_L003",
-  # "SIGAG6_TET_TKO_E9_5_Tail2_L003",
-  # "SIGAH6_TET_TKO_E9_5_YS2_L003",
+  "SIGAC2_TET_TKO_E9_5_Head1_L002",
+  "SIGAD2_TET_TKO_E9_5_Trunk1_L002",
+  "SIGAE2_TET_TKO_E9_5_Tail1_L002",
+  "SIGAE6_TET_TKO_E9_5_Head2_L003",
+  "SIGAF2_TET_TKO_E9_5_YS1_L002",
+  "SIGAF6_TET_TKO_E9_5_Trunk2_L003",
+  "SIGAG6_TET_TKO_E9_5_Tail2_L003",
+  "SIGAH6_TET_TKO_E9_5_YS2_L003",
   
   # Fifth batch
   "E8_5_TET_WT_rep1_SIGAG8",
@@ -179,8 +188,8 @@ opts$classes <- c(
   "E7.5_TET_TKO", 
   "E8.5_Host", 
   "E8.5_TET_TKO",
-  "E8.5_WT"
-  # "E9.5_TET_TKO",
+  "E8.5_WT",
+  "E9.5_TET_TKO"
   # "E10.5_Host", 
   # "E10.5_TET_TKO"
 )

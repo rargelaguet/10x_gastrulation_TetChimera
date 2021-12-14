@@ -121,4 +121,3 @@ saveRDS(srat, paste0(io$outputdir,"/seurat.rds"))
 fwrite(cell.info, paste0(io$outputdir,"/cell_info.txt.gz"), quote=F, na="NA", sep="\t")
 fwrite(gene.info, paste0(io$outputdir,"/gene_info.txt.gz"), quote=F, na="NA", sep="\t")
 fwrite(metadata, paste0(io$outputdir,"/metadata.txt.gz"), quote=F, na="NA", sep="\t")
-
