@@ -28,10 +28,10 @@ rule all:
     input: 
         config["directories"]["processed_data"]+"/seurat.rds",
         config["directories"]["results"]+"/qc/sample_metadata_after_qc.txt.gz",
-        config["directories"]["processed_data"]+"/SingleCellExperiment.rds"
-        # config["directories"]["results"]+"/doublet_detection/sample_metadata_after_doublets.txt.gz"
+        config["directories"]["processed_data"]+"/SingleCellExperiment.rds",
+        config["directories"]["results"]+"/doublet_detection/sample_metadata_after_doublets.txt.gz",
         # expand("%s/mapping/mapping_mnn_all_samples.txt.gz" % config["directories"]["results"]),
-        # expand("%s/mapping/mapping_mnn_{sample}.txt.gz" % config["directories"]["results"], sample=config["samples"])
+        expand("%s/mapping/mapping_mnn_{sample}.txt.gz" % config["directories"]["results"], sample=config["samples"])
         # config["directories"]["results"]+"/mapping/sample_metadata_after_mapping.txt.gz",
         # config["directories"]["results"]+"/mapping/sample_metadata_after_mapping_all_samples.txt.gz"
         # expand("%s/mapping/pdf/umap_mapped_allcells.pdf" % config["directories"]["results"])
@@ -124,35 +124,40 @@ rule seurat_to_sce:
 ## Doublet detection ##
 #######################
 
+# THIS RULE SOMETIMES FAILS AND I HAVE NO IDEA WHY
+
 rule doublet_detection:
     input:
         sce = rules.seurat_to_sce.output,
-        metadata = rules.qc.output.metadata,
+        metadata = rules.qc.output,
         script = config["scripts"]["doublet_detection"]
     output:
-        outfile=config["directories"]["results"]+"/doublet_detection/doublets_{sample}_{doublet_score_threshold}.txt.gz"
+        outfile=config["directories"]["results"]+"/doublet_detection/doublets_{sample}.txt.gz"
         # metadata=config["directories"]["results"]+"/doublet_detection/sample_metadata_after_doublet_detection.txt.gz"
+    params:
+        doublet_score_threshold = config["params"]["doublet_detection"]["doublet_score_threshold"]
     conda:
         "environment.yaml"
     log: 
-        "logs/doublet_detection_{sample}_{doublet_score_threshold}.log"
+        "logs/doublet_detection_{sample}.log"
     threads: 
         config["slurm"]["doublet_detection"]["threads"]
     resources:
         mem_mb = config["slurm"]["doublet_detection"]["memory"]
     shell:
         "Rscript {input.script} --metadata {input.metadata} --sce {input.sce} --samples {wildcards.sample} \
-        --hybrid_score_threshold {wildcards.doublet_score_threshold}  --outfile {output} > {log}"
+        --hybrid_score_threshold {params.doublet_score_threshold}  --outfile {output} > {log}"
 
 rule parse_doublet_results:
     input:
-        metadata = rules.qc.output.metadata,
-        script = config["scripts"]["parse_doublets"],
-        doublet_files=expand(config["directories"]["results"]+"/doublet_detection/doublets_{sample}_{doublet_score_threshold}.txt.gz", 
-            sample=config["samples"], doublet_score_threshold=config["doublet_detection"]["doublet_score_threshold"])
-        # doublet_files = rules.doublet_detection.output
+        metadata = rules.qc.output,
+        script = config["scripts"]["parse_doublet_results"],
+        # doublet_files=expand(config["directories"]["results"]+"/doublet_detection/doublets_{sample}.txt.gz", sample=config["samples"])
+        doublet_files = expand(rules.doublet_detection.output, sample=config["samples"])
     output:
         config["directories"]["results"]+"/doublet_detection/sample_metadata_after_doublets.txt.gz"
+    params:
+        outdir = config["directories"]["results"]+"/doublet_detection"
     conda:
         "environment.yaml"
     log: 
@@ -162,7 +167,7 @@ rule parse_doublet_results:
     resources:
         mem_mb = config["slurm"]["parse_doublet_results"]["memory"]
     shell:
-        "Rscript {input.script} --metadata {input.metadata} --doublet_files {input.doublet_files} --outfile {output} > {log}"
+        "Rscript {input.script} --metadata {input.metadata} --doublet_files {input.doublet_files} --outdir {params.outdir} > {log}"
 
 ##########################
 ## Mapping to the atlas ##

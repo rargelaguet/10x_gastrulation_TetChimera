@@ -2,7 +2,7 @@ suppressPackageStartupMessages(library(scds))
 suppressPackageStartupMessages(library(scran))
 suppressPackageStartupMessages(library(scater))
 
-here::i_am("rna/processing/4_doublet_detection.R")
+here::i_am("processing/4_doublet_detection.R")
 
 source(here::here("settings.R"))
 source(here::here("utils.R"))
@@ -27,11 +27,11 @@ args <- p$parse_args(commandArgs(TRUE))
 
 ## START TEST ##
 # args <- list()
-# args$sce <- io$rna.sce
-# args$metadata <- paste0(io$basedir,"/results/rna/mapping/sample_metadata_after_mapping.txt.gz") # .io$metadata
-# args$samples <- c("E8.5_rep2")
-# args$hybrid_score_threshold <- 1.0
-# args$test <- TRUE
+# args$sce <- file.path(io$basedir,"processed_new/SingleCellExperiment.rds") 
+# args$metadata <- file.path(io$basedir,"results_new/qc/sample_metadata_after_qc.txt.gz")
+# args$samples <- c("E85_Rep1_WT_Host_L003")
+# args$hybrid_score_threshold <- 1.50
+# args$test <- FALSE
 ## END TEST ##
 
 if (isTRUE(args$test)) print("Test mode activated...")

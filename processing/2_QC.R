@@ -8,7 +8,7 @@ source(here::here("settings.R"))
 
 p <- ArgumentParser(description='')
 p$add_argument('--metadata',       type="character",                    help='Metadata')
-p$add_argument('--outputdir',       type="character",                    help='Output directory')
+p$add_argument('--outdir',       type="character",                    help='Output directory')
 p$add_argument('--min_nFeature_RNA',       type="integer",                    help='Minimum number of expressed genes')
 p$add_argument('--max_nFeature_RNA',       type="integer",                    help='Maximum number of expressed genes')
 p$add_argument('--mit_percent_RNA',       type="integer",                    help='Maximum percentage of mit reads')
@@ -28,7 +28,7 @@ args$min_nFeature_RNA <- 1000
 args$max_nFeature_RNA <- 10000
 args$mit_percent_RNA <- 30
 args$rib_percent_RNA <- 35
-args$outputdir <- paste0(io$basedir,"/results_new/qc")
+args$outdir <- paste0(io$basedir,"/results_new/qc")
 ## END TEST ##
 
 # Sanity checks
@@ -68,7 +68,7 @@ p <- gghistogram(to.plot, x="value", fill="sample", bins=50) +
         legend.text = element_text(size=rel(0.75))
     )
     
-pdf(file.path(args$outputdir,"qc_metrics_histogram.pdf"), width=13, height=6)
+pdf(file.path(args$outdir,"qc_metrics_histogram.pdf"), width=13, height=6)
 print(p)
 dev.off()
 
@@ -90,8 +90,8 @@ p <- ggplot(to.plot, aes_string(x="sample", y="value")) +
         axis.title.x = element_blank()
     )
 
-pdf(file.path(args$outputdir,"qc_metrics_boxplot.pdf"), width=12, height=5)
-# pdf(sprintf("%s/qc_metrics_boxplot.pdf",args$outputdir))
+pdf(file.path(args$outdir,"qc_metrics_boxplot.pdf"), width=12, height=5)
+# pdf(sprintf("%s/qc_metrics_boxplot.pdf",args$outdir))
 print(p)
 dev.off()
 
@@ -113,7 +113,7 @@ p <- ggbarplot(to.plot, x="sample", y="V1", fill="gray70") +
         axis.text.x = element_text(colour="black",size=rel(0.50), angle=20, hjust=1, vjust=1),
     )
 
-pdf(file.path(args$outputdir,"qc_metrics_barplot.pdf"), width=8, height=6)
+pdf(file.path(args$outdir,"qc_metrics_barplot.pdf"), width=8, height=6)
 print(p)
 dev.off()
 
@@ -121,5 +121,5 @@ dev.off()
 ## Save ##
 ##########
 
-fwrite(metadata, file.path(args$outputdir,"sample_metadata_after_qc.txt.gz"), quote=F, na="NA", sep="\t")
+fwrite(metadata, file.path(args$outdir,"sample_metadata_after_qc.txt.gz"), quote=F, na="NA", sep="\t")
 

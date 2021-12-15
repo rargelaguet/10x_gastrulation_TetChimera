@@ -1,4 +1,4 @@
-here::i_am("10x_gastrulation_TetChimera/processing/2_QC.R")
+here::i_am("processing/2_QC.R")
 
 suppressPackageStartupMessages(library(Seurat))
 suppressPackageStartupMessages(library(scater))
@@ -11,9 +11,7 @@ source(here::here("settings.R"))
 ######################
 
 p <- ArgumentParser(description='')
-p$add_argument('--test',            action="store_true",                 help='Testing mode')
 p$add_argument('--normalise',       action="store_true",                 help='Log-Normalise?')
-p$add_argument('--samples',         type="character",       nargs="+",   help='Samples')
 p$add_argument('--seurat',         type="character", help='Seurat object (input)')
 p$add_argument('--metadata',         type="character", help='Metadata file')
 p$add_argument('--outfile',         type="character", help='Output file')
@@ -27,23 +25,18 @@ args <- p$parse_args(commandArgs(TRUE))
 # args <- list()
 # args$outfile <- io$rna.sce
 # args$outfile <- paste0(io$basedir,"/processed/rna_new/SingleCellExperiment.rds")
-# args$samples <- opts$samples
 # args$metadata <- paste0(io$basedir,"/results/rna_new/qc/sample_metadata_after_qc.txt.gz")
 # args$seurat <- paste0(io$basedir,"/processed/rna_new/seurat.rds")
 # args$test <- FALSE
 # args$normalise <- FALSE
 ## END TEST ##
 
-# Sanity checks
-stopifnot(args$samples%in%opts$samples)
-if (args$test) args$samples <- head(args$samples,n=2)
-
 ###############
 ## Load data ##
 ###############
 
 # Load sample metadata
-sample_metadata <- fread(args$metadata) %>% .[pass_rnaQC==TRUE & sample%in%args$samples]
+sample_metadata <- fread(args$metadata) %>% .[pass_rnaQC==TRUE]
 table(sample_metadata$sample)
 
 # Load seurat

@@ -33,14 +33,14 @@ directories:
     original_data: /bi/group/reik/ricard/data/10x_gastrulation_TetChimera/original
     processed_data: /bi/group/reik/ricard/data/10x_gastrulation_TetChimera/processed_new
     results: /bi/group/reik/ricard/data/10x_gastrulation_TetChimera/results_new
-    atlas: /bi/group/reik/ricard/data/gastrulation10x
+    atlas: /bi/group/reik/ricard/data/pijuansala2019_gastrulation10x
 
 ###############
 ## Resources ##
 ###############
 
 resources:
-    marker_genes: /bi/group/reik/ricard/data/gastrulation10x/results/marker_genes/all_stages/marker_genes.txt.gz
+    marker_genes: /bi/group/reik/ricard/data/pijuansala2019_gastrulation10x/results/marker_genes/all_stages/marker_genes.txt.gz
     # umap: /bi/group/reik/ricard/data/10x_gastrulation_TetChimera/results/rna/dimensionality_reduction/seurat/umap_features1000_pcs30_neigh25_dist0.3.txt.gz
     celltypes: ["Epiblast", "Primitive_Streak", "Caudal_epiblast", "PGC", "Anterior_Primitive_Streak", "Notochord", "Def._endoderm", "Gut", "Nascent_mesoderm", "Mixed_mesoderm", "Intermediate_mesoderm", "Caudal_Mesoderm", "Paraxial_mesoderm", "Somitic_mesoderm", "Pharyngeal_mesoderm", "Cardiomyocytes", "Allantois", "ExE_mesoderm", "Mesenchyme", "Haematoendothelial_progenitors", "Endothelium", "Blood_progenitors_1", "Blood_progenitors_2", "Erythroid1", "Erythroid2", "Erythroid3", "NMP", "Rostral_neurectoderm", "Caudal_neurectoderm", "Neural_crest", "Forebrain_Midbrain_Hindbrain", "Spinal_cord", "Surface_ectoderm", "Visceral_endoderm", "ExE_endoderm", "ExE_ectoderm", "Parietal_endoderm"]
     stages: ["E7.5","E8.5","E9.5"]
@@ -55,6 +55,7 @@ scripts:
     qc: ../processing/2_QC.R
     seurat_to_sce: ../processing/3_seurat_to_SCE.R
     doublet_detection: ../processing/4_doublet_detection.R
+    parse_doublet_results: ../processing/5_parse_sample_metadata_after_doublets.R
     mapping_mnn: ../mapping/run/mnn/mapping_mnn.R
     parse_mapping: ../mapping/run/parse_sample_metadata_after_mapping.R
     dimensionality_reduction_sce: ../dimensionality_reduction/dimensionality_reduction_sce.R
@@ -78,7 +79,7 @@ params:
         percent_rib: 35
 
     doublet_detection:
-        doublet_score_threshold: 1.25
+        doublet_score_threshold: 1.50
 
     mapping_mnn:
         atlas_stages: ["E6.5","E6.75","E7.0","E7.25","E7.5","E7.75","E8.0","E8.25","E8.5"]
@@ -126,7 +127,10 @@ slurm:  # memory in MB
         memory: 25000
         threads: 1
     doublet_detection:
-        memory: 25000
+        memory: 15000
+        threads: 1
+    parse_doublet_results:
+        memory: 2000
         threads: 1
     mapping_mnn:
         memory: 80000
