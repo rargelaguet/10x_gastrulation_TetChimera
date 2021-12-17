@@ -125,9 +125,14 @@ metadata[,stage:=as.character(NA)] %>%
   .[grepl("E75",sample),stage:="E7.5"] %>%
   .[grepl("E8",sample),stage:="E8.5"] %>%
   .[grepl("E9_5",sample),stage:="E9.5"]
-
 print(table(metadata$stage))
 stopifnot(!is.na(metadata$stage))
+
+# Add class information
+stopifnot(metadata$sample%in%names(opts$sample2class))
+metadata[,class:=stringr::str_replace_all(sample,opts$sample2class)]
+print(table(metadata$class))
+stopifnot(!is.na(metadata$class))
 
 ##########
 ## Save ##

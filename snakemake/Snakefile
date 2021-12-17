@@ -30,12 +30,18 @@ rule all:
         config["directories"]["results"]+"/qc/sample_metadata_after_qc.txt.gz",
         config["directories"]["processed_data"]+"/SingleCellExperiment.rds",
         config["directories"]["results"]+"/doublet_detection/sample_metadata_after_doublets.txt.gz",
-        # expand("%s/mapping/mapping_mnn_all_samples.txt.gz" % config["directories"]["results"]),
-        expand("%s/mapping/mapping_mnn_{sample}.txt.gz" % config["directories"]["results"], sample=config["samples"])
-        # config["directories"]["results"]+"/mapping/sample_metadata_after_mapping.txt.gz",
-        # config["directories"]["results"]+"/mapping/sample_metadata_after_mapping_all_samples.txt.gz"
-        # expand("%s/mapping/pdf/umap_mapped_allcells.pdf" % config["directories"]["results"])
-        # expand("%s/celltype_proportions/celltype_proportions_{sample}_horizontal_barplots.pdf" % config["directories"]["results"], stage=config["samples"]),
+        expand("%s/mapping/mapping_mnn_all_samples.txt.gz" % config["directories"]["results"]),
+        expand("%s/mapping/mapping_mnn_{sample}.txt.gz" % config["directories"]["results"], sample=config["samples"]),
+        config["directories"]["results"]+"/mapping/sample_metadata_after_mapping.txt.gz",
+        config["directories"]["results"]+"/mapping/sample_metadata_after_mapping_all_samples.txt.gz",
+        expand("%s/mapping/pdf/umap_mapped_allcells.pdf" % config["directories"]["results"]),
+        config["directories"]["results"]+"/celltype_proportions/completed.txt",
+
+        expand("%s/dimensionality_reduction/sce/{sample}/pca_features{dimred_sce_features}_pcs{dimred_sce_npcs}.txt.gz" % (config["directories"]["results"]), 
+            sample = config["samples"], 
+            dimred_sce_features = config["params"]["dimensionality_reduction_sce"]["features"], 
+            dimred_sce_npcs = config["params"]["dimensionality_reduction_sce"]["npcs"]
+            ),
 
         # expand("%s/pseudobulk/SingleCellExperiment_pseudobulk_{group_by}.rds" % config["directories"]["results"], 
         #     group_by=config["pseudobulk_rna"]["group_by"]),
@@ -178,7 +184,7 @@ rule mapping_mnn:
         atlas_sce = config["directories"]["atlas"]+"/processed/SingleCellExperiment.rds",
     	atlas_metadata = config["directories"]["atlas"]+"/sample_metadata.txt.gz",
         query_sce = rules.seurat_to_sce.output,
-        query_metadata = rules.qc.output,
+        query_metadata = rules.parse_doublet_results.output,
         script = config["scripts"]["mapping_mnn"]
     output:
         config["directories"]["results"]+"/mapping/mapping_mnn_{sample}.txt.gz"
@@ -204,8 +210,8 @@ rule mapping_mnn_all_samples:
         atlas_sce = config["directories"]["atlas"]+"/processed/SingleCellExperiment.rds",
         atlas_metadata = config["directories"]["atlas"]+"/sample_metadata.txt.gz",
         query_sce = rules.seurat_to_sce.output,
-        # query_metadata=rules.qc.output,
-        query_metadata = rules.qc.output,
+        # query_metadata=rules.parse_doublet_results.output,
+        query_metadata = rules.parse_doublet_results.output,
         script = config["scripts"]["mapping_mnn"]
         # outdir=config["directories"]["results"]+"/mapping"
     output:
@@ -230,7 +236,7 @@ rule mapping_mnn_all_samples:
 
 rule parse_mapping_results:
     input:
-        query_metadata = rules.qc.output,
+        query_metadata = rules.parse_doublet_results.output,
         mapping_mnn = expand(config["directories"]["results"]+"/mapping/mapping_mnn_{sample}.txt.gz", sample=config["samples"]),
         # mapping_mnn = rules.mapping_mnn.output,
         script = config["scripts"]["parse_mapping"]
@@ -250,7 +256,7 @@ rule parse_mapping_results:
 
 rule parse_mapping_results_all_samples:
     input:
-        query_metadata = rules.qc.output,
+        query_metadata = rules.parse_doublet_results.output,
         # mapping_mnn = config["directories"]["results"]+"/mapping/mapping_mnn_all_samples.txt.gz",
         mapping_mnn = rules.mapping_mnn_all_samples.output,
         script = config["scripts"]["parse_mapping"]
@@ -271,16 +277,15 @@ rule parse_mapping_results_all_samples:
 ## Dimensionality reduction ##
 ##############################
 
-rule dimensionality_reduction_sce: 
+rule dimensionality_reduction_sce_sample: 
     input:
-        script=config["scripts"]["dimensionality_reduction_sce"],
-        sce=rules.seurat_to_sce.output,
-        metadata=rules.parse_mapping_results.output
+        script = config["scripts"]["dimensionality_reduction_sce"],
+        sce = rules.seurat_to_sce.output,
+        metadata = rules.parse_mapping_results.output
     output:
-        # config["directories"]["results"]+"/dimensionality_reduction/umap_features{dimred_sce_features}_pcs{dimred_sce_npcs}_neigh{n_neighbors}_dist{min_dist}.txt.gz",
-        config["directories"]["results"]+"/dimensionality_reduction/sce/pca_features{dimred_sce_features}_pcs{dimred_sce_npcs}.txt.gz"
+        config["directories"]["results"]+"/dimensionality_reduction/sce/{sample}/pca_features{dimred_sce_features}_pcs{dimred_sce_npcs}.txt.gz"
     params:
-        outdir = config["directories"]["results"]+"/dimensionality_reduction/sce",
+        outdir = config["directories"]["results"]+"/dimensionality_reduction/sce/{sample}",
         n_neighbors = config["params"]["dimensionality_reduction_sce"]["n_neighbors"],
         min_dist = config["params"]["dimensionality_reduction_sce"]["min_dist"],
         vars_to_regress = config["params"]["dimensionality_reduction_sce"]["vars_to_regress"],
@@ -288,48 +293,16 @@ rule dimensionality_reduction_sce:
     conda:
         "environment.yaml"
     log: 
-        "logs/dimensionality_reduction_features{dimred_sce_features}_pcs{dimred_sce_npcs}.log"
+        "logs/dimensionality_reduction_{sample}_features{dimred_sce_features}_pcs{dimred_sce_npcs}.log"
         # "logs/dimensionality_reduction_features{dimred_sce_features}_pcs{dimred_sce_npcs}_neigh{n_neighbors}_dist{min_dist}.log"
     threads: 
         config["slurm"]["dimensionality_reduction_sce"]["threads"]
     resources:
         mem_mb = config["slurm"]["dimensionality_reduction_sce"]["memory"]
     shell:
-        "Rscript {input.script} --sce {input.sce} --metadata {input.metadata} --npcs {wildcards.dimred_sce_npcs} --features {wildcards.dimred_sce_features} \
-        --vars_to_regress {params.vars_to_regress} \
-        --n_neighbors {params.n_neighbors} --min_dist {params.min_dist} --colour_by {params.colour_by} --outdir {params.outdir} > {log}"
+        "Rscript {input.script} --sce {input.sce} --metadata {input.metadata} --samples {wildcards.sample} --npcs {wildcards.dimred_sce_npcs} --features {wildcards.dimred_sce_features} \
+        --vars_to_regress {params.vars_to_regress} --n_neighbors {params.n_neighbors} --min_dist {params.min_dist} --colour_by {params.colour_by} --outdir {params.outdir} > {log}"
 
-
-rule dimensionality_reduction_seurat: 
-    input:
-        script=config["scripts"]["dimensionality_reduction_seurat"],
-        # seurat=rules.create_seurat.output.seurat,
-        seurat = config["directories"]["processed_data"]+"/seurat.rds",
-        metadata=rules.parse_mapping_results.output
-    output:
-        # config["directories"]["results"]+"/dimensionality_reduction/seurat/umap_features{dimred_seurat_features}_pcs{dimred_seurat_npcs}_neigh{dimred_seurat_n_neighbors}_dist{dimred_seurat_min_dist}.txt.gz",
-        config["directories"]["results"]+"/dimensionality_reduction/seurat/pca_features{dimred_seurat_features}_pcs{dimred_seurat_npcs}.txt.gz"
-    params:
-        outdir = config["directories"]["results"]+"/dimensionality_reduction/seurat",
-        colour_by = config["params"]["dimensionality_reduction_seurat"]["colour_by"],
-        n_neighbors = config["params"]["dimensionality_reduction_seurat"]["n_neighbors"],
-        min_dist = config["params"]["dimensionality_reduction_seurat"]["min_dist"],
-        vars_to_regress = config["params"]["dimensionality_reduction_seurat"]["vars_to_regress"],
-        seed = config["params"]["dimensionality_reduction_seurat"]["seed"]
-    conda:
-        "environment.yaml"
-    log: 
-        "logs/dimensionality_reduction_seurat_features{dimred_seurat_features}_pcs{dimred_seurat_npcs}.log"
-        # "logs/dimensionality_reduction_seurat_features{dimred_seurat_features}_pcs{dimred_seurat_npcs}_neigh{dimred_seurat_n_neighbors}_dist{dimred_seurat_min_dist}.log"
-    threads: 
-        config["slurm"]["dimensionality_reduction_seurat"]["threads"]
-    resources:
-        mem_mb = config["slurm"]["dimensionality_reduction_seurat"]["memory"]
-    shell:
-        "Rscript {input.script} --seurat {input.seurat} --metadata {input.metadata} --npcs {wildcards.dimred_seurat_npcs} \
-        --features {wildcards.dimred_seurat_features} --n_neighbors {params.n_neighbors} --min_dist {params.min_dist} \
-        --vars_to_regress {params.vars_to_regress} --seed {params.seed}\
-        --colour_by {params.colour_by} --outdir {params.outdir} > {log}"
 
 ################
 ## Pseudobulk ##
@@ -361,64 +334,6 @@ rule pseudobulk_rna:
         --normalisation_method {params.normalisation_method} --outdir {params.outdir} > {log}"
 
 
-###################################################
-## Validate cell type assignments (single cells) ##
-###################################################
-
-# rule celltype_validation_single_cells: 
-#     input:
-#         script = config["scripts"]["celltype_validation_single_cells"],
-#         sce = rules.seurat_to_sce.output,
-#         metadata = rules.parse_mapping_results.output,
-#         umap = expand(rules.dimensionality_reduction_sce.output, features=1000, npcs=30, n_neighbors=25, min_dist=0.3)
-#     output:
-#         config["directories"]["results"]+"/celltype_validation/single_cells/umap_{celltype_validation_sc_celltype}_markers.pdf",
-#         config["directories"]["results"]+"/celltype_validation/single_cells/pca_{celltype_validation_sc_celltype}_markers.pdf"
-#     params:
-#         outdir = config["directories"]["results"]+"/celltype_validation/single_cells",
-#         marker_genes_file = config["resources"]["marker_genes"],
-#         # umap = config["resources"]["umap"],
-#         celltype_label = config["celltype_validation_single_cells"]["celltype_label"]
-#     conda:
-#         "environment.yaml"
-#     log: 
-#         "logs/celltype_validation_single_cells_{celltype_validation_sc_celltype}_markers.log"
-#     threads: 
-#         config["slurm"]["celltype_validation_single_cells"]["threads"]
-#     resources:
-#         mem_mb = config["slurm"]["celltype_validation_single_cells"]["memory"]
-#     shell:
-#         "Rscript {input.script} --sce {input.sce} --metadata {input.metadata} --marker_genes_file {params.marker_genes_file} \
-#         --celltype_label {params.celltype_label} --celltypes {wildcards.celltype_validation_sc_celltype} --umap {input.umap} \
-#         --outdir {params.outdir} > {log}"
-
-#################################################
-## Validate cell type assignments (pseudobulk) ##
-#################################################
-
-# rule celltype_validation_pseudobulk: 
-#     input:
-#         script=config["scripts"]["celltype_validation_pseudobulk"],
-#         sce=rules.pseudobulk_rna.output.sce
-#     output:
-#         # config["directories"]["results"]+"/celltype_validation/pseudobulk/heatmap_{celltype_validation_pseudobulk_celltype}_markers.pdf",
-#         config["directories"]["results"]+"/celltype_validation/pseudobulk/{group_by}/completed.txt"
-#         # config["directories"]["results"]+"{params.outdir}/{group_by}/completed.txt"
-#     params:
-#         outdir = config["directories"]["results"]+"/celltype_validation/pseudobulk/{group_by}",
-#         marker_genes_file = config["resources"]["marker_genes"]
-#     conda:
-#         "environment.yaml"
-#     log: 
-#         "logs/{group_by}_celltype_validation_pseudobulk_markers.log"
-#     threads: 
-#         config["slurm"]["celltype_validation_pseudobulk"]["threads"]
-#     resources:
-#         mem_mb = config["slurm"]["celltype_validation_pseudobulk"]["memory"]
-#     shell:
-#         "Rscript {input.script} --sce {input.sce} --marker_genes_file {params.marker_genes_file} \
-#         --outdir {params.outdir} > {log}"
-
 ##########################
 ## Plot mapping results ##
 ##########################
@@ -431,7 +346,6 @@ rule plot_mapping_results:
     output:
         config["directories"]["results"]+"/mapping/pdf/umap_mapped_allcells.pdf"
     params:
-        samples = expand("{sample}", sample=config["samples"]),
         outdir = config["directories"]["results"]+"/mapping/pdf"
     conda:
         "environment.yaml"
@@ -443,30 +357,29 @@ rule plot_mapping_results:
         mem_mb = config["slurm"]["plot_mapping_results"]["memory"]        
     shell:
         "Rscript {input.script} --query_metadata {input.query_metadata} --atlas_metadata {input.atlas_metadata} \
-        --samples {params.samples} --outdir {params.outdir} > {log}"
+        --outdir {params.outdir} > {log}"
 
 ################################
 ## Plot cell type proportions ##
 ################################
 
-# rule plot_celltype_proportions: 
-#     input:
-#         script = config["scripts"]["plot_celltype_proportions"],
-#         metadata=rules.parse_mapping_results.output
-#     output:
-#         expand(config["directories"]["results"]+"/celltype_proportions/celltype_proportions_{sample}_horizontal_barplots.pdf", stage=config["samples"])
-#     params:
-#         samples = expand("{sample}", sample=config["samples"]),
-#         celltype_label = config["params"]["plot_celltype_proportions"]["celltype_label"],
-#         outdir = config["directories"]["results"]+"/celltype_proportions"
-#     conda:
-#         "environment.yaml"
-#     log: 
-#         "logs/plot_celltype_proportions.log"
-#     threads: 
-#         config["slurm"]["plot_celltype_proportions"]["threads"]
-#     resources:
-#         mem_mb = config["slurm"]["plot_celltype_proportions"]["memory"]        
-#     shell:
-#         "Rscript {input.script} --metadata {input.metadata} --celltype_label {params.celltype_label} \
-#         --samples {params.samples} --outdir {params.outdir} > {log}"
+rule plot_celltype_proportions: 
+    input:
+        script = config["scripts"]["plot_celltype_proportions"],
+        metadata=rules.parse_mapping_results.output
+    output:
+        config["directories"]["results"]+"/celltype_proportions/completed.txt"
+    params:
+        celltype_label = config["params"]["plot_celltype_proportions"]["celltype_label"],
+        outdir = config["directories"]["results"]+"/celltype_proportions"
+    conda:
+        "environment.yaml"
+    log: 
+        "logs/plot_celltype_proportions.log"
+    threads: 
+        config["slurm"]["plot_celltype_proportions"]["threads"]
+    resources:
+        mem_mb = config["slurm"]["plot_celltype_proportions"]["memory"]        
+    shell:
+        "Rscript {input.script} --metadata {input.metadata} --celltype_label {params.celltype_label} \
+        --outdir {params.outdir} > {log}"

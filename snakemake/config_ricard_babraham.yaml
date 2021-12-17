@@ -41,7 +41,6 @@ directories:
 
 resources:
     marker_genes: /bi/group/reik/ricard/data/pijuansala2019_gastrulation10x/results/marker_genes/all_stages/marker_genes.txt.gz
-    # umap: /bi/group/reik/ricard/data/10x_gastrulation_TetChimera/results/rna/dimensionality_reduction/seurat/umap_features1000_pcs30_neigh25_dist0.3.txt.gz
     celltypes: ["Epiblast", "Primitive_Streak", "Caudal_epiblast", "PGC", "Anterior_Primitive_Streak", "Notochord", "Def._endoderm", "Gut", "Nascent_mesoderm", "Mixed_mesoderm", "Intermediate_mesoderm", "Caudal_Mesoderm", "Paraxial_mesoderm", "Somitic_mesoderm", "Pharyngeal_mesoderm", "Cardiomyocytes", "Allantois", "ExE_mesoderm", "Mesenchyme", "Haematoendothelial_progenitors", "Endothelium", "Blood_progenitors_1", "Blood_progenitors_2", "Erythroid1", "Erythroid2", "Erythroid3", "NMP", "Rostral_neurectoderm", "Caudal_neurectoderm", "Neural_crest", "Forebrain_Midbrain_Hindbrain", "Spinal_cord", "Surface_ectoderm", "Visceral_endoderm", "ExE_endoderm", "ExE_ectoderm", "Parietal_endoderm"]
     stages: ["E7.5","E8.5","E9.5"]
     gene_metadata: /bi/group/reik/ricard/data/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt
@@ -96,7 +95,7 @@ params:
         n_neighbors: 25
         min_dist: 0.3
         vars_to_regress: ["nFeature_RNA","mit_percent_RNA"]
-        colour_by: ["plate", "celltype.mapped"]
+        colour_by: ["celltype.mapped"]
 
     dimensionality_reduction_seurat:
         npcs: 30
@@ -105,7 +104,7 @@ params:
         min_dist: 0.3
         seed: 42
         vars_to_regress: ["nFeature_RNA","mit_percent_RNA"]
-        colour_by: ["plate", "celltype.mapped"]
+        colour_by: ["celltype.mapped"]
 
     plot_celltype_proportions:
         celltype_label: "celltype.mapped"

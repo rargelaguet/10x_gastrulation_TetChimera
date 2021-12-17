@@ -34,15 +34,16 @@ if (grepl("ricard",Sys.info()['nodename'])) {
   } else if (grepl("argelag", Sys.info()['effective_user'])) {
     io$basedir <- "/bi/group/reik/ricard/data/10x_gastrulation_TetChimera"
     io$atlas.basedir <- "/bi/group/reik/ricard/data/pijuansala2019_gastrulation10x"
+    io$gene_metadata <- "/bi/group/reik/ricard/data/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt"
   }
 } else {
   stop("Computer not recognised")
 }
 
 io$metadata <- paste0(io$basedir,"/sample_metadata.txt.gz")
-io$seurat <- paste0(io$basedir,"/processed/seurat.rds")
-io$sce <- paste0(io$basedir,"/processed/SingleCellExperiment.rds")
-io$anndata <- paste0(io$basedir,"/processed/anndata.h5ad")
+io$seurat <- paste0(io$basedir,"/processed_new/seurat.rds")
+io$sce <- paste0(io$basedir,"/processed_new/SingleCellExperiment.rds")
+io$anndata <- paste0(io$basedir,"/processed_new/anndata.h5ad")
 
 # Atlas information
 io$atlas.metadata <- paste0(io$atlas.basedir,"/sample_metadata.txt.gz")
@@ -183,17 +184,43 @@ opts$samples <- c(
   "E8_5_TET_WT_rep2_SIGAH8"
 )
 
+# OLD
+# opts$classes <- c(
+#   "E7.5_Host", 
+#   "E7.5_TET_TKO", 
+#   "E8.5_Host", 
+#   "E8.5_TET_TKO",
+#   "E8.5_WT",
+#   "E9.5_TET_TKO"
+# )
+
 opts$classes <- c(
-  "E7.5_Host", 
+  "E7.5_WT", 
   "E7.5_TET_TKO", 
-  "E8.5_Host", 
-  "E8.5_TET_TKO",
   "E8.5_WT",
+  "E8.5_TET_TKO",
   "E9.5_TET_TKO"
-  # "E10.5_Host", 
-  # "E10.5_TET_TKO"
 )
 
+
+opts$sample2class <- c(
+  "E75_TET_TKO_L002" = "TET_TKO",
+  "E75_WT_Host_L001" = "WT",
+  "E85_Rep1_TET_TKO_L004" = "TET_TKO",
+  "E85_Rep1_WT_Host_L003" = "WT",
+  "E85_Rep2_TET_TKO_L006" = "TET_TKO",
+  "E85_Rep2_WT_Host_L005" = "WT",
+  "SIGAC2_TET_TKO_E9_5_Head1" = "TET_TKO",
+  "SIGAD2_TET_TKO_E9_5_Trunk1" = "TET_TKO",
+  "SIGAE2_TET_TKO_E9_5_Tail1" = "TET_TKO",
+  "SIGAE6_TET_TKO_E9_5_Head2" = "TET_TKO",
+  "SIGAF2_TET_TKO_E9_5_YS1" = "TET_TKO",
+  "SIGAF6_TET_TKO_E9_5_Trunk2" = "TET_TKO",
+  "SIGAG6_TET_TKO_E9_5_Tail2" = "TET_TKO",
+  "SIGAH6_TET_TKO_E9_5_YS2" = "TET_TKO",
+  "E8_5_TET_WT_rep1_SIGAG8" = "WT",
+  "E8_5_TET_WT_rep2_SIGAH8" = "WT"
+)
 
 opts$stages <- c(
   "E7.5", 

@@ -17,22 +17,23 @@ args <- p$parse_args(commandArgs(TRUE))
 ## Load settings ##
 ###################
 
-
 ## START TEST ##
-# args$query_samples <- opts$samples
-# args$metadata <- file.path(io$basedir,"results/rna/qc/sample_metadata_after_qc.txt.gz")
-# # args$mapping_dir <- file.path(io$basedir,"results/rna/mapping")
-# args$mapping_mnn <- file.path(io$basedir,"results/rna/mapping(..)")
-# args$mapping_seurat <- file.path(io$basedir,"results/rna/mapping/(..)")
-# args$outfile <- file.path(io$basedir,"results/rna/mapping/sample_metadata_after_mapping.txt.gz")
+# args$metadata <- file.path(io$basedir,"results_new/doublet_detection/sample_metadata_after_doublets.txt.gz")
+# args$mapping_mnn <- file.path(io$basedir,"results_new/mapping/mapping_mnn_all_samples.txt.gz")
+# args$outfile <- file.path(io$basedir,"results_new/mapping/sample_metadata_after_mapping.txt.gz")
 ## END TEST ##
-
 
 ###################
 ## Load metadata ##
 ###################
 
 sample_metadata <- fread(args$metadata)
+
+# Temporary
+stopifnot(sample_metadata$sample%in%names(opts$sample2class))
+sample_metadata[,class:=stringr::str_replace_all(sample,opts$sample2class)]
+stopifnot(!is.na(sample_metadata$class))
+print(table(sample_metadata$class))
 
 ##########################
 ## Load mapping results ##
@@ -43,17 +44,17 @@ mapping_mnn.dt <- args$mapping_mnn %>% map(~ fread(.)) %>% rbindlist
 stopifnot(mapping_mnn.dt$cell%in%sample_metadata$cell)
 
 # Seurat
-mapping_seurat.dt <- args$mapping_seurat %>% map(~ fread(.)) %>% rbindlist
-stopifnot(mapping_seurat.dt$cell%in%sample_metadata$cell)
+# mapping_seurat.dt <- args$mapping_seurat %>% map(~ fread(.)) %>% rbindlist
+# stopifnot(mapping_seurat.dt$cell%in%sample_metadata$cell)
 
 ###########
 ## Merge ##
 ###########
 
-# mapping.dt <- merge(mapping_mnn.dt, mapping_seurat.dt, by="id_rna", suffixes=c("_mnn","_seurat"))
-# to.save <- sample_metadata %>% merge(mapping.dt, by="id_rna", all.x=TRUE)
+# mapping.dt <- merge(mapping_mnn.dt, mapping_seurat.dt, by="cell", suffixes=c("_mnn","_seurat"))
+# to.save <- sample_metadata %>% merge(mapping.dt, by="cell", all.x=TRUE)
 
-to.save <- sample_metadata %>% merge(mapping_mnn.dt, by="id_rna", all.x=TRUE)
+to.save <- sample_metadata %>% merge(mapping_mnn.dt, by="cell", all.x=TRUE)
 
 #######################
 ## Rename cell types ##
@@ -74,7 +75,13 @@ to.save <- sample_metadata %>% merge(mapping_mnn.dt, by="id_rna", all.x=TRUE)
 
 # to.save %>% .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,opts$rename.celltypes)]
 
-to.save %>% .[,celltype_class:=sprintf("%s_%s",celltype.mapped,class)]
+
+to.save %>%
+  .[,celltype_class:=as.character(NA)] %>%
+  .[!is.na(celltype.mapped),celltype_class:=sprintf("%s_%s",celltype.mapped,class)]
+
+# stopifnot(!is.na(to.save$celltype_class))
+# print(table(to.save$celltype_class))
 
 #################
 ## Save output ##

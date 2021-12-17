@@ -1,3 +1,5 @@
+here::i_am("dimensionality_reduction/dimensionality_reduction_sce.R")
+
 source(here::here("settings.R"))
 source(here::here("utils.R"))
 
@@ -12,7 +14,7 @@ suppressPackageStartupMessages(library(scran))
 p <- ArgumentParser(description='')
 p$add_argument('--sce',             type="character",                               help='SingleCellExperiment file')
 p$add_argument('--metadata',        type="character",                               help='Cell metadata file')
-p$add_argument('--stages',       type="character",  default="all",  nargs='+',  help='Stages to plot')
+p$add_argument('--samples',       type="character",  default="all",  nargs='+',  help='Samples to plot')
 p$add_argument('--features',        type="integer",    default=1000,                help='Number of features')
 p$add_argument('--npcs',            type="integer",    default=30,                  help='Number of PCs')
 p$add_argument('--n_neighbors',     type="integer",    default=30,     help='(UMAP) Number of neighbours')
@@ -21,11 +23,9 @@ p$add_argument('--colour_by',       type="character",  default="celltype.mapped"
 p$add_argument('--remove_ExE_cells', action="store_true",                                 help='Remove ExE cells?')
 p$add_argument('--seed',            type="integer",    default=42,                  help='Random seed')
 p$add_argument('--outdir',          type="character",                               help='Output file')
-# p$add_argument('--samples',         type="character",                nargs='+',     help='Samples')
 p$add_argument('--vars_to_regress', type="character",                nargs='+',     help='Metadata columns to regress out')
 p$add_argument('--batch_correction',type="character",                               help='Metadata column to apply batch correction on')
 # p$add_argument('--test',      action = "store_true",                       help='Testing mode')
-
 
 args <- p$parse_args(commandArgs(TRUE))
 
@@ -34,28 +34,28 @@ args <- p$parse_args(commandArgs(TRUE))
 #####################
 
 ## START TEST ##
-args$sce <- io$rna.sce
-args$metadata <- io$metadata
-args$stages <- "all"
-# args$metadata <- paste0(io$basedir,"/results/rna/doublets/sample_metadata_after_doublets.txt.gz")
-args$features <- 2500
-args$npcs <- 50
-args$colour_by <- c("celltype.mapped","class","stage","nFeature_RNA","rib_percent_RNA","mit_percent_RNA")
-args$vars_to_regress <- c("nFeature_RNA","mit_percent_RNA")
-args$batch_correction <- c("stage")
-args$remove_ExE_cells <- FALSE
-args$n_neighbors <- 25
-args$min_dist <- 0.5
-args$outdir <- paste0(io$basedir,"/results_new/rna/dimensionality_reduction/test")
+# args$sce <- io$sce
+# args$metadata <- file.path(io$basedir,"results_new/mapping/sample_metadata_after_mapping.txt.gz")
+# # args$metadata <- paste0(io$basedir,"/results/doublets/sample_metadata_after_doublets.txt.gz")
+# args$samples <- "all" # opts$samples
+# args$features <- 2500
+# args$npcs <- 50
+# args$colour_by <- c("celltype.mapped","class","stage","nFeature_RNA","rib_percent_RNA","mit_percent_RNA")
+# args$vars_to_regress <- NULL # c("nFeature_RNA","mit_percent_RNA")
+# args$batch_correction <- NULL # c("stage")
+# args$remove_ExE_cells <- FALSE
+# args$n_neighbors <- 25
+# args$min_dist <- 0.5
+# args$outdir <- file.path(io$basedir,"results_new/dimensionality_reduction/test")
 ## END TEST ##
 
 # if (isTRUE(args$test)) print("Test mode activated...")
 
 # Options
-if (args$stages[1]=="all") {
-  args$stages <- opts$stages
+if (args$samples[1]=="all") {
+  args$samples <- opts$samples
 } else {
-  stopifnot(args$stages%in%opts$stages)
+  stopifnot(args$samples%in%opts$samples)
 }
 
 ##########################
@@ -63,18 +63,17 @@ if (args$stages[1]=="all") {
 ##########################
 
 sample_metadata <- fread(args$metadata) %>%
-  # .[pass_rnaQC==TRUE & doublet_call==FALSE]
-  .[pass_rnaQC==TRUE & doublet_call==FALSE & stage%in%args$stages]
+  .[pass_rnaQC==TRUE & doublet_call==FALSE & sample%in%args$samples]
   # .[pass_rnaQC==TRUE]
 
 if (args$remove_ExE_cells) {
   print("Removing ExE cells...")
   sample_metadata <- sample_metadata %>%
-    .[!celltype.mapped_mnn%in%c("Visceral_endoderm","ExE_endoderm","ExE_ectoderm","Parietal_endoderm")]
+    .[!celltype.mapped%in%c("Visceral_endoderm","ExE_endoderm","ExE_ectoderm","Parietal_endoderm")]
 }
 
 table(sample_metadata$stage)
-table(sample_metadata$celltype.mapped_mnn)
+table(sample_metadata$celltype.mapped)
 
 ###################
 ## Sanity checks ##

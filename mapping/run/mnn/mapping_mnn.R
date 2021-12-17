@@ -35,10 +35,8 @@ args <- p$parse_args(commandArgs(TRUE))
 io$path2atlas <- io$atlas.basedir
 io$path2query <- io$basedir
 
-
 # Load mapping functions
-source(here::here("rna/mapping/run/mnn/mapping_functions.R"))
-
+source(here::here("mapping/run/mnn/mapping_functions.R"))
 
 ## START TEST ##
 # args$atlas_stages <- c("E6.5","E6.75","E7.0","E7.25","E7.5","E7.75","E8.0","E8.25","E8.5")

@@ -1,6 +1,8 @@
 # NOTE THAT THIS IS CURRENTLY IMPLEMENTED ONLY FOR THE MNN MAPPING
 
-suppressPackageStartupMessages(library(argparse))
+here::i_am("mapping/analysis/plot_mapping_umap.R")
+
+source(here::here("settings.R"))
 
 ######################
 ## Define arguments ##
@@ -8,24 +10,23 @@ suppressPackageStartupMessages(library(argparse))
 
 p <- ArgumentParser(description='')
 p$add_argument('--query_metadata',        type="character",                               help='Cell metadata (after mapping)')
-p$add_argument('--samples',         type="character",       nargs="+",   help='Samples')
+# p$add_argument('--samples',         type="character",       nargs="+",   help='Samples')
 p$add_argument('--atlas_metadata',        type="character",                               help='Cell metadata (after mapping)')
 p$add_argument('--outdir',          type="character",                               help='Output file')
 
 args <- p$parse_args(commandArgs(TRUE))
 
 ## START TEST ##
-# args$query_metadata <- "/Users/argelagr/data/gastrulation_histones/results/rna/mapping/sample_metadata_after_mapping.txt.gz"
-# args$atlas_metadata <- "/Users/argelagr/data//gastrulation10x/sample_metadata.txt.gz"
-# args$outdir <- "/Users/argelagr/data/gastrulation_histones/results/rna/mapping/pdf"
+# args$query_metadata <- file.path(io$basedir,"results_new/mapping/sample_metadata_after_mapping.txt.gz")
+# args$atlas_metadata <- file.path(io$atlas.basedir,"sample_metadata.txt.gz")
+# args$outdir <- file.path(io$basedir,"results_new/mapping/pdf")
 ## END TEST ##
+
+dir.create(args$outdir, showWarnings = F)
 
 #####################
 ## Define settings ##
 #####################
-
-# load default setings
-source(here::here("settings.R"))
 
 # Options
 
@@ -37,18 +38,18 @@ opts$size.nomapped <- 0.1
 opts$alpha.mapped <- 0.65
 opts$alpha.nomapped <- 0.35
 
-###################
-## Load metadata ##
-###################
+#########################
+## Load query metadata ##
+#########################
 
 sample_metadata <- fread(args$query_metadata) %>%
-  .[pass_rnaQC==TRUE & sample%in%args$samples & !is.na(closest.cell)]
+  .[pass_rnaQC==TRUE & doublet_call==FALSE & !is.na(closest.cell)]
 
 stopifnot("closest.cell"%in%colnames(sample_metadata))
 
-####################
-## Load 10x atlas ##
-####################
+################
+## Load atlas ##
+################
 
 # Load atlas cell metadata
 meta_atlas <- fread(args$atlas_metadata) %>%
@@ -63,7 +64,6 @@ umap.dt <- meta_atlas %>%
 ##############################
 ## Define plotting function ##
 ##############################
-
 
 plot.dimred <- function(plot_df, query.label, atlas.label = "Atlas") {
   
@@ -106,10 +106,10 @@ plot.dimred <- function(plot_df, query.label, atlas.label = "Atlas") {
 to.plot <- umap.dt %>% copy %>%
   .[,index:=match(cell, sample_metadata[,closest.cell] )] %>% 
   .[,mapped:=as.factor(!is.na(index))] %>% 
-  .[,mapped:=plyr::mapvalues(mapped, from = c("FALSE","TRUE"), to = c("scRNA-seq atlas","RNA+CutTag"))] %>%
+  .[,mapped:=plyr::mapvalues(mapped, from = c("FALSE","TRUE"), to = c("Atlas cells","Query cells"))] %>%
   setorder(mapped) 
 
-p <- plot.dimred(to.plot, query.label = "RNA+CutTag", atlas.label = "scRNA-seq atlas")
+p <- plot.dimred(to.plot, query.label = "Query cells", atlas.label = "Atlas cells")
 
 pdf(sprintf("%s/umap_mapped_allcells.pdf",args$outdir), width=8, height=6.5)
 print(p)
@@ -119,7 +119,9 @@ dev.off()
 ## Plot one sample at a time ##
 ###############################
 
-for (i in args$samples) {
+samples.to.plot <- unique(sample_metadata$sample)
+
+for (i in samples.to.plot) {
   
   to.plot <- umap.dt %>% copy %>%
     .[,index:=match(cell, sample_metadata[sample==i,closest.cell] )] %>% 

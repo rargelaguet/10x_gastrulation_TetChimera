@@ -1,27 +1,43 @@
+here::i_am("mapping_stages/pca_celltype_proportions.R")
+
+source(here::here("settings.R"))
+source(here::here("utils.R"))
+
 #####################
 ## Define settings ##
 #####################
 
-source("/Users/ricard/10x_gastrulation_TetChimera/settings.R")
-io$outdir <- paste0(io$basedir,"/results/mapping_stages")
+# I/O
+io$cellype_proportions.atlas <- file.path(io$atlas.basedir,"results/celltype_proportions/celltype_proportions_noExE.txt.gz")
+io$outdir <- file.path(io$basedir,"results_new/mapping_stages"); dir.create(io$outdir, showWarnings = F)
 
-table(sample_metadata$stage)
+# Options
+opts$remove_ExE_cells <- TRUE
+opts$stages <- c("E7.5","E8.5")
 
-sample_metadata <- sample_metadata %>%
-  .[!is.na(celltype.mapped)] %>%
-  .[!celltype.mapped%in%c("ExE_ectoderm","ExE_endoderm","Parietal_endoderm","Visceral_endoderm")]
+##########################
+## Load sample metadata ##
+##########################
+
+sample_metadata <- fread(io$metadata) %>%
+  setnames("celltype.mapped","celltype") %>%
+  .[pass_rnaQC==TRUE & doublet_call==FALSE & !is.na(celltype) & stage%in%opts$stages]
+
+if (opts$remove_ExE_cells) {
+  sample_metadata <- sample_metadata %>%
+    .[!celltype%in%c("Visceral_endoderm","ExE_endoderm","ExE_ectoderm","Parietal_endoderm")]
+}
 
 ################
 ## Load query ##
 ################
 
 dt.query <- sample_metadata %>% copy %>%
-  .[,N:=.N,by="batch"] %>%
-  setnames("celltype.mapped","celltype") %>%
-  .[,.(celltype_proportion=.N/unique(N)),by=c("batch","celltype")]
+  .[,N:=.N,by="sample"] %>%
+  .[,.(celltype_proportion=.N/unique(N)),by=c("sample","celltype")]
 
 sample_metadata.query <- sample_metadata %>%
-  .[,.(nCount_RNA=mean(nCount_RNA)),c("batch","stage","class")] %>%
+  .[,c("sample","stage","class")] %>% unique %>%
   .[,dataset:="Query"]
 
 ################
@@ -29,25 +45,16 @@ sample_metadata.query <- sample_metadata %>%
 ################
 
 sample_metadata.atlas <- fread(io$atlas.metadata) %>% 
-  .[stage!="mixed_gastrulation"] %>%
-  setnames("sample","batch") %>%
-  .[,.(nCount_RNA=mean(nCount_RNA)),c("batch","stage")] %>%
+  .[stage!="mixed_gastrulation",c("sample","stage")] %>% unique %>%
   .[,c("class","dataset"):="Atlas"]
 
 # Load cell type proportions in the atlas
-# dt.atlas <- fread(paste0(io$atlas.basedir,"/results/general_stats/celltype_proportions.txt.gz")) %>%
-dt.atlas <- fread(paste0(io$atlas.basedir,"/results/general_stats/celltype_proportions_noExE.txt.gz")) %>%
-  .[sample%in%sample_metadata.atlas$batch] %>%
-  setnames("sample","batch")
-
+dt.atlas <- fread(io$cellype_proportions.atlas) %>%
+  .[sample%in%sample_metadata.atlas$sample,c("sample","celltype","celltype_proportion")]
 
 #################
 ## Concatenate ##
 #################
-
-# Sanity checks
-# sum(is.na(dt.query$celltype))
-# as.character(unique(dt.query$celltype))[!as.character(unique(dt.query$celltype)) %in% as.character(unique(dt.atlas$celltype))]
 
 sample_metadata <- rbind(sample_metadata.query, sample_metadata.atlas)
 dt <- rbind(dt.query,dt.atlas)
@@ -56,23 +63,21 @@ dt <- rbind(dt.query,dt.atlas)
 ## Dimensionality reduction ##
 ##############################
 
-matrix <- dt %>% dcast(batch~celltype, fill=0, value.var="celltype_proportion") %>% 
+matrix <- dt %>% 
+  dcast(sample~celltype, fill=0, value.var="celltype_proportion") %>% 
   matrix.please
 
 # PCA
 pca <- prcomp(matrix, rank.=5)
 pca.var.explained <- 100*(pca$sdev**2 / sum(pca$sdev**2)) %>% round(4)
 
-# UMAP
-# umap <- uwot::umap(pca)
-
 ##########
 ## Plot ##
 ##########
 
 to.plot <- pca$x %>% as.data.table %>% 
-  .[,batch:=rownames(pca$x)] %>%
-  merge(sample_metadata, by="batch")
+  .[,sample:=rownames(pca$x)] %>%
+  merge(sample_metadata, by="sample")
 
 # Define colors (stage)
 stages <- unique(to.plot$stage) %>% sort
@@ -81,7 +86,7 @@ names(stage.colors) <- rev(stages)
   
 # Define shapes (conditions)
 classes <- unique(to.plot$class)
-shapes <- 21:(21+length(classes))
+shapes <- 21:(21+length(classes)-1)
 names(shapes) <- classes
 
 p <- ggplot(to.plot, aes(x=PC1, y=PC2, fill=stage, shape=class)) +
@@ -97,13 +102,6 @@ p <- ggplot(to.plot, aes(x=PC1, y=PC2, fill=stage, shape=class)) +
     axis.text = element_text(color="black", size=rel(0.8))
   )
 
-# pdf(paste0(io$outdir,"/pca_mapping_stages.pdf"), width=7, height=5, useDingbats = F)
+pdf(file.path(io$outdir,"pca_mapping_stages.pdf"), width=7, height=5)
 print(p)
-# dev.off()
-
-##########
-## Save ##
-##########
-
-# fwrite(dt, io$outfile, sep="\t")
-
+dev.off()
