@@ -3,7 +3,6 @@ here::i_am("plot_individual_genes/plot_individual_genes.R")
 source(here::here("settings.R"))
 source(here::here("utils.R"))
 
-
 #####################
 ## Define settings ##
 #####################
@@ -79,7 +78,7 @@ opts$colors <- c(
 
 sample_metadata <- fread(io$metadata) %>% 
   .[pass_rnaQC==TRUE & celltype.mapped%in%opts$celltypes] %>%
-  .[,stage_class:=sprintf("%s_%s",stage,class)] %>% .[, stage_class:=factor(stage_class,levels=opts$classes)] %>%
+  .[,stage_class:=sprintf("%s_%s",stage,class)] %>% .[,stage_class:=factor(stage_class,levels=opts$classes)] %>%
   .[,celltype.mapped:=factor(celltype.mapped, levels=opts$celltypes)]
 
 table(sample_metadata$stage_class)
