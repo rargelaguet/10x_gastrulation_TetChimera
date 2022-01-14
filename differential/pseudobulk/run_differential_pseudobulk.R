@@ -35,12 +35,13 @@ sce$celltype <- stringr::str_split(colnames(sce), pattern = "-") %>% map_chr(2)
 # Filter by minimum number of cells
 sce <- sce[,names(which(metadata(sce)$n_cells>=opts$min.cells))]
 
-####################################################
-## Differential expression per class and celltype ##
-####################################################
+######################
+## Subset WT and KO ##
+######################
+stop("FIX THIS CODE")
 
 # Subset WT samples from the SingleCellExperiment
-sce.wt <- sce[,sce$class==opts$wt.class]
+sce.wt <- sce[,sce$class=="WT"]
 metadata(sce.wt)$n_cells <- metadata(sce.wt)$n_cells[grep(opts$wt.class, names(metadata(sce.wt)$n_cells), value=T)]
 names(metadata(sce.wt)$n_cells) <- gsub(paste0(opts$wt.class,"-"),"",names(metadata(sce.wt)$n_cells))
 colnames(sce.wt) <- sce.wt$celltype
@@ -48,52 +49,30 @@ colnames(sce.wt) <- sce.wt$celltype
 # Select celltypes with sufficient number of cells
 celltypes.wt <- names(which(metadata(sce.wt)$n_cells >= opts$min.cells))
 
-# i <- "E8.5_Dnmt3aKO_Dnmt3bKO"
-for (i in opts$ko.classes) {
-  
-  # Subset KO samples from the SingleCellExperiment
-  sce.ko <- sce[,sce$class==i]
-  metadata(sce.ko)$n_cells <- metadata(sce.ko)$n_cells[grep(i, names(metadata(sce.ko)$n_cells), value=T)]
-  names(metadata(sce.ko)$n_cells) <- gsub(paste0(i,"-"),"",names(metadata(sce.ko)$n_cells))
-  colnames(sce.ko) <- sce.ko$celltype
-  
-  # Select celltypes with sufficient number of cells
-  celltypes.ko <- names(which(metadata(sce.ko)$n_cells >= opts$min.cells))
-  celltypes.to.use <- intersect(celltypes.wt,celltypes.ko)
-  
-  for (j in celltypes.to.use) {
-      
-    tmp <- data.table(
-      gene = rownames(sce.ko),
-      expr_ko = logcounts(sce.ko[,j])[,1] %>% round(2),
-      expr_wt = logcounts(sce.ko[,j])[,1] %>% round(2)
-    ) %>% .[,diff:=round(expr_ko-expr_wt,2)] %>% sort.abs("diff") 
 
-    # save      
-    outfile <- sprintf("%s/%s/%s_%s_vs_%s.txt.gz", io$outdir,i,j,opts$wt.class,i); dir.create(dirname(outfile), showWarnings = F)
-    fwrite(tmp, outfile, sep="\t")
-  }
-}
+# Subset KO samples from the SingleCellExperiment
+sce.ko <- sce[,sce$class=="TET_TKO"]
+metadata(sce.ko)$n_cells <- metadata(sce.ko)$n_cells[grep("TET_TKO", names(metadata(sce.ko)$n_cells), value=T)]
+names(metadata(sce.ko)$n_cells) <- gsub(paste0("TET_TKO","-"),"",names(metadata(sce.ko)$n_cells))
+colnames(sce.ko) <- sce.ko$celltype
 
-#######################################
-## Differential expression per class ##
-#######################################
+# Select celltypes with sufficient number of cells
+celltypes.ko <- names(which(metadata(sce.ko)$n_cells >= opts$min.cells))
 
-# Subset WT samples from the SingleCellExperiment
-sce.wt <- sce[,sce$class==opts$wt.class]
+####################################################
+## Differential expression per class and celltype ##
+####################################################
 
-for (i in opts$ko.classes) {
-  
-  # Subset KO samples from the SingleCellExperiment
-  sce.ko <- sce[,sce$class==i]
-  
+celltypes.to.use <- intersect(celltypes.wt,celltypes.ko)
+
+for (j in celltypes.to.use) {
+    
   tmp <- data.table(
     gene = rownames(sce.ko),
-    expr_ko = logcounts(sce.ko)[,1] %>% round(2),
-    expr_wt = logcounts(sce.wt)[,1] %>% round(2)
+    expr_ko = logcounts(sce.ko[,j])[,1] %>% round(2),
+    expr_wt = logcounts(sce.wt[,j])[,1] %>% round(2)
   ) %>% .[,diff:=round(expr_ko-expr_wt,2)] %>% sort.abs("diff") 
-    
+
   # save      
-  outfile <- sprintf("%s/%s/%s_vs_%s.txt.gz", io$outdir,i,opts$wt.class,i); dir.create(dirname(outfile), showWarnings = F)
-  fwrite(tmp, outfile, sep="\t")
+  fwrite(tmp, sprintf("%s/%s_WT_vs_TET_TKO.txt.gz",io$outdir,j), sep="\t")
 }

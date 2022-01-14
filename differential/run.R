@@ -65,7 +65,7 @@ for (j in celltypes.to.use) {
     
     # Run
     print(cmd)
-    # system(cmd)
+    system(cmd)
   }
 }
 

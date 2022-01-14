@@ -58,8 +58,8 @@ opts$classes <- c(
   "E7.5_WT", 
   "E7.5_TET_TKO", 
   "E8.5_WT",
-  "E8.5_TET_TKO",
-  "E9.5_TET_TKO"
+  "E8.5_TET_TKO"
+  # "E9.5_TET_TKO"
 )
 
 # Define colors
@@ -68,9 +68,11 @@ opts$colors <- c(
   "E7.5_TET_TKO" = "#FF7F50", 
   "E8.5_Host" = "#B0B0B0", 
   "E8.5_TET_TKO" = "#EE4000",
-  "E8.5_WT" = "#B0B0B0",
-  "E9.5_TET_TKO" = "#B22222"
+  "E8.5_WT" = "#B0B0B0"
+  # "E9.5_TET_TKO" = "#B22222"
 )
+
+opts$min.cells <- 25
 
 ##########################
 ## Load sample metadata ##
@@ -112,46 +114,39 @@ for (i in 1:length(genes.to.plot)) {
   
   if (gene %in% rownames(sce)) {
     print(sprintf("%s/%s: %s",i,length(genes.to.plot),gene))
-    outfile <- sprintf("%s/%s.pdf",io$outdir,gene)
+    outfile <- sprintf("%s/%s_boxplots_single_cells.pdf",io$outdir,gene)
     
-    if (!file.exists(outfile)) {
-      
-      to.plot <- data.table(
-        cell = colnames(sce),
-        expr = logcounts(sce)[gene,]
-      ) %>% merge(sample_metadata[,c("cell","sample","stage_class","celltype.mapped")], by="cell") %>%
-        .[,N:=.N,by=c("sample","celltype.mapped")] %>% .[N>=10]
-      
-      p <- ggplot(to.plot, aes(x=stage_class, y=expr, fill=stage_class)) +
-        geom_violin(scale = "width", alpha=0.8) +
-        geom_boxplot(width=0.5, outlier.shape=NA, alpha=0.8) +
-        stat_summary(fun.data = give.n, geom = "text", size=3) +
-        # geom_jitter(size=2, shape=21, stroke=0.2, alpha=0.5) +
-        scale_fill_manual(values=opts$colors) +
-        facet_wrap(~celltype.mapped, scales="fixed") +
-        theme_classic() +
-        labs(x="",y=sprintf("%s expression",gene)) +
-        guides(x = guide_axis(angle = 90)) +
-        theme(
-          strip.text = element_text(size=rel(0.85)),
-          axis.text.x = element_text(colour="black",size=rel(0.9)),
-          axis.text.y = element_text(colour="black",size=rel(0.9)),
-          axis.ticks.x = element_blank(),
-          axis.title.y = element_text(colour="black",size=rel(1.0)),
-          legend.position = "top",
-          legend.title = element_blank(),
-          legend.text = element_text(size=rel(0.85))
-        )
-      
-        pdf(outfile, width=10, height=9)
-        # png(outfile, width = 1100, height = 1000)
-        # jpeg(outfile, width = 700, height = 600)
-        print(p)
-        dev.off()
-        
-    } else {
-      print(sprintf("%s already exists...",outfile))
-    }
+    to.plot <- data.table(
+      cell = colnames(sce),
+      expr = logcounts(sce)[gene,]
+    ) %>% merge(sample_metadata[,c("cell","class","celltype.mapped")], by="cell") %>%
+      .[,N:=.N,by=c("class","celltype.mapped")] %>% .[N>=opts$min.cells]
+    
+    p <- ggplot(to.plot, aes(x=class, y=expr, fill=class)) +
+      geom_violin(scale = "width", alpha=0.8) +
+      geom_boxplot(width=0.5, outlier.shape=NA, alpha=0.8) +
+      stat_summary(fun.data = give.n, geom = "text", size=3) +
+      # geom_jitter(size=2, shape=21, stroke=0.2, alpha=0.5) +
+      # scale_fill_manual(values=opts$colors) +
+      scale_fill_brewer(palette="Dark2") +
+      facet_wrap(~celltype.mapped, scales="fixed") +
+      theme_classic() +
+      labs(x="",y=sprintf("%s expression",gene)) +
+      guides(x = guide_axis(angle = 90)) +
+      theme(
+        strip.text = element_text(size=rel(0.85)),
+        axis.text.x = element_text(colour="black",size=rel(0.9)),
+        axis.text.y = element_text(colour="black",size=rel(0.9)),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_text(colour="black",size=rel(1.0)),
+        legend.position = "top",
+        legend.title = element_blank(),
+        legend.text = element_text(size=rel(0.85))
+      )
+    
+    pdf(outfile, width=10, height=9)
+    print(p)
+    dev.off()
 
   } else {
     print(sprintf("%s not found",gene))
