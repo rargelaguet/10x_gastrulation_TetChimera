@@ -1,5 +1,9 @@
+here::i_am("dimensionality_reduction/dimensionality_reduction_seurat.R")
+
+source(here::here("settings.R"))
+source(here::here("utils.R"))
+
 suppressPackageStartupMessages(library(Seurat))
-suppressPackageStartupMessages(library(argparse))
 
 ######################
 ## Define arguments ##
@@ -8,7 +12,7 @@ suppressPackageStartupMessages(library(argparse))
 p <- ArgumentParser(description='')
 p$add_argument('--seurat',             type="character",                               help='Seurat object file')
 p$add_argument('--metadata',        type="character",                               help='Cell metadata file')
-p$add_argument('--stages',       type="character",  default="all",  nargs='+',  help='Stages to plot')
+p$add_argument('--classes',       type="character",  default="all",  nargs='+',  help='Classes to plot')
 p$add_argument('--features',        type="integer",    default=1000,                help='Number of features')
 p$add_argument('--npcs',            type="integer",    default=30,                  help='Number of PCs')
 p$add_argument('--vars_to_regress', type="character",                nargs='+',     help='Metadata columns to regress out')
@@ -18,7 +22,7 @@ p$add_argument('--colour_by',       type="character",  default="celltype.mapped"
 p$add_argument('--seed',            type="integer",    default=42,                  help='Random seed')
 p$add_argument('--outdir',          type="character",                               help='Output file')
 p$add_argument('--remove_ExE_cells', action="store_true",                                 help='Remove ExE cells?')
-# p$add_argument('--batch.correction',type="character",                               help='Metadata column to apply batch correction on')
+p$add_argument('--batch_correction', type="character",                               help='Metadata column to apply batch correction on')
 # p$add_argument('--SCTransform', action="store_true",                                 help='Remove ExE cells?')
 
 args <- p$parse_args(commandArgs(TRUE))
@@ -27,31 +31,32 @@ args <- p$parse_args(commandArgs(TRUE))
 ## Define settings ##
 #####################
 
-source(here::here("settings.R"))
-source(here::here("utils.R"))
-
 ## START TEST ##
-# args$seurat <- io$rna.seurat
-# args$metadata <- "/bi/group/reik/ricard/data/gastrulation_histones/results/rna/mapping/sample_metadata_after_mapping.txt.gz"
-# args$stages <- "E8.75"
-# args$features <- 1000
+# args$seurat <- file.path(io$basedir,"processed_all/seurat.rds")
+# args$metadata <- file.path(io$basedir,"results_all/mapping/sample_metadata_after_mapping.txt.gz")
+# args$classes <- "Dnmt1_KO"
+# args$features <- 2500
 # args$npcs <- 30
-# args$colour_by <- c("celltype.mapped")
+# args$colour_by <- c("celltype.mapped","sample","nFeature_RNA")
+# args$batch_correction <- "sample"
 # args$vars_to_regress <- c("nFeature_RNA","mit_percent_RNA")
 # args$n_neighbors <- 25
 # args$min_dist <- 0.5
 # args$seed <- 42
-# args$outdir <- "/bi/group/reik/ricard/data/gastrulation_histones/results/rna/dimensionality_reduction/seurat"
+# args$outdir <- file.path(io$basedir,"results_all/dimensionality_reduction/seurat")
 # args$remove_ExE_cells <- TRUE
 ## END TEST ##
 
 # if (isTRUE(args$test)) print("Test mode activated...")
 
+# I/O
+dir.create(args$outdir, showWarnings = F)
+
 # Options
-if (args$stages[1]=="all") {
-  args$stages <- opts$stages
+if (args$classes[1]=="all") {
+  args$classes <- opts$classes
 } else {
-  stopifnot(args$stages%in%opts$stages)
+  stopifnot(args$classes%in%opts$classes)
 }
 
 ##########################
@@ -59,18 +64,16 @@ if (args$stages[1]=="all") {
 ##########################
 
 sample_metadata <- fread(args$metadata) %>%
-  .[nFeature_RNA>=2000] %>% .[stage=="E8.7",stage:="E8.75"] %>%    # temporary
-  # .[pass_rnaQC==TRUE & doublet_call==FALSE & sample%in%opts$samples]
-  .[pass_rnaQC==TRUE & doublet_call==FALSE & stage%in%args$stages]
+  .[pass_rnaQC==TRUE & doublet_call==FALSE & class%in%args$classes]
 
 if (args$remove_ExE_cells) {
   print("Removing ExE cells...")
   sample_metadata <- sample_metadata %>%
-    .[!celltype.mapped_mnn%in%c("Visceral_endoderm","ExE_endoderm","ExE_ectoderm","Parietal_endoderm")]
+    .[!celltype.mapped%in%c("Visceral_endoderm","ExE_endoderm","ExE_ectoderm","Parietal_endoderm")]
 }
 
-table(sample_metadata$stage)
-table(sample_metadata$celltype.mapped_mnn)
+table(sample_metadata$class)
+table(sample_metadata$celltype.mapped)
 
 ###################
 ## Sanity checks ##
@@ -79,15 +82,13 @@ table(sample_metadata$celltype.mapped_mnn)
 stopifnot(args$colour_by %in% colnames(sample_metadata))
 # stopifnot(unique(sample_metadata$celltype.mapped) %in% names(opts$celltype.colors))
 
-# if (length(args$batch.correction)>0) {
-#   stopifnot(args$batch.correction%in%colnames(sample_metadata))
-#   if (length(unique(sample_metadata[[args$batch.correction]]))==1) {
-#     message(sprintf("There is a single level for %s, no batch correction applied",args$batch.correction))
-#     args$batch.correction <- NULL
-#   } else {
-#     library(batchelor)
-#   }
-# }
+if (length(args$batch_correction)>0) {
+  stopifnot(args$batch_correction%in%colnames(sample_metadata))
+  if (length(unique(sample_metadata[[args$batch_correction]]))==1) {
+    message(sprintf("There is a single level for %s, no batch correction applied",args$batch_correction))
+    args$batch_correction <- NULL
+  }
+}
 
 if (length(args$vars_to_regress)>0) {
   stopifnot(args$vars_to_regress%in%colnames(sample_metadata))
@@ -127,31 +128,68 @@ seurat@meta.data <- foo
 ## Feature selection ##
 #######################
 
-seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = args$features)
-# seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1000, assay = "SCT")
-# head(seurat@assays$RNA@var.features)
+if (is.null(args$batch_correction)) {
+  seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = args$features)
+  # seurat <- FindVariableFeatures(seurat, selection.method = 'vst', nfeatures = 1000, assay = "SCT")
+}
 
 ###########################################
 ## Scale data and regress out covariates ##
 ###########################################
 
+if (is.null(args$batch_correction)) {
 # seurat <- ScaleData(seurat, features=var.genes, vars_to_regress=c("nFeature_RNA","mitochondrial_percent_RNA"))
-seurat <- ScaleData(seurat, 
-  features = VariableFeatures(seurat), 
-  vars.to.regress = args$vars_to_regress, 
-  verbose = FALSE
-)
+  seurat <- ScaleData(seurat, 
+    features = VariableFeatures(seurat), 
+    vars.to.regress = args$vars_to_regress, 
+    verbose = FALSE
+  )
+}
 
-############################
-## PCA + Batch correction ##
-############################
+
+######################
+## Batch correction ##
+######################
+
+if (length(args$batch_correction)>0) {
+  seurat.list <- SplitObject(seurat, split.by = args$batch_correction)
+
+  for (i in 1:length(seurat.list)) {
+    
+    # Normalisation
+    seurat.list[[i]] <- NormalizeData(
+      object = seurat.list[[i]], 
+      verbose = FALSE
+    )
+    
+    # Feature selection
+    seurat.list[[i]] <- FindVariableFeatures(
+      object = seurat.list[[i]],
+      selection.method = "vst",
+      nfeatures = 2000, 
+      verbose = FALSE
+    )
+  }
+
+  anchors <- FindIntegrationAnchors(object.list = seurat.list, dims = 1:30)
+
+  seurat <- IntegrateData(anchorset = anchors, dims = 1:30)
+
+  DefaultAssay(seurat) <- "integrated"
+  seurat <- ScaleData(seurat, verbose = FALSE)
+  
+  rm(anchors,seurat.list)
+}
+
+#########
+## PCA ##
+#########
 
 seurat <- RunPCA(seurat, features = VariableFeatures(seurat), npcs = args$npcs, verbose = FALSE)
 
 # Save PCA coordinates
 pca.dt <- seurat@reductions[["pca"]]@cell.embeddings %>% round(3) %>% as.data.table(keep.rownames = T) %>% setnames("rn","cell")
-fwrite(pca.dt, sprintf("%s/pca_features%d_pcs%d.txt.gz",args$outdir, args$features, args$npcs))
-
+fwrite(pca.dt, file.path(args$outdir,sprintf("pca_features%d_pcs%d.txt.gz", args$features, args$npcs)))
 
 ##########
 ## UMAP ##
@@ -173,25 +211,53 @@ umap.dt <- seurat@reductions[["umap"]]@cell.embeddings %>% round(3) %>% as.data.
   .[,c("cell","UMAP1","UMAP2")]
 
 # Save UMAP coordinates
-fwrite(umap.dt, sprintf("%s/umap_features%d_pcs%d_neigh%d_dist%s.txt.gz",args$outdir, args$features, args$npcs, args$n_neighbors, args$min_dist))
+fwrite(umap.dt, file.path(args$outdir,sprintf("umap_features%d_pcs%d_neigh%d_dist%s.txt.gz",args$features, args$npcs, args$n_neighbors, args$min_dist)))
 
 ##########
 ## Plot ##
 ##########
 
-pt.size <- ifelse(ncol(seurat)>=1e4,0.5,0.75)
+pt.size <- ifelse(ncol(seurat)>=1e4,1,1.25)
 
 for (i in args$colour_by) {
-
-  Idents(seurat) <- i
-
-  p <- DimPlot(seurat, label = FALSE, reduction = 'umap', pt.size = pt.size) + 
-    NoAxes()
+  
+  to.plot <- umap.dt %>%
+    setnames(c("cell","V1","V2")) %>%
+    merge(sample_metadata, by="cell")
+  
+  if (is.numeric(to.plot[[i]])) {
+    if ((max(to.plot[[i]],na.rm=T) - min(to.plot[[i]],na.rm=T)) > 1000) {
+      to.plot[[i]] <- log10(to.plot[[i]]+1)
+      to.plot %>% setnames(i,paste0(i,"_log10")); i <- paste0(i,"_log10")
+    }
+  }
+  
+  p <- ggplot(to.plot, aes_string(x="V1", y="V2", fill=i)) +
+    geom_point(size=pt.size, shape=21, stroke=0.05) +
+    theme_classic() +
+    ggplot_theme_NoAxes()
+  
 
   if (grepl("celltype",i)) {
-    p <- p + scale_colour_manual(values=opts$celltype.colors) +
-      NoLegend()
+    p <- p + scale_fill_manual(values=opts$celltype.colors) + NoLegend()
   }
+  
+  if (grepl("stage",i)) {
+    p <- p + scale_fill_manual(values=opts$stage.colors) + NoLegend()
+  }  
+  
+  if (grepl("sample",i)) {
+    p <- p + theme(
+      legend.position = "none",
+      legend.title = element_blank()
+    )
+  }  
+  
+  # Define colormap
+  if (is.numeric(to.plot[[i]])) {
+    p <- p + scale_fill_gradientn(colours = terrain.colors(10))
+  }
+  
 
   # Save UMAP plot
   outfile <- file.path(args$outdir,sprintf("umap_features%d_pcs%d_neigh%d_dist%s_%s.pdf", args$features, args$npcs, args$n_neighbors, args$min_dist, i))
@@ -200,3 +266,6 @@ for (i in args$colour_by) {
   dev.off()
 }
 
+
+# Completion token
+file.create(file.path(args$outdir,"completed.txt"))

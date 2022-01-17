@@ -194,13 +194,15 @@ opts$samples <- c(
 #   "E9.5_TET_TKO"
 # )
 
-opts$classes <- c(
+opts$stage_classes <- c(
   "E7.5_WT", 
   "E7.5_TET_TKO", 
   "E8.5_WT",
   "E8.5_TET_TKO",
   "E9.5_TET_TKO"
 )
+
+opts$classes <- c("WT", "TET_TKO")
 
 
 opts$sample2class <- c(

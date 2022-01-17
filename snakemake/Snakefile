@@ -37,11 +37,23 @@ rule all:
         expand("%s/mapping/pdf/umap_mapped_allcells.pdf" % config["directories"]["results"]),
         config["directories"]["results"]+"/celltype_proportions/completed.txt",
 
-        expand("%s/dimensionality_reduction/sce/{sample}/pca_features{dimred_sce_features}_pcs{dimred_sce_npcs}.txt.gz" % (config["directories"]["results"]), 
-            sample = config["samples"], 
-            dimred_sce_features = config["params"]["dimensionality_reduction_sce"]["features"], 
-            dimred_sce_npcs = config["params"]["dimensionality_reduction_sce"]["npcs"]
+        expand("%s/dimensionality_reduction/sce/per_sample/{dimred_sce_sample}/pca_features{dimred_sce_sample_features}_pcs{dimred_sce_sample_npcs}.txt.gz" % (config["directories"]["results"]), 
+            dimred_sce_sample = config["classes"], 
+            dimred_sce_sample_features = config["params"]["dimensionality_reduction_sce_sample"]["features"], 
+            dimred_sce_sample_npcs = config["params"]["dimensionality_reduction_sce_sample"]["npcs"]
             ),
+
+        expand("%s/dimensionality_reduction/sce/per_class/{dimred_sce_class}/pca_features{dimred_sce_class_features}_pcs{dimred_sce_class_npcs}.txt.gz" % (config["directories"]["results"]), 
+            dimred_sce_class = config["classes"], 
+            dimred_sce_class_features = config["params"]["dimensionality_reduction_sce_class"]["features"], 
+            dimred_sce_class_npcs = config["params"]["dimensionality_reduction_sce_class"]["npcs"]
+            ),
+
+        expand("%s/dimensionality_reduction/sce/per_class_batch_correction/{dimred_sce_class_batch_correction}/pca_features{dimred_sce_class_batch_correction_features}_pcs{dimred_sce_class_batch_correction_npcs}.txt.gz" % (config["directories"]["results"]), 
+            dimred_sce_class_batch_correction = config["classes"], 
+            dimred_sce_class_batch_correction_features = config["params"]["dimensionality_reduction_sce_class"]["features"], 
+            dimred_sce_class_batch_correction_npcs = config["params"]["dimensionality_reduction_sce_class"]["npcs"]
+            )
 
         # expand("%s/pseudobulk/SingleCellExperiment_pseudobulk_{group_by}.rds" % config["directories"]["results"], 
         #     group_by=config["pseudobulk_rna"]["group_by"]),
@@ -283,13 +295,13 @@ rule dimensionality_reduction_sce_sample:
         sce = rules.seurat_to_sce.output,
         metadata = rules.parse_mapping_results.output
     output:
-        config["directories"]["results"]+"/dimensionality_reduction/sce/{sample}/pca_features{dimred_sce_features}_pcs{dimred_sce_npcs}.txt.gz"
+        config["directories"]["results"]+"/dimensionality_reduction/sce/per_sample/{sample}/pca_features{dimred_sce_features}_pcs{dimred_sce_npcs}.txt.gz"
     params:
-        outdir = config["directories"]["results"]+"/dimensionality_reduction/sce/{sample}",
-        n_neighbors = config["params"]["dimensionality_reduction_sce"]["n_neighbors"],
-        min_dist = config["params"]["dimensionality_reduction_sce"]["min_dist"],
-        vars_to_regress = config["params"]["dimensionality_reduction_sce"]["vars_to_regress"],
-        colour_by = config["params"]["dimensionality_reduction_sce"]["colour_by"]
+        outdir = config["directories"]["results"]+"/dimensionality_reduction/sce/per_sample/{sample}",
+        n_neighbors = config["params"]["dimensionality_reduction_sce_sample"]["n_neighbors"],
+        min_dist = config["params"]["dimensionality_reduction_sce_sample"]["min_dist"],
+        vars_to_regress = config["params"]["dimensionality_reduction_sce_sample"]["vars_to_regress"],
+        colour_by = config["params"]["dimensionality_reduction_sce_sample"]["colour_by"]
     conda:
         "environment.yaml"
     log: 
@@ -302,6 +314,62 @@ rule dimensionality_reduction_sce_sample:
     shell:
         "Rscript {input.script} --sce {input.sce} --metadata {input.metadata} --samples {wildcards.sample} --npcs {wildcards.dimred_sce_npcs} --features {wildcards.dimred_sce_features} \
         --vars_to_regress {params.vars_to_regress} --n_neighbors {params.n_neighbors} --min_dist {params.min_dist} --colour_by {params.colour_by} --outdir {params.outdir} > {log}"
+
+rule dimensionality_reduction_sce_class: 
+    input:
+        script = config["scripts"]["dimensionality_reduction_sce"],
+        sce = rules.seurat_to_sce.output,
+        metadata = rules.parse_mapping_results.output
+    output:
+        config["directories"]["results"]+"/dimensionality_reduction/sce/per_class/{dimred_sce_class}/pca_features{dimred_sce_class_features}_pcs{dimred_sce_class_npcs}.txt.gz"
+    params:
+        outdir = config["directories"]["results"]+"/dimensionality_reduction/sce/per_class/{dimred_sce_class}",
+        n_neighbors = config["params"]["dimensionality_reduction_sce_class"]["n_neighbors"],
+        min_dist = config["params"]["dimensionality_reduction_sce_class"]["min_dist"],
+        vars_to_regress = config["params"]["dimensionality_reduction_sce_class"]["vars_to_regress"],
+        batch_correction = config["params"]["dimensionality_reduction_sce_class"]["batch_correction"], 
+        colour_by = config["params"]["dimensionality_reduction_sce_class"]["colour_by"]
+    conda:
+        "environment.yaml"
+    log: 
+        "logs/dimensionality_reduction_{dimred_sce_class}_features{dimred_sce_class_features}_pcs{dimred_sce_class_npcs}.log"
+        # "logs/dimensionality_reduction_features{dimred_sce_features}_pcs{dimred_sce_npcs}_neigh{n_neighbors}_dist{min_dist}.log"
+    threads: 
+        config["slurm"]["dimensionality_reduction_sce"]["threads"]
+    resources:
+        mem_mb = config["slurm"]["dimensionality_reduction_sce"]["memory"]
+    shell:
+        "Rscript {input.script} --sce {input.sce} --metadata {input.metadata} --classes {wildcards.dimred_sce_class} --npcs {wildcards.dimred_sce_class_npcs} --features {wildcards.dimred_sce_class_features} \
+        --vars_to_regress {params.vars_to_regress} --n_neighbors {params.n_neighbors} --min_dist {params.min_dist} --colour_by {params.colour_by} --outdir {params.outdir} > {log}"
+
+
+
+rule dimensionality_reduction_sce_class_batch_correction: 
+    input:
+        script = config["scripts"]["dimensionality_reduction_sce"],
+        sce = rules.seurat_to_sce.output,
+        metadata = rules.parse_mapping_results.output
+    output:
+        config["directories"]["results"]+"/dimensionality_reduction/sce/per_class_batch_correction/{dimred_sce_class_batch_correction}/pca_features{dimred_sce_class_batch_correction_features}_pcs{dimred_sce_class_batch_correction_npcs}.txt.gz"
+    params:
+        outdir = config["directories"]["results"]+"/dimensionality_reduction/sce/per_class_batch_correction/{dimred_sce_class_batch_correction}",
+        n_neighbors = config["params"]["dimensionality_reduction_sce_class"]["n_neighbors"],
+        min_dist = config["params"]["dimensionality_reduction_sce_class"]["min_dist"],
+        vars_to_regress = config["params"]["dimensionality_reduction_sce_class"]["vars_to_regress"],
+        batch_correction = config["params"]["dimensionality_reduction_sce_class"]["batch_correction"], 
+        colour_by = config["params"]["dimensionality_reduction_sce_class"]["colour_by"]
+    conda:
+        "environment.yaml"
+    log: 
+        "logs/dimensionality_reduction_{dimred_sce_class_batch_correction}_features{dimred_sce_class_batch_correction_features}_pcs{dimred_sce_class_batch_correction_npcs}.log"
+        # "logs/dimensionality_reduction_features{dimred_sce_features}_pcs{dimred_sce_npcs}_neigh{n_neighbors}_dist{min_dist}.log"
+    threads: 
+        config["slurm"]["dimensionality_reduction_sce"]["threads"]
+    resources:
+        mem_mb = config["slurm"]["dimensionality_reduction_sce"]["memory"]
+    shell:
+        "Rscript {input.script} --sce {input.sce} --metadata {input.metadata} --classes {wildcards.dimred_sce_class_batch_correction} --npcs {wildcards.dimred_sce_class_batch_correction_npcs} --features {wildcards.dimred_sce_class_batch_correction_features} \
+        --vars_to_regress {params.vars_to_regress} --batch_correction {params.batch_correction} --n_neighbors {params.n_neighbors} --min_dist {params.min_dist} --colour_by {params.colour_by} --outdir {params.outdir} > {log}"
 
 
 ################

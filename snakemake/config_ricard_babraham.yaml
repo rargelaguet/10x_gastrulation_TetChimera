@@ -17,6 +17,10 @@ samples:
     - E8_5_TET_WT_rep2_SIGAH8
 
 classes:
+    - TET_TKO
+    - WT
+
+stage_classes:
     - E7.5_Host
     - E7.5_TET_TKO
     - E8.5_Host
@@ -89,22 +93,31 @@ params:
         group_by: ["celltype.mapped"]
         normalisation_method: "cpm"
         
-    dimensionality_reduction_sce:
-        npcs: 30
-        features: 1000
+    dimensionality_reduction_sce_class:
+        npcs: 50
+        features: 2500
         n_neighbors: 25
         min_dist: 0.3
-        vars_to_regress: ["nFeature_RNA","mit_percent_RNA"]
-        colour_by: ["celltype.mapped"]
+        vars_to_regress: ["nFeature_RNA"]
+        batch_correction: "sample"
+        colour_by: ["celltype.mapped","sample","stage"]
+
+    dimensionality_reduction_sce_sample:
+        npcs: 30
+        features: 2500
+        n_neighbors: 25
+        min_dist: 0.3
+        vars_to_regress: ["nFeature_RNA"]
+        colour_by: ["celltype.mapped","doublet_score","doublet_call"]
 
     dimensionality_reduction_seurat:
-        npcs: 30
-        features: 1000
+        npcs: 50
+        features: 2500
         n_neighbors: 25
         min_dist: 0.3
         seed: 42
         vars_to_regress: ["nFeature_RNA","mit_percent_RNA"]
-        colour_by: ["celltype.mapped"]
+        colour_by: ["celltype.mapped","sample","doublet_score","doublet_call","stage"]
 
     plot_celltype_proportions:
         celltype_label: "celltype.mapped"

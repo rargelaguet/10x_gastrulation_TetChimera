@@ -14,7 +14,8 @@ suppressPackageStartupMessages(library(scran))
 p <- ArgumentParser(description='')
 p$add_argument('--sce',             type="character",                               help='SingleCellExperiment file')
 p$add_argument('--metadata',        type="character",                               help='Cell metadata file')
-p$add_argument('--samples',       type="character",  default="all",  nargs='+',  help='Samples to plot')
+# p$add_argument('--samples',       type="character",  default="all",  nargs='+',  help='Samples to plot')
+p$add_argument('--classes',       type="character",  default="all",  nargs='+',  help='Classes to plot')
 p$add_argument('--features',        type="integer",    default=1000,                help='Number of features')
 p$add_argument('--npcs',            type="integer",    default=30,                  help='Number of PCs')
 p$add_argument('--n_neighbors',     type="integer",    default=30,     help='(UMAP) Number of neighbours')
@@ -37,7 +38,7 @@ args <- p$parse_args(commandArgs(TRUE))
 # args$sce <- io$sce
 # args$metadata <- file.path(io$basedir,"results_new/mapping/sample_metadata_after_mapping.txt.gz")
 # # args$metadata <- paste0(io$basedir,"/results/doublets/sample_metadata_after_doublets.txt.gz")
-# args$samples <- "all" # opts$samples
+# args$classes <- "all" # opts$samples
 # args$features <- 2500
 # args$npcs <- 50
 # args$colour_by <- c("celltype.mapped","class","stage","nFeature_RNA","rib_percent_RNA","mit_percent_RNA")
@@ -52,10 +53,10 @@ args <- p$parse_args(commandArgs(TRUE))
 # if (isTRUE(args$test)) print("Test mode activated...")
 
 # Options
-if (args$samples[1]=="all") {
-  args$samples <- opts$samples
+if (args$classes[1]=="all") {
+  args$classes <- opts$classes
 } else {
-  stopifnot(args$samples%in%opts$samples)
+  stopifnot(args$classes%in%opts$classes)
 }
 
 ##########################
@@ -63,7 +64,7 @@ if (args$samples[1]=="all") {
 ##########################
 
 sample_metadata <- fread(args$metadata) %>%
-  .[pass_rnaQC==TRUE & doublet_call==FALSE & sample%in%args$samples]
+  .[pass_rnaQC==TRUE & doublet_call==FALSE & class%in%args$classes]
   # .[pass_rnaQC==TRUE]
 
 if (args$remove_ExE_cells) {
@@ -73,6 +74,7 @@ if (args$remove_ExE_cells) {
 }
 
 table(sample_metadata$stage)
+table(sample_metadata$class)
 table(sample_metadata$celltype.mapped)
 
 ###################
@@ -213,10 +215,16 @@ for (i in args$colour_by) {
   if (grepl("stage",i)) {
     p <- p + scale_fill_manual(values=opts$stage.colors) +
       theme(
-        legend.position="none",
+        legend.position="top",
         legend.title=element_blank()
       )
   }
+  if (grepl("sample",i)) {
+    p <- p + theme(
+      legend.position = "top",
+      legend.title = element_blank()
+    )
+  }  
 
   # Save UMAP plot
   outfile <- file.path(args$outdir,sprintf("umap_features%d_pcs%d_neigh%d_dist%s_%s.pdf",args$features, args$npcs, args$n_neighbors, args$min_dist, i))
