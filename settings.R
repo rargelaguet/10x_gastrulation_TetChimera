@@ -232,6 +232,26 @@ opts$stages <- c(
 opts$stage.colors <- viridis::viridis(n=length(opts$stages))
 names(opts$stage.colors) <- rev(opts$stages)
 
+
+opts$sample2alias <- c(
+  "E75_TET_TKO_L002"           = "E7.5_Tet_TKO",
+  "E75_WT_Host_L001"           = "E7.5_WT_Host",
+  "E85_Rep1_TET_TKO_L004"      = "E8.5_Tet_TKO_1",
+  "E85_Rep1_WT_Host_L003"      = "E8.5_WT_Host_1",
+  "E85_Rep2_TET_TKO_L006"      = "E8.5_Tet_TKO_2",
+  "E85_Rep2_WT_Host_L005"      = "E8.5_WT_Host_2",
+  "E8_5_TET_WT_rep1_SIGAG8"    = "E8.5_Tet_WT_Chimaera_1",
+  "E8_5_TET_WT_rep2_SIGAH8"    = "E8.5_Tet_WT_Chimaera_2",
+  "SIGAC2_TET_TKO_E9_5_Head1"  = "E9.5_Tet_TKO_Head_1",
+  "SIGAD2_TET_TKO_E9_5_Trunk1" = "E9.5_Tet_TKO_Trunk_1",
+  "SIGAE2_TET_TKO_E9_5_Tail1"  = "E9.5_Tet_TKO_Tail_1",
+  "SIGAE6_TET_TKO_E9_5_Head2"  = "E9.5_Tet_TKO_Head_2",
+  "SIGAF2_TET_TKO_E9_5_YS1"    = "E9.5_Tet_TKO_Yolk_Sac_1",
+  "SIGAF6_TET_TKO_E9_5_Trunk2" = "E9.5_Tet_TKO_Trunk_2",
+  "SIGAG6_TET_TKO_E9_5_Tail2"  = "E9.5_Tet_TKO_Tail_2",
+  "SIGAH6_TET_TKO_E9_5_YS2"    = "E9.5_Tet_TKO_Yolk_Sac_2" 
+)
+
 ##########################
 ## Load sample metadata ##
 ##########################
