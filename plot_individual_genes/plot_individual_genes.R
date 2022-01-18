@@ -63,10 +63,10 @@ opts$classes <- c(
 )
 
 # Define colors
-opts$colors <- c(
-  "E7.5_Host" = "#CCCCCC", 
+opts$stage_class_colors <- c(
+  "E7.5_WT" = "#CCCCCC", 
   "E7.5_TET_TKO" = "#FF7F50", 
-  "E8.5_Host" = "#B0B0B0", 
+  "E8.5_WT" = "#B0B0B0", 
   "E8.5_TET_TKO" = "#EE4000",
   "E8.5_WT" = "#B0B0B0"
   # "E9.5_TET_TKO" = "#B22222"
@@ -106,6 +106,7 @@ genes.to.plot <- c("Eomes","Dppa4")
 # genes.to.plot <- c("Tet1","Tet2","Tet3","Dnmt1","Dnmt3a","Dnmt3b","Dnmt3l")
 # genes.to.plot <- rownames(sce)[grep("tomato",rownames(sce))]
 # genes.to.plot <- fread(io$atlas.marker_genes)$gene %>% unique %>% .[!grepl("Rik$",.)]
+genes.to.plot <- fread(io$atlas.marker_genes) %>% .[grep("Erythroid",celltype),gene] %>% unique
 # genes.to.plot <- fread("/Users/ricard/data/gastrulation10x/results/differential/celltypes/E8.5/Neural_crest_vs_Forebrain_Midbrain_Hindbrain.txt.gz") %>% .[sig==T & logFC<(-2),gene]
 
 for (i in 1:length(genes.to.plot)) {
@@ -118,18 +119,21 @@ for (i in 1:length(genes.to.plot)) {
     
     to.plot <- data.table(
       cell = colnames(sce),
-      expr = logcounts(sce)[gene,]
-    ) %>% merge(sample_metadata[,c("cell","class","celltype.mapped")], by="cell") %>%
-      .[,N:=.N,by=c("class","celltype.mapped")] %>% .[N>=opts$min.cells]
+      expr = logcounts(sce)[gene,],
+      class = sce$class,
+      stage_class = sce$stage_class,
+      celltype = sce$celltype.mapped
+    ) %>% .[,N:=.N,by=c("class","celltype")] %>% .[N>=opts$min.cells]
     
-    p <- ggplot(to.plot, aes(x=class, y=expr, fill=class)) +
+  p <- ggplot(to.plot, aes(x=stage_class, y=expr, fill=stage_class)) +
       geom_violin(scale = "width", alpha=0.8) +
       geom_boxplot(width=0.5, outlier.shape=NA, alpha=0.8) +
       stat_summary(fun.data = give.n, geom = "text", size=3) +
       # geom_jitter(size=2, shape=21, stroke=0.2, alpha=0.5) +
       # scale_fill_manual(values=opts$colors) +
-      scale_fill_brewer(palette="Dark2") +
-      facet_wrap(~celltype.mapped, scales="fixed") +
+      # scale_fill_brewer(palette="Dark2") +
+      scale_fill_manual(values=opts$stage_class_colors) +
+      facet_wrap(~celltype, scales="fixed") +
       theme_classic() +
       labs(x="",y=sprintf("%s expression",gene)) +
       guides(x = guide_axis(angle = 90)) +

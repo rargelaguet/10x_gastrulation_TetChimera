@@ -14,7 +14,8 @@ suppressPackageStartupMessages(library(scran))
 p <- ArgumentParser(description='')
 p$add_argument('--sce',             type="character",                               help='SingleCellExperiment file')
 p$add_argument('--metadata',        type="character",                               help='Cell metadata file')
-# p$add_argument('--samples',       type="character",  default="all",  nargs='+',  help='Samples to plot')
+p$add_argument('--samples',       type="character",  default="all",  nargs='+',  help='Samples to plot')
+p$add_argument('--stages',       type="character",  default="all",  nargs='+',  help='Samples to plot')
 p$add_argument('--classes',       type="character",  default="all",  nargs='+',  help='Classes to plot')
 p$add_argument('--features',        type="integer",    default=1000,                help='Number of features')
 p$add_argument('--npcs',            type="integer",    default=30,                  help='Number of PCs')
@@ -38,12 +39,12 @@ args <- p$parse_args(commandArgs(TRUE))
 # args$sce <- io$sce
 # args$metadata <- file.path(io$basedir,"results_new/mapping/sample_metadata_after_mapping.txt.gz")
 # # args$metadata <- paste0(io$basedir,"/results/doublets/sample_metadata_after_doublets.txt.gz")
-# args$classes <- "all" # opts$samples
+# args$classes <- "WT"
 # args$features <- 2500
 # args$npcs <- 50
-# args$colour_by <- c("celltype.mapped","class","stage","nFeature_RNA","rib_percent_RNA","mit_percent_RNA")
+# args$colour_by <- c("celltype.mapped","class","stage","nFeature_RNA")
 # args$vars_to_regress <- NULL # c("nFeature_RNA","mit_percent_RNA")
-# args$batch_correction <- NULL # c("stage")
+# args$batch_correction <- "sample"
 # args$remove_ExE_cells <- FALSE
 # args$n_neighbors <- 25
 # args$min_dist <- 0.5
@@ -52,6 +53,9 @@ args <- p$parse_args(commandArgs(TRUE))
 
 # if (isTRUE(args$test)) print("Test mode activated...")
 
+# I/O
+dir.create(args$outdir, showWarnings = F)
+
 # Options
 if (args$classes[1]=="all") {
   args$classes <- opts$classes
@@ -59,12 +63,24 @@ if (args$classes[1]=="all") {
   stopifnot(args$classes%in%opts$classes)
 }
 
+if (args$samples[1]=="all") {
+  args$samples <- opts$samples
+} else {
+  stopifnot(args$samples%in%opts$samples)
+}
+
+if (args$stages[1]=="all") {
+  args$stages <- opts$stages
+} else {
+  stopifnot(args$stages%in%opts$stages)
+}
+
 ##########################
 ## Load sample metadata ##
 ##########################
 
 sample_metadata <- fread(args$metadata) %>%
-  .[pass_rnaQC==TRUE & doublet_call==FALSE & class%in%args$classes]
+  .[pass_rnaQC==TRUE & doublet_call==FALSE & sample%in%args$samples & class%in%args$classes & stage%in%args$stages]
   # .[pass_rnaQC==TRUE]
 
 if (args$remove_ExE_cells) {
@@ -73,6 +89,7 @@ if (args$remove_ExE_cells) {
     .[!celltype.mapped%in%c("Visceral_endoderm","ExE_endoderm","ExE_ectoderm","Parietal_endoderm")]
 }
 
+table(sample_metadata$sample)
 table(sample_metadata$stage)
 table(sample_metadata$class)
 table(sample_metadata$celltype.mapped)
@@ -147,13 +164,11 @@ sce_filt <- runPCA(sce_filt, ncomponents = args$npcs, ntop=args$features)
 if (length(args$batch_correction)>0) {
   suppressPackageStartupMessages(library(batchelor))
   print(sprintf("Applying MNN batch correction for variable: %s", args$batch_correction))
-  outfile <- sprintf("%s/%s_pca_features%d_pcs%d_batchcorrectionby%s.txt.gz",args$outdir, paste(args$samples,collapse="-"), args$features, args$npcs,paste(args$batch_correction,collapse="-"))
   pca <- multiBatchPCA(sce_filt, batch = colData(sce_filt)[[args$batch_correction]], d = args$npcs)
   pca.corrected <- reducedMNN(pca)$corrected
   colnames(pca.corrected) <- paste0("PC",1:ncol(pca.corrected))
   reducedDim(sce_filt, "PCA") <- pca.corrected
 } else {
-  outfile <- sprintf("%s/%s_pca_features%d_pcs%d.txt.gz",args$outdir, paste(args$samples,collapse="-"), args$features, args$npcs)
   sce_filt <- runPCA(sce_filt, ncomponents = args$npcs, ntop=args$features)
 }
 
@@ -214,21 +229,24 @@ for (i in args$colour_by) {
   }
   if (grepl("stage",i)) {
     p <- p + scale_fill_manual(values=opts$stage.colors) +
+      guides(fill = guide_legend(override.aes = list(size=2))) +
       theme(
-        legend.position="top",
+        legend.position="right",
         legend.title=element_blank()
       )
   }
   if (grepl("sample",i)) {
-    p <- p + theme(
-      legend.position = "top",
-      legend.title = element_blank()
-    )
+    p <- p + 
+      guides(fill = guide_legend(override.aes = list(size=2))) +
+      theme(
+        legend.position = "right",
+        legend.title = element_blank()
+      )
   }  
 
   # Save UMAP plot
   outfile <- file.path(args$outdir,sprintf("umap_features%d_pcs%d_neigh%d_dist%s_%s.pdf",args$features, args$npcs, args$n_neighbors, args$min_dist, i))
-  pdf(outfile, width=7, height=5)
+  pdf(outfile, width=9, height=5)
   print(p)
   dev.off()
 }

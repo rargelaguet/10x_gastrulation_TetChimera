@@ -1,6 +1,7 @@
 here::i_am("mapping/analysis/plot_mapping_umap.R")
 
 source(here::here("settings.R"))
+source(here::here("mapping/analysis/plot_utils.R"))
 
 ######################
 ## Define arguments ##
@@ -62,44 +63,6 @@ umap.dt <- meta_atlas %>%
   .[,c("cell","umapX","umapY","celltype")] %>%
   setnames(c("umapX","umapY"),c("V1","V2"))
 
-##############################
-## Define plotting function ##
-##############################
-
-plot.dimred <- function(plot_df, query.label, atlas.label = "Atlas") {
-  
-  # Define dot size  
-  size.values <- c(opts$size.mapped, opts$size.nomapped)
-  names(size.values) <- c(query.label, atlas.label)
-  
-  # Define dot alpha  
-  alpha.values <- c(opts$alpha.mapped, opts$alpha.nomapped)
-  names(alpha.values) <- c(query.label, atlas.label)
-  
-  # Define dot colours  
-  colour.values <- c("red", "lightgrey")
-  names(colour.values) <- c(query.label, atlas.label)
-  
-  # Plot
-  ggplot(plot_df, aes(x=V1, y=V2)) +
-    ggrastr::geom_point_rast(aes(size=mapped, alpha=mapped, colour=mapped)) +
-    scale_size_manual(values = size.values) +
-    scale_alpha_manual(values = alpha.values) +
-    scale_colour_manual(values = colour.values) +
-    # labs(x="UMAP Dimension 1", y="UMAP Dimension 2") +
-    guides(colour = guide_legend(override.aes = list(size=6))) +
-    theme_classic() +
-    theme(
-      legend.position = "top", 
-      legend.title = element_blank(),
-      axis.line = element_blank(),
-      axis.text = element_blank(),
-      axis.title = element_blank(),
-      axis.ticks = element_blank()
-    )
-}
-
-
 ####################
 ## Plot all cells ##
 ####################
@@ -158,5 +121,29 @@ for (i in classes.to.plot) {
   dev.off()
 }
 
+
+#############################
+## Plot WT and KO together ##
+#############################
+
+opts$stages <- c("E7.5","E8.5")
+
+for (i in opts$stages) {
+  
+  to.plot <- umap.dt %>% copy %>%
+    .[,index.wt:=match(cell, sample_metadata[class=="WT" & stage==i,closest.cell] )] %>%
+    .[,index.ko:=match(cell, sample_metadata[class=="TET_TKO" & stage==i,closest.cell] )] %>%
+    .[,mapped.wt:=c(0,-10)[as.numeric(as.factor(!is.na(index.wt)))]] %>%
+    .[,mapped.ko:=c(0,10)[as.numeric(as.factor(!is.na(index.ko)))]] %>%
+    .[,mapped:=factor(mapped.wt + mapped.ko, levels=c("0","-10","10"))] %>%
+    .[,mapped:=plyr::mapvalues(mapped, from = c("0","-10","10"), to = c("Atlas","WT",i))] %>% setorder(mapped)
+  
+  p <- plot.dimred.wtko(to.plot, wt.label = "WT", ko.label = i, nomapped.label = "Atlas") +
+    theme(legend.position = "top", axis.line = element_blank())
+  
+  pdf(sprintf("%s/per_class/umap_mapped_%s_WT_and_KO.pdf",args$outdir,i), width=8, height=6.5)
+  print(p)
+  dev.off()
+}
 # Completion token
 file.create(file.path(args$outdir,"completed.txt"))

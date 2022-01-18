@@ -1,3 +1,5 @@
+here::i_am("shiny/save_expr_matrix.R")
+
 library(HDF5Array)
 
 source(here::here("settings.R"))
@@ -58,6 +60,7 @@ opts$celltypes = c(
 
 # Define classes to plot
 opts$classes <- c("WT", "TET_TKO")
+opts$stages <- c("E7.5","E8.5")
 
 # opts$rename_celltypes <- c(
 #   "Erythroid3" = "Erythroid",
@@ -73,9 +76,11 @@ opts$classes <- c("WT", "TET_TKO")
 ##########################
 
 sample_metadata <- fread(io$metadata) %>% 
-  .[pass_rnaQC==TRUE & doublet_call==FALSE & celltype.mapped%in%opts$celltypes & class%in%opts$classes]
+  .[pass_rnaQC==TRUE & doublet_call==FALSE & celltype.mapped%in%opts$celltypes & class%in%opts$classes & stage%in%opts$stages]
 
 table(sample_metadata$class)
+table(sample_metadata$stage)
+table(sample_metadata$alias)
 table(sample_metadata$celltype.mapped)
 
 ###############
@@ -102,7 +107,7 @@ sce <- sce[sparseMatrixStats::rowVars(logcounts(sce))>0,]
 ##########
 
 # Save metadata
-cols <- c(c("cell", "sample", "nFeature_RNA", "mit_percent_RNA", "rib_percent_RNA", "stage", "class", "alias", "celltype.mapped", "celltype.score", "closest.cell"))
+cols <- c("cell", "sample", "nFeature_RNA", "mit_percent_RNA", "rib_percent_RNA", "stage", "class", "alias", "celltype.mapped", "celltype.score", "closest.cell")
 sample_metadata_to_save <- sample_metadata[,..cols]
 fwrite(sample_metadata_to_save, file.path(io$outdir,"cell_metadata.txt.gz"), quote=F, sep="\t", na="NA")
 

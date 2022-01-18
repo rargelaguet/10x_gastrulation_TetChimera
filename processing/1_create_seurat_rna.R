@@ -134,6 +134,12 @@ metadata[,class:=stringr::str_replace_all(sample,opts$sample2class)]
 print(table(metadata$class))
 stopifnot(!is.na(metadata$class))
 
+# Add alias
+stopifnot(metadata$sample%in%names(opts$sample2alias))
+metadata[,alias:=stringr::str_replace_all(sample,opts$sample2alias)]
+print(table(metadata$alias))
+stopifnot(!is.na(metadata$alias))
+
 ##########
 ## Save ##
 ##########

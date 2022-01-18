@@ -26,7 +26,9 @@ stage_classes:
     - E8.5_Host
     - E8.5_TET_TKO
     - E8.5_WT
-    - E9.5_TET_TKO
+    # - E9.5_TET_TKO
+
+stages: ["E7.5","E8.5"]
 
 #################
 ## Directories ##
@@ -46,7 +48,6 @@ directories:
 resources:
     marker_genes: /bi/group/reik/ricard/data/pijuansala2019_gastrulation10x/results/marker_genes/all_stages/marker_genes.txt.gz
     celltypes: ["Epiblast", "Primitive_Streak", "Caudal_epiblast", "PGC", "Anterior_Primitive_Streak", "Notochord", "Def._endoderm", "Gut", "Nascent_mesoderm", "Mixed_mesoderm", "Intermediate_mesoderm", "Caudal_Mesoderm", "Paraxial_mesoderm", "Somitic_mesoderm", "Pharyngeal_mesoderm", "Cardiomyocytes", "Allantois", "ExE_mesoderm", "Mesenchyme", "Haematoendothelial_progenitors", "Endothelium", "Blood_progenitors_1", "Blood_progenitors_2", "Erythroid1", "Erythroid2", "Erythroid3", "NMP", "Rostral_neurectoderm", "Caudal_neurectoderm", "Neural_crest", "Forebrain_Midbrain_Hindbrain", "Spinal_cord", "Surface_ectoderm", "Visceral_endoderm", "ExE_endoderm", "ExE_ectoderm", "Parietal_endoderm"]
-    stages: ["E7.5","E8.5","E9.5"]
     gene_metadata: /bi/group/reik/ricard/data/ensembl/mouse/v87/BioMart/mRNA/Mmusculus_genes_BioMart.87.txt
 
 #############
@@ -99,8 +100,8 @@ params:
         n_neighbors: 25
         min_dist: 0.3
         vars_to_regress: ["nFeature_RNA"]
-        batch_correction: "sample"
-        colour_by: ["celltype.mapped","sample","stage"]
+        batch_correction: "stage"
+        colour_by: ["celltype.mapped","sample","stage","nFeature_RNA"]
 
     dimensionality_reduction_sce_sample:
         npcs: 30
@@ -108,7 +109,7 @@ params:
         n_neighbors: 25
         min_dist: 0.3
         vars_to_regress: ["nFeature_RNA"]
-        colour_by: ["celltype.mapped","doublet_score","doublet_call"]
+        colour_by: ["celltype.mapped","doublet_score","doublet_call","nFeature_RNA"]
 
     dimensionality_reduction_seurat:
         npcs: 50
@@ -117,7 +118,7 @@ params:
         min_dist: 0.3
         seed: 42
         vars_to_regress: ["nFeature_RNA","mit_percent_RNA"]
-        colour_by: ["celltype.mapped","sample","doublet_score","doublet_call","stage"]
+        colour_by: ["celltype.mapped","sample","doublet_score","doublet_call","stage","nFeature_RNA"]
 
     plot_celltype_proportions:
         celltype_label: "celltype.mapped"

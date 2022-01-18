@@ -86,7 +86,7 @@ to.plot[N>=150,N:=150]
 
 p <- ggplot(to.plot, aes(x=celltype, y=N)) +
   geom_bar(aes(fill = celltype), color="black", stat = 'identity') + 
-  facet_wrap(~class, nrow=1) +
+  # facet_wrap(~class, nrow=1) +
   scale_fill_manual(values=opts$celltype.colors, drop=F) +
   labs(x="", y="Number of DE genes") +
   guides(x = guide_axis(angle = 90)) +

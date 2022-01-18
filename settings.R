@@ -170,18 +170,18 @@ opts$samples <- c(
   # "SIGAH4_E105_5_TET123_Chimera_TKO_L008"
   
   # Fourth batch
-  "SIGAC2_TET_TKO_E9_5_Head1",
-  "SIGAD2_TET_TKO_E9_5_Trunk1",
-  "SIGAE2_TET_TKO_E9_5_Tail1",
-  "SIGAE6_TET_TKO_E9_5_Head2",
-  "SIGAF2_TET_TKO_E9_5_YS1",
-  "SIGAF6_TET_TKO_E9_5_Trunk2",
-  "SIGAG6_TET_TKO_E9_5_Tail2",
-  "SIGAH6_TET_TKO_E9_5_YS2",
+  # "SIGAC2_TET_TKO_E9_5_Head1",
+  # "SIGAD2_TET_TKO_E9_5_Trunk1",
+  # "SIGAE2_TET_TKO_E9_5_Tail1",
+  # "SIGAE6_TET_TKO_E9_5_Head2",
+  # "SIGAF2_TET_TKO_E9_5_YS1",
+  # "SIGAF6_TET_TKO_E9_5_Trunk2",
+  # "SIGAG6_TET_TKO_E9_5_Tail2",
+  # "SIGAH6_TET_TKO_E9_5_YS2",
   
   # Fifth batch
-  "E8_5_TET_WT_rep1_SIGAG8",
-  "E8_5_TET_WT_rep2_SIGAH8"
+  # "E8_5_TET_WT_rep1_SIGAG8",
+  # "E8_5_TET_WT_rep2_SIGAH8"
 )
 
 # OLD
@@ -198,8 +198,8 @@ opts$stage_classes <- c(
   "E7.5_WT", 
   "E7.5_TET_TKO", 
   "E8.5_WT",
-  "E8.5_TET_TKO",
-  "E9.5_TET_TKO"
+  "E8.5_TET_TKO"
+  # "E9.5_TET_TKO"
 )
 
 opts$classes <- c("WT", "TET_TKO")
@@ -211,23 +211,23 @@ opts$sample2class <- c(
   "E85_Rep1_TET_TKO_L004" = "TET_TKO",
   "E85_Rep1_WT_Host_L003" = "WT",
   "E85_Rep2_TET_TKO_L006" = "TET_TKO",
-  "E85_Rep2_WT_Host_L005" = "WT",
-  "SIGAC2_TET_TKO_E9_5_Head1" = "TET_TKO",
-  "SIGAD2_TET_TKO_E9_5_Trunk1" = "TET_TKO",
-  "SIGAE2_TET_TKO_E9_5_Tail1" = "TET_TKO",
-  "SIGAE6_TET_TKO_E9_5_Head2" = "TET_TKO",
-  "SIGAF2_TET_TKO_E9_5_YS1" = "TET_TKO",
-  "SIGAF6_TET_TKO_E9_5_Trunk2" = "TET_TKO",
-  "SIGAG6_TET_TKO_E9_5_Tail2" = "TET_TKO",
-  "SIGAH6_TET_TKO_E9_5_YS2" = "TET_TKO",
-  "E8_5_TET_WT_rep1_SIGAG8" = "WT",
-  "E8_5_TET_WT_rep2_SIGAH8" = "WT"
+  "E85_Rep2_WT_Host_L005" = "WT"
+  # "SIGAC2_TET_TKO_E9_5_Head1" = "TET_TKO",
+  # "SIGAD2_TET_TKO_E9_5_Trunk1" = "TET_TKO",
+  # "SIGAE2_TET_TKO_E9_5_Tail1" = "TET_TKO",
+  # "SIGAE6_TET_TKO_E9_5_Head2" = "TET_TKO",
+  # "SIGAF2_TET_TKO_E9_5_YS1" = "TET_TKO",
+  # "SIGAF6_TET_TKO_E9_5_Trunk2" = "TET_TKO",
+  # "SIGAG6_TET_TKO_E9_5_Tail2" = "TET_TKO",
+  # "SIGAH6_TET_TKO_E9_5_YS2" = "TET_TKO",
+  # "E8_5_TET_WT_rep1_SIGAG8" = "WT",
+  # "E8_5_TET_WT_rep2_SIGAH8" = "WT"
 )
 
 opts$stages <- c(
   "E7.5", 
-  "E8.5", 
-  "E9.5"
+  "E8.5"
+  # "E9.5"
 )
 
 
@@ -242,16 +242,16 @@ opts$sample2alias <- c(
   "E85_Rep1_WT_Host_L003"      = "E8.5_WT_Host_1",
   "E85_Rep2_TET_TKO_L006"      = "E8.5_Tet_TKO_2",
   "E85_Rep2_WT_Host_L005"      = "E8.5_WT_Host_2",
-  "E8_5_TET_WT_rep1_SIGAG8"    = "E8.5_Tet_WT_Chimaera_1",
-  "E8_5_TET_WT_rep2_SIGAH8"    = "E8.5_Tet_WT_Chimaera_2",
-  "SIGAC2_TET_TKO_E9_5_Head1"  = "E9.5_Tet_TKO_Head_1",
-  "SIGAD2_TET_TKO_E9_5_Trunk1" = "E9.5_Tet_TKO_Trunk_1",
-  "SIGAE2_TET_TKO_E9_5_Tail1"  = "E9.5_Tet_TKO_Tail_1",
-  "SIGAE6_TET_TKO_E9_5_Head2"  = "E9.5_Tet_TKO_Head_2",
-  "SIGAF2_TET_TKO_E9_5_YS1"    = "E9.5_Tet_TKO_Yolk_Sac_1",
-  "SIGAF6_TET_TKO_E9_5_Trunk2" = "E9.5_Tet_TKO_Trunk_2",
-  "SIGAG6_TET_TKO_E9_5_Tail2"  = "E9.5_Tet_TKO_Tail_2",
-  "SIGAH6_TET_TKO_E9_5_YS2"    = "E9.5_Tet_TKO_Yolk_Sac_2" 
+  # "E8_5_TET_WT_rep1_SIGAG8"    = "E8.5_Tet_WT_Chimaera_1",
+  # "E8_5_TET_WT_rep2_SIGAH8"    = "E8.5_Tet_WT_Chimaera_2"
+  # "SIGAC2_TET_TKO_E9_5_Head1"  = "E9.5_Tet_TKO_Head_1",
+  # "SIGAD2_TET_TKO_E9_5_Trunk1" = "E9.5_Tet_TKO_Trunk_1",
+  # "SIGAE2_TET_TKO_E9_5_Tail1"  = "E9.5_Tet_TKO_Tail_1",
+  # "SIGAE6_TET_TKO_E9_5_Head2"  = "E9.5_Tet_TKO_Head_2",
+  # "SIGAF2_TET_TKO_E9_5_YS1"    = "E9.5_Tet_TKO_Yolk_Sac_1",
+  # "SIGAF6_TET_TKO_E9_5_Trunk2" = "E9.5_Tet_TKO_Trunk_2",
+  # "SIGAG6_TET_TKO_E9_5_Tail2"  = "E9.5_Tet_TKO_Tail_2",
+  # "SIGAH6_TET_TKO_E9_5_YS2"    = "E9.5_Tet_TKO_Yolk_Sac_2" 
 )
 
 ##########################
@@ -269,5 +269,10 @@ opts$sample2alias <- c(
 ## E9.5 ##
 ##########
 
+# metadata <- fread("/Users/argelagr/data/10x_gastrulation_TetChimera/results_new/mapping/sample_metadata_after_mapping.txt.gz")
 # sample_metadata[,region:=sample_metadata$batch %>% strsplit("_")  %>% map_chr(6) %>% substr(.,1,nchar(.)-1)]
-# fwrite(sample_metadata, io$metadata, sep="\t", na="NA", quote=F)
+# stopifnot(metadata$sample%in%names(opts$sample2alias))
+# metadata[,alias:=stringr::str_replace_all(sample,opts$sample2alias)]
+# print(table(metadata$alias))
+# stopifnot(!is.na(metadata$alias))
+# fwrite(metadata, "/Users/argelagr/data/10x_gastrulation_TetChimera/results_new/mapping/sample_metadata_after_mapping.txt.gz", sep="\t", na="NA", quote=F)

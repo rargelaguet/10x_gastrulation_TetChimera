@@ -31,6 +31,7 @@ opts$wt.class <- "WT"
 ##########################
 
 sample_metadata <- fread(io$metadata) %>% 
+  .[sample%in%opts$samples] %>%
   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,opts$rename_celltypes)] %>%
   .[pass_rnaQC==TRUE & !is.na(celltype.mapped)]
 

@@ -37,8 +37,8 @@ rule all:
         expand("%s/mapping/pdf/umap_mapped_allcells.pdf" % config["directories"]["results"]),
         config["directories"]["results"]+"/celltype_proportions/completed.txt",
 
-        expand("%s/dimensionality_reduction/sce/per_sample/{dimred_sce_sample}/pca_features{dimred_sce_sample_features}_pcs{dimred_sce_sample_npcs}.txt.gz" % (config["directories"]["results"]), 
-            dimred_sce_sample = config["classes"], 
+        expand("%s/dimensionality_reduction/sce/per_sample/{sample}/pca_features{dimred_sce_sample_features}_pcs{dimred_sce_sample_npcs}.txt.gz" % (config["directories"]["results"]),
+            sample=config["samples"],
             dimred_sce_sample_features = config["params"]["dimensionality_reduction_sce_sample"]["features"], 
             dimred_sce_sample_npcs = config["params"]["dimensionality_reduction_sce_sample"]["npcs"]
             ),
@@ -324,6 +324,7 @@ rule dimensionality_reduction_sce_class:
         config["directories"]["results"]+"/dimensionality_reduction/sce/per_class/{dimred_sce_class}/pca_features{dimred_sce_class_features}_pcs{dimred_sce_class_npcs}.txt.gz"
     params:
         outdir = config["directories"]["results"]+"/dimensionality_reduction/sce/per_class/{dimred_sce_class}",
+        stages = config["stages"],
         n_neighbors = config["params"]["dimensionality_reduction_sce_class"]["n_neighbors"],
         min_dist = config["params"]["dimensionality_reduction_sce_class"]["min_dist"],
         vars_to_regress = config["params"]["dimensionality_reduction_sce_class"]["vars_to_regress"],
@@ -339,7 +340,7 @@ rule dimensionality_reduction_sce_class:
     resources:
         mem_mb = config["slurm"]["dimensionality_reduction_sce"]["memory"]
     shell:
-        "Rscript {input.script} --sce {input.sce} --metadata {input.metadata} --classes {wildcards.dimred_sce_class} --npcs {wildcards.dimred_sce_class_npcs} --features {wildcards.dimred_sce_class_features} \
+        "Rscript {input.script} --sce {input.sce} --metadata {input.metadata} --classes {wildcards.dimred_sce_class} --stages {params.stages} --npcs {wildcards.dimred_sce_class_npcs} --features {wildcards.dimred_sce_class_features} \
         --vars_to_regress {params.vars_to_regress} --n_neighbors {params.n_neighbors} --min_dist {params.min_dist} --colour_by {params.colour_by} --outdir {params.outdir} > {log}"
 
 
@@ -353,6 +354,7 @@ rule dimensionality_reduction_sce_class_batch_correction:
         config["directories"]["results"]+"/dimensionality_reduction/sce/per_class_batch_correction/{dimred_sce_class_batch_correction}/pca_features{dimred_sce_class_batch_correction_features}_pcs{dimred_sce_class_batch_correction_npcs}.txt.gz"
     params:
         outdir = config["directories"]["results"]+"/dimensionality_reduction/sce/per_class_batch_correction/{dimred_sce_class_batch_correction}",
+        stages = config["stages"],
         n_neighbors = config["params"]["dimensionality_reduction_sce_class"]["n_neighbors"],
         min_dist = config["params"]["dimensionality_reduction_sce_class"]["min_dist"],
         vars_to_regress = config["params"]["dimensionality_reduction_sce_class"]["vars_to_regress"],
@@ -368,7 +370,7 @@ rule dimensionality_reduction_sce_class_batch_correction:
     resources:
         mem_mb = config["slurm"]["dimensionality_reduction_sce"]["memory"]
     shell:
-        "Rscript {input.script} --sce {input.sce} --metadata {input.metadata} --classes {wildcards.dimred_sce_class_batch_correction} --npcs {wildcards.dimred_sce_class_batch_correction_npcs} --features {wildcards.dimred_sce_class_batch_correction_features} \
+        "Rscript {input.script} --sce {input.sce} --metadata {input.metadata} --classes {wildcards.dimred_sce_class_batch_correction} --stages {params.stages} --npcs {wildcards.dimred_sce_class_batch_correction_npcs} --features {wildcards.dimred_sce_class_batch_correction_features} \
         --vars_to_regress {params.vars_to_regress} --batch_correction {params.batch_correction} --n_neighbors {params.n_neighbors} --min_dist {params.min_dist} --colour_by {params.colour_by} --outdir {params.outdir} > {log}"
 
 

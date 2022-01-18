@@ -1,4 +1,5 @@
-here::i_am("plot_individual_genes/pseudobulk/plot_individual_genes_pseudobulk.R")
+here::i_am("shiny/save_expr_matrix.R")
+
 
 source(here::here("settings.R"))
 source(here::here("utils.R"))
@@ -8,8 +9,8 @@ source(here::here("utils.R"))
 #####################
 
 # I/O
-io$outfile <- "/Users/argelagr/data/shiny_dnmt_tet/SingleCellExperiment_pseudobulk_class_celltype_dataset.rds"
-io$sce.pseudobulk <- file.path(io$basedir,"results_all/pseudobulk/SingleCellExperiment_pseudobulk_class_celltype_dataset.rds")
+io$outfile <- file.path(io$basedir,"shiny/SingleCellExperiment_pseudobulk_class_celltype.rds") 
+io$sce.pseudobulk <- file.path(io$basedir,"results_new/pseudobulk/SingleCellExperiment_pseudobulk_class_celltype.rds")
 
 # Define options
 opts$celltypes = c(
@@ -52,16 +53,7 @@ opts$celltypes = c(
   # "Parietal_endoderm"
 )
 
-opts$classes <- c(
-  # "Dnmt3a_HET_Dnmt3b_KO",
-  # "Dnmt3a_HET_Dnmt3b_WT",
-  # "Dnmt3a_KO_Dnmt3b_HET",
-  "WT",
-  "Dnmt3a_KO",
-  "Dnmt3b_KO",
-  "Dnmt1_KO",
-  "Dnmt3ab_KO"
-)
+opts$classes <- c("WT", "TET_TKO")
 
 # opts$rename_celltypes <- c(
 #   "Erythroid3" = "Erythroid",
@@ -84,7 +76,6 @@ sce <- readRDS(io$sce.pseudobulk)
 # Add metadata
 sce$class <- stringr::str_split(colnames(sce), pattern = "-") %>% map_chr(1)
 sce$celltype <- stringr::str_split(colnames(sce), pattern = "-") %>% map_chr(2)
-sce$dataset <- stringr::str_split(colnames(sce), pattern = "-") %>% map_chr(3)
 
 # Filter by minimum number of cells
 sce <- sce[,names(which(metadata(sce)$n_cells>=opts$min.cells))]
@@ -93,7 +84,7 @@ sce <- sce[,names(which(metadata(sce)$n_cells>=opts$min.cells))]
 sce <- sce[,sce$celltype%in%opts$celltypes]
 sce <- sce[,sce$class%in%opts$classes]
 
-genes <- fread("/Users/argelagr/data/shiny_dnmt_tet/genes.txt", header = F)[[1]]
+genes <- fread("/Users/argelagr/data/10x_gastrulation_TetChimera/shiny/genes.txt", header = F)[[1]]
 sce <- sce[genes,]
 
 ##########
