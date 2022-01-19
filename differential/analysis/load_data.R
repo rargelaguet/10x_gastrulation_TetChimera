@@ -38,9 +38,9 @@ opts$celltypes = c(
   "Neural_crest",
   "Forebrain_Midbrain_Hindbrain",
   "Spinal_cord",
-  "Surface_ectoderm",
-  "Visceral_endoderm",
-  "ExE_endoderm"
+  "Surface_ectoderm"
+  # "Visceral_endoderm",
+  # "ExE_endoderm"
   # "ExE_ectoderm"
   # "Parietal_endoderm"
 )

@@ -33,7 +33,7 @@ source(here::here("differential/analysis/load_data.R"))
 # diff.dt <- diff.dt[!grepl("mt-",gene)]
 # diff.dt <- diff.dt[!grepl("Rps|Rpl",gene)]
 # diff.dt <- diff.dt[!grepl("Rik",gene)]
-# diff.dt <- diff.dt[!grepl("^Hb",gene)]
+diff.dt <- diff.dt[!grepl("^Hb",gene)]
 # diff.dt <- diff.dt[!gene%in%fread(io$gene_metadata)[chr=="chrY",symbol]]
 
 # Filter by minimum number of cells per group

@@ -21,14 +21,14 @@ args <- p$parse_args(commandArgs(TRUE))
 #####################
 
 ## START TEST ##
-args <- list()
-args$samples <- opts$samples
-args$metadata <- paste0(io$basedir,"/processed_new/metadata.txt.gz")
-args$min_nFeature_RNA <- 1000
-args$max_nFeature_RNA <- 10000
-args$mit_percent_RNA <- 30
-args$rib_percent_RNA <- 35
-args$outdir <- paste0(io$basedir,"/results_new/qc")
+# args <- list()
+# args$samples <- opts$samples
+# args$metadata <- paste0(io$basedir,"/processed_new/metadata.txt.gz")
+# args$min_nFeature_RNA <- 1000
+# args$max_nFeature_RNA <- 10000
+# args$mit_percent_RNA <- 30
+# args$rib_percent_RNA <- 35
+# args$outdir <- paste0(io$basedir,"/results_new/qc")
 ## END TEST ##
 
 # Sanity checks

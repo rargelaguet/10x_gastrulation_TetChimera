@@ -1,4 +1,4 @@
-here::i_am("differential/analysis/barplots.R")
+here::i_am("differential/analysis/cellfate_bias.R")
 
 # Load default settings
 source(here::here("settings.R"))
@@ -48,7 +48,7 @@ diff.dt <- diff.dt[groupA_N>=opts$min.cells & groupB_N>=opts$min.cells]
 # dt.filt <- dt.filt[!grep("Rik",gene)]
 
 # Remove hemoglobins
-# dt.filt <- dt.filt[!grep("^Hb",gene)]
+diff.dt <- diff.dt[!grep("^Hb",gene)]
 
 # Subset to lineage markers
 diff_markers.dt <- diff.dt[gene%in%unique(marker_genes.dt$gene)]

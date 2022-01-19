@@ -140,6 +140,12 @@ metadata[,alias:=stringr::str_replace_all(sample,opts$sample2alias)]
 print(table(metadata$alias))
 stopifnot(!is.na(metadata$alias))
 
+# Add tdTomato information
+# stopifnot(metadata$sample%in%names(opts$sample2class))
+# metadata[,class:=stringr::str_replace_all(sample,opts$sample2class)]
+# print(table(metadata$class))
+# stopifnot(!is.na(metadata$class))
+
 ##########
 ## Save ##
 ##########

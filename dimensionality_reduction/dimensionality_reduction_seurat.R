@@ -32,19 +32,19 @@ args <- p$parse_args(commandArgs(TRUE))
 #####################
 
 ## START TEST ##
-args$seurat <- file.path(io$basedir,"processed_new/seurat.rds")
-args$metadata <- file.path(io$basedir,"results_new/mapping/sample_metadata_after_mapping.txt.gz")
-args$classes <- "TET_TKO"
-args$features <- 2500
-args$npcs <- 30
-args$colour_by <- c("celltype.mapped","sample","stage","nFeature_RNA")
-args$batch_correction <- "stage"
-args$vars_to_regress <- c("nFeature_RNA")
-args$n_neighbors <- 25
-args$min_dist <- 0.5
-args$seed <- 42
-args$outdir <- file.path(io$basedir,"results_new/dimensionality_reduction/seurat")
-args$remove_ExE_cells <- TRUE
+# args$seurat <- file.path(io$basedir,"processed_new/seurat.rds")
+# args$metadata <- file.path(io$basedir,"results_new/mapping/sample_metadata_after_mapping.txt.gz")
+# args$classes <- "TET_TKO"
+# args$features <- 2500
+# args$npcs <- 30
+# args$colour_by <- c("celltype.mapped","sample","stage","nFeature_RNA")
+# args$batch_correction <- "stage"
+# args$vars_to_regress <- c("nFeature_RNA")
+# args$n_neighbors <- 25
+# args$min_dist <- 0.5
+# args$seed <- 42
+# args$outdir <- file.path(io$basedir,"results_new/dimensionality_reduction/seurat")
+# args$remove_ExE_cells <- TRUE
 ## END TEST ##
 
 # if (isTRUE(args$test)) print("Test mode activated...")

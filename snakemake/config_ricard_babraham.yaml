@@ -5,28 +5,51 @@ samples:
     - E85_Rep1_WT_Host_L003
     - E85_Rep2_TET_TKO_L006
     - E85_Rep2_WT_Host_L005
-    - SIGAC2_TET_TKO_E9_5_Head1
-    - SIGAD2_TET_TKO_E9_5_Trunk1
-    - SIGAE2_TET_TKO_E9_5_Tail1
-    - SIGAE6_TET_TKO_E9_5_Head2
-    - SIGAF2_TET_TKO_E9_5_YS1
-    - SIGAF6_TET_TKO_E9_5_Trunk2
-    - SIGAG6_TET_TKO_E9_5_Tail2
-    - SIGAH6_TET_TKO_E9_5_YS2
+    # - SIGAC2_TET_TKO_E9_5_Head1
+    # - SIGAD2_TET_TKO_E9_5_Trunk1
+    # - SIGAE2_TET_TKO_E9_5_Tail1
+    # - SIGAE6_TET_TKO_E9_5_Head2
+    # - SIGAF2_TET_TKO_E9_5_YS1
+    # - SIGAF6_TET_TKO_E9_5_Trunk2
+    # - SIGAG6_TET_TKO_E9_5_Tail2
+    # - SIGAH6_TET_TKO_E9_5_YS2
     - E8_5_TET_WT_rep1_SIGAG8
     - E8_5_TET_WT_rep2_SIGAH8
 
+    # WT controls from Carolina
+    - E7.5_batch_1_tdTomato+
+    - E7.5_batch_1_tdTomato-
+    - E7.5_batch_2_tdTomato+
+    - E7.5_batch_2_tdTomato-
+    - E8.5_batch_3_tdTomato+
+    - E8.5_batch_3_tdTomato-
+    - E8.5_batch_4_tdTomato+
+    - E8.5_batch_4_tdTomato-
+    - E8.5_batch_5_tdTomato+
+    - E8.5_batch_5_tdTomato-
+
 classes:
+    # - TET_TKO
+    # - WT
+    - WT_tdTomato+
+    - WT_tdTomato-
     - TET_TKO
-    - WT
+
 
 stage_classes:
-    - E7.5_Host
-    - E7.5_TET_TKO
-    - E8.5_Host
-    - E8.5_TET_TKO
-    - E8.5_WT
+    # - E7.5_WT
+    # - E7.5_TET_TKO
+    # - E8.5_WT
+    # - E8.5_TET_TKO
     # - E9.5_TET_TKO
+    - E7.5_WT_tdTomato+
+    - E7.5_WT_tdTomato-
+    - E7.5_TET_TKO
+    - E8.5_WT_tdTomato+
+    - E8.5_WT_tdTomato-
+    - E8.5_TET_TKO
+)
+
 
 stages: ["E7.5","E8.5"]
 

@@ -72,7 +72,7 @@ opts$rename_celltypes <- c(
 
 sample_metadata <- fread(io$metadata) %>%
   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,opts$rename_celltypes)] %>%
-  .[pass_rnaQC==TRUE & celltype.mapped%in%args$celltypes]
+  .[pass_rnaQC==TRUE & celltype.mapped%in%args$celltypes & sample%in%opts$samples]
 
 stopifnot(args$group_label%in%colnames(sample_metadata))
 
@@ -82,6 +82,7 @@ sample_metadata <- sample_metadata %>%
   .[group%in%c(args$groupA,args$groupB)] %>%
   .[,group:=factor(group,levels=opts$groups)] %>% setorder(group) # Sort cells so that groupA comes before groupB
 
+table(sample_metadata$sample)
 table(sample_metadata$group)
 
 #########################

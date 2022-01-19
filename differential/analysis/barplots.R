@@ -13,7 +13,7 @@ source(here::here("utils.R"))
 
 # I/O
 io$indir <- file.path(io$basedir,"results_new/differential")
-io$outdir <- file.path(io$basedir,"results_new/differential/pdf/volcano_plots"); dir.create(io$outdir, showWarnings = F)
+io$outdir <- file.path(io$basedir,"results_new/differential/pdf"); dir.create(io$outdir, showWarnings = F)
 
 # Options
 opts$min.cells <- 50
@@ -36,7 +36,7 @@ diff.dt <- diff.dt[groupA_N>=opts$min.cells & groupB_N>=opts$min.cells]
 
 # Filter out genes manually
 # dt.filt <- dt.filt[!grep("[^Rik|^Gm|^Rpl]",gene)]
-# dt.filt <- dt.filt[!grep("^Hb",gene)]
+diff.dt <- diff.dt[!grep("^Hb",gene)]
 
 # Subset to lineage markers
 marker_genes.dt <- fread(io$atlas.marker_genes)# %>% .[,ExE:=celltype%in%opts$ExE.celltypes]
@@ -49,7 +49,6 @@ diff_markers.dt <- diff.dt[gene%in%unique(marker_genes.dt$gene)]
 to.plot <- diff_markers.dt %>% copy %>%
   .[,.(N=sum(sig,na.rm=T)) ,by=c("celltype","class")]
 
-to.plot[N>=125,N:=125]
 
 p <- ggplot(to.plot, aes(x=celltype, y=N)) +
   geom_bar(aes(fill = celltype), color="black", stat = 'identity') + 
@@ -82,8 +81,6 @@ dev.off()
 to.plot <- diff_markers.dt[sig==T] %>%
   .[,.N, by=c("celltype","class")]
 
-to.plot[N>=150,N:=150]
-
 p <- ggplot(to.plot, aes(x=celltype, y=N)) +
   geom_bar(aes(fill = celltype), color="black", stat = 'identity') + 
   # facet_wrap(~class, nrow=1) +
@@ -94,13 +91,13 @@ p <- ggplot(to.plot, aes(x=celltype, y=N)) +
   theme(
     legend.position = "none",
     axis.line = element_blank(),
-    # axis.text.x = element_text(color="black", size=rel(0.75))
-    axis.text.x = element_blank(),
-    axis.ticks.x = element_blank()
+    axis.text.x = element_text(color="black", size=rel(0.75))
+    # axis.text.x = element_blank(),
+    # axis.ticks.x = element_blank()
   )
 
 
-pdf(file.path(io$outdir,"DE_barplots_marker_genes.pdf"), width=15, height=4)
+pdf(file.path(io$outdir,"DE_barplots_marker_genes.pdf"), width=8, height=4)
 print(p)
 dev.off()
 
@@ -114,18 +111,18 @@ to.plot <- diff_markers.dt[sig==T] %>%
 
 p <- ggplot(to.plot, aes(x=factor(celltype), y=N)) +
   geom_bar(aes(fill = direction), color="black", stat="identity") + 
-  facet_wrap(~class, scales="free_y") +
+  # facet_wrap(~class, scales="free_y") +
   labs(x="", y="Number of DE genes") +
   guides(x = guide_axis(angle = 90)) +
-  theme_bw() +
+  theme_classic() +
   theme(
     legend.position = "top",
     legend.title = element_blank(),
-    axis.line = element_blank(),
+    # axis.line = element_blank(),
     axis.text.x = element_text(color="black", size=rel(0.75))
   )
 
-pdf(file.path(io$outdir,"DE_barplots_marker_genes_direction.pdf"), width=11, height=8)
+pdf(file.path(io$outdir,"DE_barplots_marker_genes_direction.pdf"), width=8, height=4.5)
 print(p)
 dev.off()
 

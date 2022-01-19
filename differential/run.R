@@ -47,7 +47,6 @@ print(table(sample_metadata$celltype.mapped,sample_metadata$class))
 
 opts$min.cells <- 50
 
-
 # Define cell types to use 
 celltypes.to.use <- sample_metadata %>% .[class==opts$ko.class,.N,by="celltype.mapped"] %>% .[N>=opts$min.cells,celltype.mapped]
 

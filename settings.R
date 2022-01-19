@@ -180,38 +180,42 @@ opts$samples <- c(
   # "SIGAH6_TET_TKO_E9_5_YS2",
   
   # Fifth batch
-  # "E8_5_TET_WT_rep1_SIGAG8",
-  # "E8_5_TET_WT_rep2_SIGAH8"
+  "E8_5_TET_WT_rep1_SIGAG8",
+  "E8_5_TET_WT_rep2_SIGAH8",
+
+  # WT controls from Carolina
+  "E7.5_batch_1_tomato+",  # sample_1
+  "E7.5_batch_1_tomato-",  # sample_2
+  "E7.5_batch_2_tomato+",  # sample_3
+  "E7.5_batch_2_tomato-",  # sample_4
+  "E8.5_batch_3_tomato+",  # sample_5
+  "E8.5_batch_3_tomato-",  # sample_6
+  "E8.5_batch_4_tomato+",  # sample_7
+  "E8.5_batch_4_tomato-",  # sample_8
+  "E8.5_batch_5_tomato+",  # sample_9
+  "E8.5_batch_5_tomato-"  # sample_10
 )
 
-# OLD
-# opts$classes <- c(
-#   "E7.5_Host", 
-#   "E7.5_TET_TKO", 
-#   "E8.5_Host", 
-#   "E8.5_TET_TKO",
-#   "E8.5_WT",
-#   "E9.5_TET_TKO"
-# )
-
 opts$stage_classes <- c(
-  "E7.5_WT", 
+  "E7.5_WT_tdTomato+", 
+  "E7.5_WT_tdTomato-", 
   "E7.5_TET_TKO", 
-  "E8.5_WT",
+  "E8.5_WT_tdTomato+",
+  "E8.5_WT_tdTomato-",
   "E8.5_TET_TKO"
   # "E9.5_TET_TKO"
 )
 
-opts$classes <- c("WT", "TET_TKO")
+opts$classes <- c("WT_tdTomato+", "WT_tdTomato-", "TET_TKO")
 
 
 opts$sample2class <- c(
   "E75_TET_TKO_L002" = "TET_TKO",
-  "E75_WT_Host_L001" = "WT",
+  "E75_WT_Host_L001" = "WT_tdTomato-",
   "E85_Rep1_TET_TKO_L004" = "TET_TKO",
-  "E85_Rep1_WT_Host_L003" = "WT",
+  "E85_Rep1_WT_Host_L003" = "WT_tdTomato-",
   "E85_Rep2_TET_TKO_L006" = "TET_TKO",
-  "E85_Rep2_WT_Host_L005" = "WT"
+  "E85_Rep2_WT_Host_L005" = "WT_tdTomato-",
   # "SIGAC2_TET_TKO_E9_5_Head1" = "TET_TKO",
   # "SIGAD2_TET_TKO_E9_5_Trunk1" = "TET_TKO",
   # "SIGAE2_TET_TKO_E9_5_Tail1" = "TET_TKO",
@@ -220,8 +224,19 @@ opts$sample2class <- c(
   # "SIGAF6_TET_TKO_E9_5_Trunk2" = "TET_TKO",
   # "SIGAG6_TET_TKO_E9_5_Tail2" = "TET_TKO",
   # "SIGAH6_TET_TKO_E9_5_YS2" = "TET_TKO",
-  # "E8_5_TET_WT_rep1_SIGAG8" = "WT",
-  # "E8_5_TET_WT_rep2_SIGAH8" = "WT"
+  "E8_5_TET_WT_rep1_SIGAG8" = "TET_TKO",
+  "E8_5_TET_WT_rep2_SIGAH8" = "TET_TKO",
+
+  "E7.5_batch_1_tomato-" = "WT_tdTomato-",
+  "E7.5_batch_1_tomato+" = "WT_tdTomato+",
+  "E7.5_batch_2_tomato-" = "WT_tdTomato-",
+  "E7.5_batch_2_tomato+" = "WT_tdTomato+",
+  "E8.5_batch_3_tomato-" = "WT_tdTomato-",
+  "E8.5_batch_3_tomato+" = "WT_tdTomato+",
+  "E8.5_batch_4_tomato-" = "WT_tdTomato-",
+  "E8.5_batch_4_tomato+" = "WT_tdTomato+",
+  "E8.5_batch_5_tomato-" = "WT_tdTomato-",
+  "E8.5_batch_5_tomato+" = "WT_tdTomato+"
 )
 
 opts$stages <- c(
@@ -237,13 +252,13 @@ names(opts$stage.colors) <- rev(opts$stages)
 
 opts$sample2alias <- c(
   "E75_TET_TKO_L002"           = "E7.5_Tet_TKO",
-  "E75_WT_Host_L001"           = "E7.5_WT_Host",
+  "E75_WT_Host_L001"           = "E7.5_WT_tdTomato-",
   "E85_Rep1_TET_TKO_L004"      = "E8.5_Tet_TKO_1",
-  "E85_Rep1_WT_Host_L003"      = "E8.5_WT_Host_1",
+  "E85_Rep1_WT_Host_L003"      = "E8.5_WT_tdTomato-_1",
   "E85_Rep2_TET_TKO_L006"      = "E8.5_Tet_TKO_2",
-  "E85_Rep2_WT_Host_L005"      = "E8.5_WT_Host_2",
-  # "E8_5_TET_WT_rep1_SIGAG8"    = "E8.5_Tet_WT_Chimaera_1",
-  # "E8_5_TET_WT_rep2_SIGAH8"    = "E8.5_Tet_WT_Chimaera_2"
+  "E85_Rep2_WT_Host_L005"      = "E8.5_WT_tdTomato-_2",
+  "E8_5_TET_WT_rep1_SIGAG8"    = "E8.5_Tet_TKO_3",
+  "E8_5_TET_WT_rep2_SIGAH8"    = "E8.5_Tet_TKO_4",
   # "SIGAC2_TET_TKO_E9_5_Head1"  = "E9.5_Tet_TKO_Head_1",
   # "SIGAD2_TET_TKO_E9_5_Trunk1" = "E9.5_Tet_TKO_Trunk_1",
   # "SIGAE2_TET_TKO_E9_5_Tail1"  = "E9.5_Tet_TKO_Tail_1",
@@ -252,6 +267,16 @@ opts$sample2alias <- c(
   # "SIGAF6_TET_TKO_E9_5_Trunk2" = "E9.5_Tet_TKO_Trunk_2",
   # "SIGAG6_TET_TKO_E9_5_Tail2"  = "E9.5_Tet_TKO_Tail_2",
   # "SIGAH6_TET_TKO_E9_5_YS2"    = "E9.5_Tet_TKO_Yolk_Sac_2" 
+  "E7.5_batch_1_tomato-" = "E8.5_WT_tdTomato-_3",
+  "E7.5_batch_1_tomato+" = "E8.5_WT_tdTomato+_4",
+  "E7.5_batch_2_tomato-" = "E8.5_WT_tdTomato-_5",
+  "E7.5_batch_2_tomato+" = "E8.5_WT_tdTomato+_6",
+  "E8.5_batch_3_tomato-" = "E8.5_WT_tdTomato-_7",
+  "E8.5_batch_3_tomato+" = "E8.5_WT_tdTomato+_8",
+  "E8.5_batch_4_tomato-" = "E8.5_WT_tdTomato-_9",
+  "E8.5_batch_4_tomato+" = "E8.5_WT_tdTomato+_10",
+  "E8.5_batch_5_tomato-" = "E8.5_WT_tdTomato-_11",
+  "E8.5_batch_5_tomato+" = "E8.5_WT_tdTomato+_12"
 )
 
 ##########################
