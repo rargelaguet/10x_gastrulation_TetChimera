@@ -17,7 +17,7 @@ samples:
     - E8_5_TET_WT_rep2_SIGAH8
 
     # WT controls from Carolina
-    - E7.5_batch_1_tdTomato+
+    - E7.5_batch_1_tdTomato+ 
     - E7.5_batch_1_tdTomato-
     - E7.5_batch_2_tdTomato+
     - E7.5_batch_2_tdTomato-
@@ -48,7 +48,6 @@ stage_classes:
     - E8.5_WT_tdTomato+
     - E8.5_WT_tdTomato-
     - E8.5_TET_TKO
-)
 
 
 stages: ["E7.5","E8.5"]
@@ -60,8 +59,8 @@ stages: ["E7.5","E8.5"]
 directories:
     base: /bi/group/reik/ricard/data/10x_gastrulation_TetChimera
     original_data: /bi/group/reik/ricard/data/10x_gastrulation_TetChimera/original
-    processed_data: /bi/group/reik/ricard/data/10x_gastrulation_TetChimera/processed_new
-    results: /bi/group/reik/ricard/data/10x_gastrulation_TetChimera/results_new
+    processed_data: /bi/group/reik/ricard/data/10x_gastrulation_TetChimera/processed_all
+    results: /bi/group/reik/ricard/data/10x_gastrulation_TetChimera/results_all
     atlas: /bi/group/reik/ricard/data/pijuansala2019_gastrulation10x
 
 ###############
@@ -100,7 +99,7 @@ scripts:
 
 params:
     qc:
-        min_nFeature_RNA: 1000
+        min_nFeature_RNA: 1500
         max_nFeature_RNA: 10000
         percent_mt: 30
         percent_rib: 35
@@ -154,16 +153,16 @@ params:
 
 slurm:  # memory in MB
     create_seurat: 
-        memory: 25000
+        memory: 20000
         threads: 1
     qc: 
-        memory: 5000
+        memory: 2000
         threads: 1
     seurat_to_sce:
-        memory: 25000
+        memory: 30000
         threads: 1
     doublet_detection:
-        memory: 15000
+        memory: 12000
         threads: 1
     parse_doublet_results:
         memory: 2000

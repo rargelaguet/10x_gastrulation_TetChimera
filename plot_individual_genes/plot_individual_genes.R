@@ -8,7 +8,9 @@ source(here::here("utils.R"))
 #####################
 
 # I/O ##
-io$outdir <- file.path(io$basedir,"results_new/individual_genes/test"); dir.create(io$outdir, showWarnings = F)
+io$metadata <- file.path(io$basedir,"results_all/mapping/sample_metadata_after_mapping.txt.gz")
+io$sce <- file.path(io$basedir,"processed_all/SingleCellExperiment.rds")
+io$outdir <- file.path(io$basedir,"results_all/individual_genes"); dir.create(io$outdir, showWarnings = F)
 
 ## Define options ##
 
@@ -54,22 +56,44 @@ opts$celltypes = c(
 )
 
 # Define classes to plot
+# opts$stage_classes <- c(
+#   "E7.5_WT", 
+#   "E7.5_TET_TKO", 
+#   "E8.5_WT",
+#   "E8.5_TET_TKO"
+#   # "E9.5_TET_TKO"
+# )
+
 opts$stage_classes <- c(
-  "E7.5_WT", 
+  "E7.5_WT_tdTomato+", 
+  "E7.5_WT_tdTomato-", 
   "E7.5_TET_TKO", 
-  "E8.5_WT",
+  "E8.5_WT_tdTomato+", 
+  "E8.5_WT_tdTomato-", 
   "E8.5_TET_TKO"
   # "E9.5_TET_TKO"
 )
 
+
+
 # Define colors
+# opts$stage_class_colors <- c(
+#   "E7.5_WT" = "#CCCCCC", 
+#   "E7.5_TET_TKO" = "#FF7F50", 
+#   "E8.5_WT" = "#B0B0B0", 
+#   "E8.5_TET_TKO" = "#EE4000",
+#   "E8.5_WT" = "#B0B0B0"
+#   # "E9.5_TET_TKO" = "#B22222"
+# )
+
 opts$stage_class_colors <- c(
-  "E7.5_WT" = "#CCCCCC", 
-  "E7.5_TET_TKO" = "#FF7F50", 
-  "E8.5_WT" = "#B0B0B0", 
-  "E8.5_TET_TKO" = "#EE4000",
-  "E8.5_WT" = "#B0B0B0"
-  # "E9.5_TET_TKO" = "#B22222"
+  "E7.5_WT_tdTomato++" = "#CCCCCC", 
+  "E7.5_WT_tdTomato-" = "#CCCCCC", 
+  "E7.5_TET_TKO"  = "#FF7F50", 
+  "E8.5_WT_tdTomato++" = "#B0B0B0", 
+  "E8.5_WT_tdTomato-" = "#B0B0B0", 
+  "E8.5_TET_TKO" = "#EE4000"
+  # "E9.5_TET_TKO"
 )
 
 opts$min.cells <- 25

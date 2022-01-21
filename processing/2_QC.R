@@ -13,7 +13,7 @@ p$add_argument('--min_nFeature_RNA',       type="integer",                    he
 p$add_argument('--max_nFeature_RNA',       type="integer",                    help='Maximum number of expressed genes')
 p$add_argument('--mit_percent_RNA',       type="integer",                    help='Maximum percentage of mit reads')
 p$add_argument('--rib_percent_RNA',       type="integer",                    help='Maximum percentage of rib reads')
-p$add_argument('--samples',         type="character",       nargs="+",   help='Samples')
+# p$add_argument('--samples',         type="character",       nargs="+",   help='Samples')
 args <- p$parse_args(commandArgs(TRUE))
 
 #####################
@@ -22,13 +22,13 @@ args <- p$parse_args(commandArgs(TRUE))
 
 ## START TEST ##
 # args <- list()
-# args$samples <- opts$samples
-# args$metadata <- paste0(io$basedir,"/processed_new/metadata.txt.gz")
-# args$min_nFeature_RNA <- 1000
+# # args$samples <- opts$samples
+# args$metadata <- paste0(io$basedir,"/processed_all/metadata.txt.gz")
+# args$min_nFeature_RNA <- 1500
 # args$max_nFeature_RNA <- 10000
 # args$mit_percent_RNA <- 30
 # args$rib_percent_RNA <- 35
-# args$outdir <- paste0(io$basedir,"/results_new/qc")
+# args$outdir <- paste0(io$basedir,"/results_all/qc")
 ## END TEST ##
 
 # Sanity checks
@@ -39,8 +39,12 @@ stopifnot(args$samples%in%opts$samples)
 ###############
 
 metadata <- fread(args$metadata) %>% 
-    .[sample%in%args$samples] %>%
+    # .[sample%in%args$samples] %>%
     .[,pass_rnaQC:=nFeature_RNA<=args$max_nFeature_RNA & nFeature_RNA>=args$min_nFeature_RNA & mit_percent_RNA<args$mit_percent_RNA & rib_percent_RNA<args$rib_percent_RNA]
+
+table(metadata$sample)
+table(metadata$stage)
+table(metadata$pass_rnaQC)
 
 #####################################
 ## Plot QC metrics before QC calls ##

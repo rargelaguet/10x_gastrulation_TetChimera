@@ -23,8 +23,8 @@ args <- p$parse_args(commandArgs(TRUE))
 ## START TEST ##
 # args <- list()
 # args$inputdir <- paste0(io$basedir,"/original/td_tomato/all_batches_symbolic")
-# args$outdir <- paste0(io$basedir,"/processed_new")
-# args$samples <- opts$samples[1:2]
+# args$outdir <- paste0(io$basedir,"/processed_all")
+# args$samples <- c("E75_TET_TKO_L002","E8_5_TET_WT_rep1_SIGAG8","E7.5_batch_2_tdTomato-","E8.5_batch_5_tdTomato+") # opts$samples[1:2]
 # args$test <- FALSE
 ## END TEST ##
 
@@ -122,21 +122,27 @@ metadata <- seurat@meta.data %>% as.data.table %>% .[,orig.ident:=NULL] %>%
 
 # Add stage information
 metadata[,stage:=as.character(NA)] %>%
-  .[grepl("E75",sample),stage:="E7.5"] %>%
+  .[grepl("E7",sample),stage:="E7.5"] %>%
   .[grepl("E8",sample),stage:="E8.5"] %>%
-  .[grepl("E9_5",sample),stage:="E9.5"]
+  .[grepl("E9",sample),stage:="E9.5"]
 print(table(metadata$stage))
 stopifnot(!is.na(metadata$stage))
 
 # Add class information
 stopifnot(metadata$sample%in%names(opts$sample2class))
-metadata[,class:=stringr::str_replace_all(sample,opts$sample2class)]
+metadata[,class:=opts$sample2class[sample]]
 print(table(metadata$class))
 stopifnot(!is.na(metadata$class))
 
+# Add class information
+stopifnot(metadata$sample%in%names(opts$sample2class))
+metadata[,class2:=ifelse(grepl("WT",alias),"WT","TET_TKO")]
+print(table(metadata$class2))
+stopifnot(!is.na(metadata$class2))
+
 # Add alias
 stopifnot(metadata$sample%in%names(opts$sample2alias))
-metadata[,alias:=stringr::str_replace_all(sample,opts$sample2alias)]
+metadata[,alias:=opts$sample2alias[sample]]
 print(table(metadata$alias))
 stopifnot(!is.na(metadata$alias))
 

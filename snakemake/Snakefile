@@ -28,14 +28,14 @@ rule all:
     input: 
         config["directories"]["processed_data"]+"/seurat.rds",
         config["directories"]["results"]+"/qc/sample_metadata_after_qc.txt.gz",
-        config["directories"]["processed_data"]+"/SingleCellExperiment.rds"
-        # config["directories"]["results"]+"/doublet_detection/sample_metadata_after_doublets.txt.gz",
+        config["directories"]["processed_data"]+"/SingleCellExperiment.rds",
+        config["directories"]["results"]+"/doublet_detection/sample_metadata_after_doublets.txt.gz",
         # expand("%s/mapping/mapping_mnn_all_samples.txt.gz" % config["directories"]["results"]),
-        # expand("%s/mapping/mapping_mnn_{sample}.txt.gz" % config["directories"]["results"], sample=config["samples"]),
-        # config["directories"]["results"]+"/mapping/sample_metadata_after_mapping.txt.gz",
+        expand("%s/mapping/mapping_mnn_{sample}.txt.gz" % config["directories"]["results"], sample=config["samples"]),
+        config["directories"]["results"]+"/mapping/sample_metadata_after_mapping.txt.gz",
         # config["directories"]["results"]+"/mapping/sample_metadata_after_mapping_all_samples.txt.gz",
-        # expand("%s/mapping/pdf/umap_mapped_allcells.pdf" % config["directories"]["results"]),
-        # config["directories"]["results"]+"/celltype_proportions/completed.txt",
+        expand("%s/mapping/pdf/umap_mapped_allcells.pdf" % config["directories"]["results"]),
+        config["directories"]["results"]+"/celltype_proportions/completed.txt"
 
         # expand("%s/dimensionality_reduction/sce/per_sample/{sample}/pca_features{dimred_sce_sample_features}_pcs{dimred_sce_sample_npcs}.txt.gz" % (config["directories"]["results"]),
         #     sample=config["samples"],

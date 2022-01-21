@@ -41,9 +41,9 @@ if (grepl("ricard",Sys.info()['nodename'])) {
 }
 
 io$metadata <- paste0(io$basedir,"/sample_metadata.txt.gz")
-io$seurat <- paste0(io$basedir,"/processed_new/seurat.rds")
-io$sce <- paste0(io$basedir,"/processed_new/SingleCellExperiment.rds")
-io$anndata <- paste0(io$basedir,"/processed_new/anndata.h5ad")
+io$seurat <- paste0(io$basedir,"/processed_all/seurat.rds")
+io$sce <- paste0(io$basedir,"/processed_all/SingleCellExperiment.rds")
+# io$anndata <- paste0(io$basedir,"/processed_all/anndata.h5ad")
 
 # Atlas information
 io$atlas.metadata <- paste0(io$atlas.basedir,"/sample_metadata.txt.gz")
@@ -184,16 +184,16 @@ opts$samples <- c(
   "E8_5_TET_WT_rep2_SIGAH8",
 
   # WT controls from Carolina
-  "E7.5_batch_1_tomato+",  # sample_1
-  "E7.5_batch_1_tomato-",  # sample_2
-  "E7.5_batch_2_tomato+",  # sample_3
-  "E7.5_batch_2_tomato-",  # sample_4
-  "E8.5_batch_3_tomato+",  # sample_5
-  "E8.5_batch_3_tomato-",  # sample_6
-  "E8.5_batch_4_tomato+",  # sample_7
-  "E8.5_batch_4_tomato-",  # sample_8
-  "E8.5_batch_5_tomato+",  # sample_9
-  "E8.5_batch_5_tomato-"  # sample_10
+  "E7.5_batch_1_tdTomato+",  # sample_1
+  "E7.5_batch_1_tdTomato-",  # sample_2
+  "E7.5_batch_2_tdTomato+",  # sample_3
+  "E7.5_batch_2_tdTomato-",  # sample_4
+  "E8.5_batch_3_tdTomato+",  # sample_5
+  "E8.5_batch_3_tdTomato-",  # sample_6
+  "E8.5_batch_4_tdTomato+",  # sample_7
+  "E8.5_batch_4_tdTomato-",  # sample_8
+  "E8.5_batch_5_tdTomato+",  # sample_9
+  "E8.5_batch_5_tdTomato-"  # sample_10
 )
 
 opts$stage_classes <- c(
@@ -227,16 +227,16 @@ opts$sample2class <- c(
   "E8_5_TET_WT_rep1_SIGAG8" = "TET_TKO",
   "E8_5_TET_WT_rep2_SIGAH8" = "TET_TKO",
 
-  "E7.5_batch_1_tomato-" = "WT_tdTomato-",
-  "E7.5_batch_1_tomato+" = "WT_tdTomato+",
-  "E7.5_batch_2_tomato-" = "WT_tdTomato-",
-  "E7.5_batch_2_tomato+" = "WT_tdTomato+",
-  "E8.5_batch_3_tomato-" = "WT_tdTomato-",
-  "E8.5_batch_3_tomato+" = "WT_tdTomato+",
-  "E8.5_batch_4_tomato-" = "WT_tdTomato-",
-  "E8.5_batch_4_tomato+" = "WT_tdTomato+",
-  "E8.5_batch_5_tomato-" = "WT_tdTomato-",
-  "E8.5_batch_5_tomato+" = "WT_tdTomato+"
+  "E7.5_batch_1_tdTomato-" = "WT_tdTomato-",
+  "E7.5_batch_1_tdTomato+" = "WT_tdTomato+",
+  "E7.5_batch_2_tdTomato-" = "WT_tdTomato-",
+  "E7.5_batch_2_tdTomato+" = "WT_tdTomato+",
+  "E8.5_batch_3_tdTomato-" = "WT_tdTomato-",
+  "E8.5_batch_3_tdTomato+" = "WT_tdTomato+",
+  "E8.5_batch_4_tdTomato-" = "WT_tdTomato-",
+  "E8.5_batch_4_tdTomato+" = "WT_tdTomato+",
+  "E8.5_batch_5_tdTomato-" = "WT_tdTomato-",
+  "E8.5_batch_5_tdTomato+" = "WT_tdTomato+"
 )
 
 opts$stages <- c(
@@ -267,16 +267,16 @@ opts$sample2alias <- c(
   # "SIGAF6_TET_TKO_E9_5_Trunk2" = "E9.5_Tet_TKO_Trunk_2",
   # "SIGAG6_TET_TKO_E9_5_Tail2"  = "E9.5_Tet_TKO_Tail_2",
   # "SIGAH6_TET_TKO_E9_5_YS2"    = "E9.5_Tet_TKO_Yolk_Sac_2" 
-  "E7.5_batch_1_tomato-" = "E8.5_WT_tdTomato-_3",
-  "E7.5_batch_1_tomato+" = "E8.5_WT_tdTomato+_4",
-  "E7.5_batch_2_tomato-" = "E8.5_WT_tdTomato-_5",
-  "E7.5_batch_2_tomato+" = "E8.5_WT_tdTomato+_6",
-  "E8.5_batch_3_tomato-" = "E8.5_WT_tdTomato-_7",
-  "E8.5_batch_3_tomato+" = "E8.5_WT_tdTomato+_8",
-  "E8.5_batch_4_tomato-" = "E8.5_WT_tdTomato-_9",
-  "E8.5_batch_4_tomato+" = "E8.5_WT_tdTomato+_10",
-  "E8.5_batch_5_tomato-" = "E8.5_WT_tdTomato-_11",
-  "E8.5_batch_5_tomato+" = "E8.5_WT_tdTomato+_12"
+  "E7.5_batch_1_tdTomato-" = "E8.5_WT_tdTomato-_3",
+  "E7.5_batch_1_tdTomato+" = "E8.5_WT_tdTomato+_4",
+  "E7.5_batch_2_tdTomato-" = "E8.5_WT_tdTomato-_5",
+  "E7.5_batch_2_tdTomato+" = "E8.5_WT_tdTomato+_6",
+  "E8.5_batch_3_tdTomato-" = "E8.5_WT_tdTomato-_7",
+  "E8.5_batch_3_tdTomato+" = "E8.5_WT_tdTomato+_8",
+  "E8.5_batch_4_tdTomato-" = "E8.5_WT_tdTomato-_9",
+  "E8.5_batch_4_tdTomato+" = "E8.5_WT_tdTomato+_10",
+  "E8.5_batch_5_tdTomato-" = "E8.5_WT_tdTomato-_11",
+  "E8.5_batch_5_tdTomato+" = "E8.5_WT_tdTomato+_12"
 )
 
 ##########################
@@ -294,10 +294,10 @@ opts$sample2alias <- c(
 ## E9.5 ##
 ##########
 
-# metadata <- fread("/Users/argelagr/data/10x_gastrulation_TetChimera/results_new/mapping/sample_metadata_after_mapping.txt.gz")
+# metadata <- fread("/Users/argelagr/data/10x_gastrulation_TetChimera/results_all/mapping/sample_metadata_after_mapping.txt.gz")
 # sample_metadata[,region:=sample_metadata$batch %>% strsplit("_")  %>% map_chr(6) %>% substr(.,1,nchar(.)-1)]
 # stopifnot(metadata$sample%in%names(opts$sample2alias))
 # metadata[,alias:=stringr::str_replace_all(sample,opts$sample2alias)]
 # print(table(metadata$alias))
 # stopifnot(!is.na(metadata$alias))
-# fwrite(metadata, "/Users/argelagr/data/10x_gastrulation_TetChimera/results_new/mapping/sample_metadata_after_mapping.txt.gz", sep="\t", na="NA", quote=F)
+# fwrite(metadata, "/Users/argelagr/data/10x_gastrulation_TetChimera/results_all/mapping/sample_metadata_after_mapping.txt.gz", sep="\t", na="NA", quote=F)

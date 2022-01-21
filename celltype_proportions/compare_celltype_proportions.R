@@ -19,12 +19,13 @@ args <- p$parse_args(commandArgs(TRUE))
 #####################
 
 ## START TEST ##
-args$metadata <- file.path(io$basedir,"results_new/mapping/sample_metadata_after_mapping.txt.gz")
+args$metadata <- file.path(io$basedir,"results_all/mapping/sample_metadata_after_mapping.txt.gz")
 # args$celltype_label <- "celltype.mapped"
-args$outdir <- file.path(io$basedir,"results_new/celltype_proportions/comparisons/test")
+args$outdir <- file.path(io$basedir,"results_all/celltype_proportions/comparisons")
 ## END TEST ##
 
 # I/O
+dir.create(args$outdir, showWarnings = F, recursive = T)
 dir.create(file.path(args$outdir,"boxplots"), showWarnings = F)
 dir.create(file.path(args$outdir,"boxplots/per_class"), showWarnings = F)
 dir.create(file.path(args$outdir,"boxplots/per_sample"), showWarnings = F)
@@ -36,24 +37,26 @@ dir.create(file.path(args$outdir,"polar_plots/per_sample"), showWarnings = F)
 ## Define options ##
 ####################
 
-opts$samples <- c(
-  "E75_TET_TKO_L002",
-  "E75_WT_Host_L001",
-  "E85_Rep1_TET_TKO_L004",
-  "E85_Rep1_WT_Host_L003",
-  "E85_Rep2_TET_TKO_L006",
-  "E85_Rep2_WT_Host_L005"
-)
+# opts$samples <- c(
+#   "E75_TET_TKO_L002",
+#   "E75_WT_Host_L001",
+#   "E85_Rep1_TET_TKO_L004",
+#   "E85_Rep1_WT_Host_L003",
+#   "E85_Rep2_TET_TKO_L006",
+#   "E85_Rep2_WT_Host_L005"
+# )
 
-opts$classes <- c(
-  "E7.5_WT", 
-  "E7.5_TET_TKO", 
-  "E8.5_WT",
-  "E8.5_TET_TKO",
-  "E9.5_TET_TKO"
-)
+# opts$classes <- c(
+#   "E7.5_WT", 
+#   "E7.5_TET_TKO", 
+#   "E8.5_WT",
+#   "E8.5_TET_TKO",
+#   "E9.5_TET_TKO"
+# )
 
-opts$wt.classes <- c("E7.5_WT","E8.5_WT")
+# opts$wt.classes <- c("E7.5_WT","E8.5_WT")
+# opts$wt.classes <- c("E7.5_WT_tdTomato+","E8.5_WT_tdTomato++")
+opts$wt.classes <- c("E7.5_WT_tdTomato-","E8.5_WT_tdTomato-","E7.5_WT_tdTomato+","E8.5_WT_tdTomato+")
   
 opts$celltypes = c(
   "Epiblast",
@@ -120,7 +123,7 @@ sample_metadata <- fread(args$metadata) %>%
   .[pass_rnaQC==TRUE & celltype.mapped%in%opts$celltypes & sample%in%opts$samples] %>%
   .[,stage_class:=sprintf("%s_%s",stage,class)] %>%
   .[,celltype.mapped:=stringr::str_replace_all(celltype.mapped,opts$to.merge)] %>%
-  .[,c("cell","sample","stage","class","stage_class","celltype.mapped")]
+  .[,c("cell","sample","alias","stage","class","stage_class","celltype.mapped")]
 
 ##################
 ## Filter cells ##
@@ -135,7 +138,8 @@ if (opts$remove.small.lineages) {
 }
 
 # Print statistics
-table(sample_metadata$sample)
+table(sample_metadata$stage_class)
+table(sample_metadata$alias)
 table(sample_metadata$celltype.mapped)
 
 ####################################
@@ -146,19 +150,19 @@ table(sample_metadata$celltype.mapped)
 wt_proportions.dt <- sample_metadata %>%
   .[stage_class%in%opts$wt.classes] %>%
   .[,ncells:=.N] %>%
-  .[,.(proportion=.N/unique(ncells), N=round(.N/length(unique(sample)))),by=c("celltype.mapped","stage")]
+  .[,.(proportion=.N/unique(ncells), N=round(.N/length(unique(alias)))),by=c("celltype.mapped","stage")]
 
 # Calculate celltype proportions for KO samples
 # ko_proportions_per_sample.dt <- sample_metadata %>%
 #   .[!stage_class%in%opts$wt.classes] %>%
-#   .[,ncells:=.N, by="sample"] %>%
-#   .[,.(proportion=.N/unique(ncells), N=.N),by=c("celltype.mapped","sample","stage","stage_class")]
+#   .[,ncells:=.N, by="alias"] %>%
+#   .[,.(proportion=.N/unique(ncells), N=.N),by=c("celltype.mapped","alias","stage","stage_class")]
 ko_proportions_per_sample.dt <- sample_metadata %>%
   .[!stage_class%in%opts$wt.classes] %>%
-  setkey(celltype.mapped,sample) %>%
-  .[CJ(celltype.mapped,sample, unique = TRUE), .N, by = .EACHI] %>%
-  merge(unique(sample_metadata[,c("sample","stage_class","stage")]), by="sample") %>%
-  .[,ncells:=sum(N), by=c("sample")] %>% .[,proportion:=(N+1)/ncells]
+  setkey(celltype.mapped,alias) %>%
+  .[CJ(celltype.mapped,alias, unique = TRUE), .N, by = .EACHI] %>%
+  merge(unique(sample_metadata[,c("alias","stage_class","stage")]), by="alias") %>%
+  .[,ncells:=sum(N), by=c("alias")] %>% .[,proportion:=(N+1)/ncells]
 
 # Calculate celltype proportions for KO classes
 # ko_proportions_per_class.dt <- sample_metadata %>%
@@ -186,6 +190,15 @@ proportions_per_class.dt <- merge(
   by = c("celltype.mapped","stage"), allow.cartesian=T, suffixes = c(".ko",".wt")
 ) %>% .[,diff_proportion:=log2(proportion.ko/proportion.wt)] 
 
+#######################
+## Filter cell types ##
+#######################
+
+# Only consider cell types with enough number of cells
+proportions_per_class.dt <- proportions_per_class.dt[N.wt+N.ko>=50]
+proportions_per_sample.dt <- proportions_per_sample.dt[N.wt+N.ko>=50]
+
+tmp <- proportions_per_class.dt[stage_class=="E7.5_WT_tdTomato-"] %>% setorder(diff_proportion)
 
 ################
 ## Per sample ##
@@ -193,10 +206,10 @@ proportions_per_class.dt <- merge(
 
 ylimits <- max(abs(proportions_per_sample.dt[!is.infinite(diff_proportion),diff_proportion]))
 
-for (i in unique(proportions_per_sample.dt$sample)) {
+for (i in unique(proportions_per_sample.dt$alias)) {
   
   to.plot <- proportions_per_sample.dt %>%
-    .[sample==i] %>% 
+    .[alias==i] %>% 
     .[N.ko+N.wt>=25]
   
   celltype.order <- to.plot %>%
@@ -239,7 +252,7 @@ for (i in unique(proportions_per_sample.dt$stage_class)) {
   
   to.plot <- proportions_per_sample.dt %>%
     .[stage_class==i & celltype.mapped%in%celltypes.to.plot] %>%
-    merge(unique(sample_metadata[,c("sample")]),by="sample")
+    merge(unique(sample_metadata[,c("alias")]),by="alias")
   
   celltype.order <- to.plot %>%
     .[,mean(diff_proportion),by="celltype.mapped"] %>% setorder(-V1) %>% .$celltype.mapped
@@ -283,10 +296,10 @@ to.plot.wt_line <- data.table(
 # ylimits <- max(abs(proportions_per_sample.dt[!is.infinite(diff_proportion),diff_proportion]))
 ylimits <- 6
 
-for (i in unique(proportions_per_sample.dt$sample)) {
+for (i in unique(proportions_per_sample.dt$alias)) {
   
   to.plot <- proportions_per_sample.dt %>%
-    .[sample==i] %>% 
+    .[alias==i] %>% 
     .[N.ko+N.wt>=25] %>%
     .[diff_proportion>=ylimits,diff_proportion:=ylimits] %>%
     .[diff_proportion<=(-ylimits),diff_proportion:=(-ylimits)]

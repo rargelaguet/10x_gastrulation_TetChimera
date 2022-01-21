@@ -7,7 +7,7 @@ source(here::here("settings.R"))
 #####################
 
 io$script <- here::here("differential/differential.R")
-io$outdir <- file.path(io$basedir,"results_new/differential"); dir.create(io$outdir, showWarnings=F)
+io$outdir <- file.path(io$basedir,"results_all/differential"); dir.create(io$outdir, showWarnings=F)
 
 # Rename celltypes
 opts$rename_celltypes <- c(
@@ -36,10 +36,10 @@ sample_metadata <- fread(io$metadata) %>%
   .[pass_rnaQC==TRUE & !is.na(celltype.mapped)]
 
 # Only consider cell types with sufficient observations in WT cells
-celltypes.to.use <- sample_metadata[class==opts$wt.class,.(N=.N),by="celltype.mapped"] %>% .[N>=50,celltype.mapped]
+celltypes.to.use <- sample_metadata[class2==opts$wt.class,.(N=.N),by="celltype.mapped"] %>% .[N>=50,celltype.mapped]
 sample_metadata <- sample_metadata[celltype.mapped%in%celltypes.to.use]
 
-print(table(sample_metadata$celltype.mapped,sample_metadata$class))
+print(table(sample_metadata$celltype.mapped,sample_metadata$class2))
 
 ###################################
 ## Run all pair-wise comparisons ##
@@ -48,7 +48,7 @@ print(table(sample_metadata$celltype.mapped,sample_metadata$class))
 opts$min.cells <- 50
 
 # Define cell types to use 
-celltypes.to.use <- sample_metadata %>% .[class==opts$ko.class,.N,by="celltype.mapped"] %>% .[N>=opts$min.cells,celltype.mapped]
+celltypes.to.use <- sample_metadata %>% .[class2==opts$ko.class,.N,by="celltype.mapped"] %>% .[N>=opts$min.cells,celltype.mapped]
 
 # j <- "Blood_progenitors"
 for (j in celltypes.to.use) {
@@ -61,11 +61,11 @@ for (j in celltypes.to.use) {
     } else if (grepl("pebble|headstone", Sys.info()['nodename'])) {
       lsf <- sprintf("sbatch -n 1 --mem 30G --wrap")
     }
-    cmd <- sprintf("%s 'Rscript %s --groupA %s --groupB %s --celltype %s --group_label class --outfile %s'", lsf, io$script, opts$wt.class, opts$ko.class, j, outfile)
+    cmd <- sprintf("%s 'Rscript %s --groupA %s --groupB %s --celltype %s --group_label class2 --outfile %s'", lsf, io$script, opts$wt.class, opts$ko.class, j, outfile)
     
     # Run
     print(cmd)
-    system(cmd)
+    # system(cmd)
   }
 }
 

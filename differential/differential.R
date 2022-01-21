@@ -26,6 +26,8 @@ args <- p$parse_args(commandArgs(TRUE))
 # args$celltypes <- c("Blood_progenitors")
 ## END TEST
 
+dir.create(dirname(args$outfile), showWarnings=F)
+
 #####################
 ## Define settings ##
 #####################
@@ -83,6 +85,7 @@ sample_metadata <- sample_metadata %>%
   .[,group:=factor(group,levels=opts$groups)] %>% setorder(group) # Sort cells so that groupA comes before groupB
 
 table(sample_metadata$sample)
+table(sample_metadata$celltype.mapped)
 table(sample_metadata$group)
 
 #########################
