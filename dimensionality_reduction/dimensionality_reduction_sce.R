@@ -3,7 +3,6 @@ here::i_am("dimensionality_reduction/dimensionality_reduction_sce.R")
 source(here::here("settings.R"))
 source(here::here("utils.R"))
 
-suppressPackageStartupMessages(library(SingleCellExperiment))
 suppressPackageStartupMessages(library(scater))
 suppressPackageStartupMessages(library(scran))
 
@@ -37,18 +36,18 @@ args <- p$parse_args(commandArgs(TRUE))
 
 ## START TEST ##
 # args$sce <- io$sce
-# args$metadata <- file.path(io$basedir,"results_new/mapping/sample_metadata_after_mapping.txt.gz")
+# args$metadata <- file.path(io$basedir,"results/mapping/sample_metadata_after_mapping.txt.gz")
 # # args$metadata <- paste0(io$basedir,"/results/doublets/sample_metadata_after_doublets.txt.gz")
-# args$classes <- "WT"
+# args$classes <- c("WT_tdTomato+")
 # args$features <- 2500
 # args$npcs <- 50
-# args$colour_by <- c("celltype.mapped","class","stage","nFeature_RNA")
+# args$colour_by <- c("celltype.mapped","class","stage","nFeature_RNA","sample")
 # args$vars_to_regress <- NULL # c("nFeature_RNA","mit_percent_RNA")
 # args$batch_correction <- "sample"
 # args$remove_ExE_cells <- FALSE
 # args$n_neighbors <- 25
 # args$min_dist <- 0.5
-# args$outdir <- file.path(io$basedir,"results_new/dimensionality_reduction/test")
+# args$outdir <- file.path(io$basedir,"results/dimensionality_reduction/test")
 ## END TEST ##
 
 # if (isTRUE(args$test)) print("Test mode activated...")
@@ -130,12 +129,14 @@ colData(sce) <- sample_metadata %>% tibble::column_to_rownames("cell") %>% DataF
 ## Feature selection ##
 #######################
 
-decomp <- modelGeneVar(sce)
-# if (length(args$batch_correction)>0) {
-#   decomp <- modelGeneVar(sce, block=colData(sce)[[args$batch_correction]])
-# } else {
-#   decomp <- modelGeneVar(sce)
-# }
+# Filter out genes manually
+sce <- sce[!grepl("*Rik|^Gm|^mt-|^Rps|^Rpl|^Olf|tomato-td",rownames(sce)),]
+
+if (length(args$batch_correction)>0) {
+  decomp <- modelGeneVar(sce, block=colData(sce)[[args$batch_correction]])
+} else {
+  decomp <- modelGeneVar(sce)
+}
 decomp <- decomp[decomp$mean > 0.01,]
 hvgs <- decomp[order(decomp$FDR),] %>% head(n=args$features) %>% rownames
 
@@ -159,7 +160,6 @@ if (length(args$vars_to_regress)>0) {
 ############################
 
 # outfile <- sprintf("%s/%s_pca_features%d_pcs%d.txt.gz",args$outdir, paste(args$samples,collapse="-"), args$features, args$npcs)
-sce_filt <- runPCA(sce_filt, ncomponents = args$npcs, ntop=args$features)  
 
 if (length(args$batch_correction)>0) {
   suppressPackageStartupMessages(library(batchelor))

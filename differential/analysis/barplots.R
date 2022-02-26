@@ -12,8 +12,8 @@ source(here::here("utils.R"))
 ##############
 
 # I/O
-io$indir <- file.path(io$basedir,"results_new/differential")
-io$outdir <- file.path(io$basedir,"results_new/differential/pdf"); dir.create(io$outdir, showWarnings = F)
+io$indir <- file.path(io$basedir,"results_all/differential")
+io$outdir <- file.path(io$basedir,"results_all/differential/pdf"); dir.create(io$outdir, showWarnings = F)
 
 # Options
 opts$min.cells <- 50
@@ -125,6 +125,35 @@ p <- ggplot(to.plot, aes(x=factor(celltype), y=N)) +
 pdf(file.path(io$outdir,"DE_barplots_marker_genes_direction.pdf"), width=8, height=4.5)
 print(p)
 dev.off()
+
+#############################################
+## Polar plot of fraction of genes up/down ##
+#############################################
+
+to.plot <- diff_markers.dt[sig==T] %>%
+  .[,direction:=c("Downregulated in KO","Upregulated in KO")[as.numeric(logFC>0)+1]] %>%
+  .[,.N, by=c("celltype","class","direction")]
+
+p <- ggplot(to.plot, aes(x=celltype, y=N)) +
+  geom_bar(aes(fill = direction), color="black", stat = 'identity') + 
+  coord_polar() +
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    legend.text = element_text(size=rel(0.75)),
+    legend.title = element_blank(),
+    axis.title=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks=element_blank(),
+    axis.line=element_blank(),
+    axis.text.x = element_blank()
+    # axis.text.x = element_text(angle= -76 - 360 / length(unique(to.plot$celltype)) * seq_along(to.plot$celltype))
+  )
+
+pdf(file.path(io$outdir,"DE_polar_plots_marker_genes_direction.pdf"), width=8, height=4.5)
+print(p)
+dev.off()
+
 
 ################################################
 ## Identify genes with unidirectional effects ##

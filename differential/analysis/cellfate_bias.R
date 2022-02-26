@@ -12,17 +12,33 @@ source(here::here("differential/analysis/utils.R"))
 ##############
 
 # I/O
-io$indir <- file.path(io$basedir,"results_new/differential")
-io$outdir <- file.path(io$basedir,"results_new/differential/pdf/cellfate_bias"); dir.create(io$outdir, showWarnings = F)
+io$indir <- file.path(io$basedir,"results_all/differential")
+io$outdir <- file.path(io$basedir,"results_all/differential/pdf/cellfate_bias"); dir.create(io$outdir, showWarnings = F)
 
 # Options
 opts$min.cells <- 50
+
+opts$remove_ExE <- TRUE
+
+opts$rename_celltypes <- c(
+  "Erythroid3" = "Erythroid",
+  "Erythroid2" = "Erythroid",
+  "Erythroid1" = "Erythroid",
+  "Blood_progenitors_1" = "Blood_progenitors",
+  "Blood_progenitors_2" = "Blood_progenitors"
+)
 
 ###############
 ## Load data ##
 ###############
 
 source(here::here("differential/analysis/load_data.R"))
+
+if (opts$remove_ExE) {
+  diff.dt <- diff.dt %>% .[!celltype%in%c("ExE_endoderm","ExE_ectoderm","Parietal_endoderm")]
+}
+
+stopifnot(opts$rename_celltypes%in%unique(diff.dt$celltype))
 
 #######################
 ## Load marker genes ##
@@ -31,8 +47,18 @@ source(here::here("differential/analysis/load_data.R"))
 opts$min.marker.score <- 0.85
 
 marker_genes.dt <- fread(io$atlas.marker_genes) %>%
-  .[score>=opts$min.marker.score] %>% 
-  .[,ExE:=celltype%in%opts$ExE.celltypes]
+  .[score>=opts$min.marker.score]
+
+if (opts$remove_ExE) {
+  marker_genes.dt <- marker_genes.dt %>% .[!celltype%in%c("ExE_endoderm","ExE_ectoderm","Parietal_endoderm")]
+  
+  stopifnot(opts$rename_celltypes%in%unique(diff.dt$celltype))
+}
+
+# Rename celltypes
+marker_genes.dt <- marker_genes.dt %>% 
+  .[,celltype:=stringr::str_replace_all(celltype,opts$rename_celltypes)] %>%
+  .[,.(score=mean(score)), by=c("celltype","gene")]
 
 ####################
 ## Filter results ##
@@ -65,24 +91,29 @@ diff_markers.dt <- diff_markers.dt[,N:=sum(sig),by=c("gene","class")] %>% .[N<=1
 to.plot <- diff_markers.dt %>%
   merge(
     marker_genes.dt[,c("gene","celltype")] %>% setnames("celltype","celltype_marker"), by = "gene", allow.cartesian=TRUE
-  ) %>% .[,sum(sig), by=c("celltype","celltype_marker","class")]
+  ) %>% .[,sum(sig), by=c("celltype","celltype_marker","class","sign")]
 
-# to.plot[class=="E8.5_Dnmt1KO"] %>% View
+to.plot[!celltype%in%c("Rostral_neurectoderm","Pharyngeal_mesoderm","")]
+to.plot <- to.plot[sign=="Downregulated in TET_TKO"]
+to.plot <- to.plot[V1>=5]
 
 p <- ggplot(to.plot, aes(x=celltype, y=V1)) +
   geom_bar(aes(fill = celltype_marker), color="black", stat="identity") + 
-  facet_wrap(~class, scales="free_y") +
-  scale_fill_manual(values=opts$celltype.colors, drop=F) +
+  facet_wrap(~sign, scales="fixed") +
+  scale_fill_manual(values=opts$celltype.colors[names(opts$celltype.colors)%in%unique(to.plot$celltype_marker)], drop=F) +
   labs(x="", y="Number of DE genes") +
-  guides(x = guide_axis(angle = 90)) +
-  theme_bw() +
+  guides(x = guide_axis(angle = 90), fill=guide_legend(ncol=1)) +
+  theme_classic() +
   theme(
-    legend.position = "none",
-    axis.line = element_blank(),
-    axis.text.x = element_text(color="black", size=rel(0.65))
+    strip.background = element_blank(),
+    legend.position = "right",
+    legend.title = element_blank(),
+    # axis.line = element_blank(),
+    axis.text.y = element_text(color="black"),
+    axis.text.x = element_text(color="black", size=rel(0.85))
   )
 
-pdf(sprintf("%s/DE_barplots_marker_genes_fate_bias.pdf",io$outdir), width=9, height=5)
+pdf(sprintf("%s/DE_barplots_marker_genes_fate_bias_legend.pdf",io$outdir), width=7, height=6)
 print(p)
 dev.off()
 
@@ -124,33 +155,4 @@ for (i in opts$ko.classes) {
   dev.off()
   
 }
-
-################################################
-## Quantify fate disruption: embryonic vs ExE ##
-################################################
-
-# Remove genes that are markers of both embryonic and extraembryonic cell types
-marker_genes_ExE.dt <- marker_genes.dt %>% 
-  .[,V1:=mean(ExE),by="gene"] %>% .[V1%in%c(0,1)] %>% .[,V1:=NULL]
-
-to.plot <- diff_markers.dt %>%
-  merge(marker_genes_ExE.dt[,c("gene","ExE")], by="gene", allow.cartesian=TRUE) %>%
-  .[,sum(sig), by=c("ExE","celltype","class")]
-
-p <- ggplot(to.plot, aes(x=celltype, y=V1)) +
-  geom_bar(aes(fill = ExE), color="black", stat="identity") + 
-  facet_wrap(~class, scales="fixed") +
-  # scale_fill_manual(values=opts$celltype.colors, drop=F) +
-  labs(x="", y="Number of DE genes") +
-  guides(x = guide_axis(angle = 90)) +
-  theme_bw() +
-  theme(
-    legend.position = "top",
-    axis.line = element_blank(),
-    axis.text.x = element_text(color="black", size=rel(0.65))
-  )
-
-pdf(sprintf("%s/DE_barplots_marker_genes_fate_bias_ExE.pdf",io$outdir), width=9, height=5.5)
-print(p)
-dev.off()
 

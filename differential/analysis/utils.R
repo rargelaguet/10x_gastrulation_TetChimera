@@ -14,7 +14,8 @@ gg_volcano_plot <- function(to.plot, top_genes = 15, groupA = "groupA", groupB =
     labs(x="Log fold change", y=expression(paste("-log"[10],"(p.value)"))) +
     # geom_hline(yintercept = -log10(opts$threshold_fdr), color="blue") +
     geom_segment(aes(x=0, xend=0, y=0, yend=ylim-1), color="orange", size=0.5) +
-    ggrastr::geom_point_rast(aes(color=sig, size=sig)) +
+    # ggrastr::geom_point_rast(aes(color=sig, size=sig)) +
+    geom_point(aes(color=sig, size=sig)) +
     scale_color_manual(values=c("black","red")) +
     scale_size_manual(values=c(0.75,1.25)) +
     scale_x_continuous(limits=c(-xlim-1.5,xlim+1.5)) +

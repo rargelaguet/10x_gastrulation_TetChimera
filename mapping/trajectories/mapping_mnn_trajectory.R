@@ -33,19 +33,19 @@ source(here::here("mapping/trajectories/mapping_functions.R"))
 
 ## START TEST ##
 args$query_samples <- opts$samples
-args$query_sce <- paste0(io$basedir,"/processed_new/SingleCellExperiment.rds")
-args$query_metadata <- paste0(io$basedir,"/results_new/mapping/sample_metadata_after_mapping.txt.gz")
+args$query_sce <- paste0(io$basedir,"/processed_all/SingleCellExperiment.rds")
+args$query_metadata <- paste0(io$basedir,"/results_all/mapping/sample_metadata_after_mapping.txt.gz")
 args$atlas_sce <- file.path(io$atlas.basedir,"results/trajectories/blood_scanpy/blood_SingleCellExperiment.rds")
 args$atlas_metadata <- file.path(io$atlas.basedir,"results/trajectories/blood_scanpy/blood_sample_metadata.txt.gz")
 args$npcs <- 10
 args$n_neighbours <- 15
 args$trajectory_name <- "blood"
-# args$outfile <- file.path(io$basedir,sprintf("results_new/mapping/trajectories/blood/mapping_mnn_%s.txt.gz",args$query_samples))
-args$outfile <- file.path(io$basedir,"results_new/mapping/trajectories/blood/sample_metadata_after_mapping.txt.gz")
+# args$outfile <- file.path(io$basedir,sprintf("results_all/mapping/trajectories/blood/mapping_mnn_%s.txt.gz",args$query_samples))
+args$outfile <- file.path(io$basedir,"results_all/mapping/trajectories/blood/sample_metadata_after_mapping.txt.gz")
 ## END TEST ##
 
 # I/O
-dir.create(dirname(args$outfile), showWarnings = F)
+dir.create(dirname(args$outfile), showWarnings = F, recursive = T)
 
 # Options
 opts$celltype_trajectory_dic <- list(

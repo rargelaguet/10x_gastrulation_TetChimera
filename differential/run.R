@@ -41,9 +41,9 @@ sample_metadata <- sample_metadata[celltype.mapped%in%celltypes.to.use]
 
 print(table(sample_metadata$celltype.mapped,sample_metadata$class2))
 
-###################################
-## Run all pair-wise comparisons ##
-###################################
+#########
+## Run ##
+#########
 
 opts$min.cells <- 50
 
@@ -65,7 +65,7 @@ for (j in celltypes.to.use) {
     
     # Run
     print(cmd)
-    # system(cmd)
+    system(cmd)
   }
 }
 

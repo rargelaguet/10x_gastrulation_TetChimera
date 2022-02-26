@@ -24,11 +24,11 @@ args <- p$parse_args(commandArgs(TRUE))
 #####################
 
 ## START TEST ##
-args$metadata <- file.path(io$basedir,"results_new/mapping/sample_metadata_after_mapping.txt.gz")
-args$sce <- file.path(io$basedir,"processed_new/SingleCellExperiment.rds")
-args$group_by <- "class_celltype"
-args$normalisation_method <- "cpm"
-args$outdir <- file.path(io$basedir,"results_new/pseudobulk")
+# args$metadata <- file.path(io$basedir,"results_all/mapping/sample_metadata_after_mapping.txt.gz")
+# args$sce <- file.path(io$basedir,"processed_all/SingleCellExperiment.rds")
+# args$group_by <- "stage_class2_celltype"
+# args$normalisation_method <- "cpm"
+# args$outdir <- file.path(io$basedir,"results_all/pseudobulk")
 ## END TEST ##
 
 dir.create(args$outdir, showWarnings=F)
@@ -39,7 +39,9 @@ dir.create(args$outdir, showWarnings=F)
 
 # Load cell metadata
 sample_metadata <- fread(args$metadata) %>%
-  .[,class_celltype:=sprintf("%s-%s",class,celltype.mapped)] %>%
+  .[,stage_class:=sprintf("%s/%s",stage,class)] %>%
+  .[,class_celltype:=sprintf("%s/%s",class,celltype.mapped)] %>%
+  .[,stage_class2_celltype:=sprintf("%s/%s/%s",stage,class2,celltype.mapped)] %>%
   .[pass_rnaQC==TRUE & !is.na(eval(as.name(args$group_by)))]
 
 # Load SingleCellExperiment

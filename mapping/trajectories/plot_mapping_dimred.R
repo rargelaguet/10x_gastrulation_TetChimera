@@ -17,9 +17,9 @@ p$add_argument('--outdir',          type="character",                           
 args <- p$parse_args(commandArgs(TRUE))
 
 ## START TEST ##
-args$query_metadata <- file.path(io$basedir,"results_new/mapping/trajectories/blood/sample_metadata_after_mapping.txt.gz")
+args$query_metadata <- file.path(io$basedir,"results_all/mapping/trajectories/blood/sample_metadata_after_mapping.txt.gz")
 args$atlas_metadata <- file.path(io$atlas.basedir,"results/trajectories/blood_scanpy/blood_sample_metadata.txt.gz")
-args$outdir <- file.path(io$basedir,"results_new/mapping/trajectories/blood/pdf")
+args$outdir <- file.path(io$basedir,"results_all/mapping/trajectories/blood/pdf")
 ## END TEST ##
 
 dir.create(args$outdir, showWarnings = F)
@@ -45,6 +45,7 @@ opts$alpha.nomapped <- 0.35
 #########################
 
 sample_metadata <- fread(args$query_metadata) %>%
+  .[,class:=ifelse(grepl("WT",class),"WT","Tet-TKO")] %>%
   .[!is.na(closest.cell)]
 
 stopifnot("closest.cell"%in%colnames(sample_metadata))
@@ -109,21 +110,30 @@ for (i in classes.to.plot) {
 ## Plot WT and KO together ##
 #############################
 
+opts$size.mapped <- 0.50
+opts$size.nomapped <- 0.08
+
+# Transparency
+opts$alpha.mapped <- 0.85
+opts$alpha.nomapped <- 0.10
+
 # Subsample query cells to have the same N per class
 sample_metadata_subset <- sample_metadata %>% .[,.SD[sample.int(n=.N, size=1500)], by="class"]
 
 to.plot <- meta_atlas %>% copy %>%
   .[,index.wt:=match(cell, sample_metadata_subset[class=="WT",closest.cell] )] %>%
-  .[,index.ko:=match(cell, sample_metadata_subset[class=="TET_TKO",closest.cell] )] %>%
+  .[,index.ko:=match(cell, sample_metadata_subset[class=="Tet-TKO",closest.cell] )] %>%
   .[,mapped.wt:=c(0,-10)[as.numeric(as.factor(!is.na(index.wt)))]] %>%
   .[,mapped.ko:=c(0,10)[as.numeric(as.factor(!is.na(index.ko)))]] %>%
   .[,mapped:=factor(mapped.wt + mapped.ko, levels=c("0","-10","10"))] %>%
-  .[,mapped:=plyr::mapvalues(mapped, from = c("0","-10","10"), to = c("Atlas","WT","TET TKO"))] %>% setorder(mapped)
+  # .[,mapped:=plyr::mapvalues(mapped, from = c("0","-10","10"), to = c("Atlas","WT","Tet-TKO"))] %>% setorder(mapped)
+  .[,mapped:=plyr::mapvalues(mapped, from = c("10","-10","0"), to = c("WT","Tet-TKO","Atlas"))] %>% setorder(mapped)
 
-p <- plot.dimred.wtko(to.plot, wt.label = "WT", ko.label = "TET TKO", nomapped.label = "Atlas") +
-  theme(legend.position = "top", axis.line = element_blank())
+p <- plot.dimred.wtko(to.plot, wt.label = "WT", ko.label = "Tet-TKO", nomapped.label = "Atlas") +
+  scale_colour_manual(values=opts$class2_colors[c("WT","Tet-TKO")]) +
+  theme(legend.position = "none", axis.line = element_blank())
 
-pdf(sprintf("%s/per_class/umap_mapped_WT_and_KO.pdf",args$outdir), width=8, height=6.5)
+pdf(sprintf("%s/per_class/umap_mapped_WT_and_KO.pdf",args$outdir), width=4, height=4)
 print(p)
 dev.off()
 

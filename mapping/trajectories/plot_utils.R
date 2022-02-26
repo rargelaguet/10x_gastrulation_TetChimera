@@ -43,7 +43,7 @@ plot.dimred.wtko <- function(plot_df, wt.label = "WT", ko.label = "KO", nomapped
   names(alpha.values) <- c(wt.label, ko.label, nomapped.label)
   
   # Define dot colours  
-  colour.values <- c("red", "blue", "lightgrey")
+  colour.values <- c("blue","red", "lightgrey")
   names(colour.values) <- c(wt.label, ko.label, nomapped.label)
   
   # Plot

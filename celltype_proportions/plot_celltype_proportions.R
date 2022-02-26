@@ -31,7 +31,7 @@ dir.create(file.path(args$outdir,"per_sample"), showWarnings = F)
 dir.create(file.path(args$outdir,"per_class"), showWarnings = F)
 
 # Options
-opts$remove_ExE_cells <- TRUE
+opts$remove_ExE_cells <- FALSE
 
 ##########################
 ## Load sample metadata ##

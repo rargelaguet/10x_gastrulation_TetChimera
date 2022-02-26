@@ -6,21 +6,12 @@ source(here::here("utils.R"))
 #####################
 
 # I/O
-# io$sce.pseudobulk <- file.path(io$basedir,"results_new/pseudobulk/SingleCellExperiment_pseudobulk_class_celltype.rds")
-io$sce.pseudobulk <- file.path(io$basedir,"results_new/pseudobulk/SingleCellExperiment_pseudobulk_class_celltype.rds")
-io$outdir <- file.path(io$basedir,"results_new/differential/pseudobulk"); dir.create(io$outdir, showWarnings = F)
+# io$sce.pseudobulk <- file.path(io$basedir,"results_all/pseudobulk/SingleCellExperiment_pseudobulk_class_celltype.rds")
+io$sce.pseudobulk <- file.path(io$basedir,"results_all/pseudobulk/SingleCellExperiment_pseudobulk_class_celltype.rds")
+io$outdir <- file.path(io$basedir,"results_all/differential/pseudobulk"); dir.create(io$outdir, showWarnings = F)
 
 # Options
 opts$min.cells <- 25
-
-opts$ko.classes <- c(
-  "E7.5_TET_TKO", 
-  "E8.5_TET_TKO",
-  "E9.5_TET_TKO"
-)
-
-# opts$wt.classes <- c("E7.5_WT","E8.5_WT")
-opts$wt.class <- "WT"
 
 ##############################
 ## Load pseudobulk RNA data ##
@@ -38,17 +29,15 @@ sce <- sce[,names(which(metadata(sce)$n_cells>=opts$min.cells))]
 ######################
 ## Subset WT and KO ##
 ######################
-stop("FIX THIS CODE")
 
 # Subset WT samples from the SingleCellExperiment
 sce.wt <- sce[,sce$class=="WT"]
-metadata(sce.wt)$n_cells <- metadata(sce.wt)$n_cells[grep(opts$wt.class, names(metadata(sce.wt)$n_cells), value=T)]
-names(metadata(sce.wt)$n_cells) <- gsub(paste0(opts$wt.class,"-"),"",names(metadata(sce.wt)$n_cells))
+metadata(sce.wt)$n_cells <- metadata(sce.wt)$n_cells[grep("WT", names(metadata(sce.wt)$n_cells), value=T)]
+names(metadata(sce.wt)$n_cells) <- gsub(paste0("WT","-"),"",names(metadata(sce.wt)$n_cells))
 colnames(sce.wt) <- sce.wt$celltype
 
 # Select celltypes with sufficient number of cells
 celltypes.wt <- names(which(metadata(sce.wt)$n_cells >= opts$min.cells))
-
 
 # Subset KO samples from the SingleCellExperiment
 sce.ko <- sce[,sce$class=="TET_TKO"]

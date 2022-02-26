@@ -35,7 +35,7 @@ rule all:
         config["directories"]["results"]+"/mapping/sample_metadata_after_mapping.txt.gz",
         # config["directories"]["results"]+"/mapping/sample_metadata_after_mapping_all_samples.txt.gz",
         expand("%s/mapping/pdf/umap_mapped_allcells.pdf" % config["directories"]["results"]),
-        config["directories"]["results"]+"/celltype_proportions/completed.txt"
+        config["directories"]["results"]+"/celltype_proportions/completed.txt",
 
         # expand("%s/dimensionality_reduction/sce/per_sample/{sample}/pca_features{dimred_sce_sample_features}_pcs{dimred_sce_sample_npcs}.txt.gz" % (config["directories"]["results"]),
         #     sample=config["samples"],
@@ -49,11 +49,11 @@ rule all:
         #     dimred_sce_class_npcs = config["params"]["dimensionality_reduction_sce_class"]["npcs"]
         #     ),
 
-        # expand("%s/dimensionality_reduction/sce/per_class_batch_correction/{dimred_sce_class_batch_correction}/pca_features{dimred_sce_class_batch_correction_features}_pcs{dimred_sce_class_batch_correction_npcs}.txt.gz" % (config["directories"]["results"]), 
-        #     dimred_sce_class_batch_correction = config["classes"], 
-        #     dimred_sce_class_batch_correction_features = config["params"]["dimensionality_reduction_sce_class"]["features"], 
-        #     dimred_sce_class_batch_correction_npcs = config["params"]["dimensionality_reduction_sce_class"]["npcs"]
-        #     )
+        expand("%s/dimensionality_reduction/sce/per_class_batch_correction/{dimred_sce_class_batch_correction}/pca_features{dimred_sce_class_batch_correction_features}_pcs{dimred_sce_class_batch_correction_npcs}.txt.gz" % (config["directories"]["results"]), 
+            dimred_sce_class_batch_correction = config["classes"], 
+            dimred_sce_class_batch_correction_features = config["params"]["dimensionality_reduction_sce_class"]["features"], 
+            dimred_sce_class_batch_correction_npcs = config["params"]["dimensionality_reduction_sce_class"]["npcs"]
+            )
 
         # expand("%s/pseudobulk/SingleCellExperiment_pseudobulk_{group_by}.rds" % config["directories"]["results"], 
         #     group_by=config["pseudobulk_rna"]["group_by"]),

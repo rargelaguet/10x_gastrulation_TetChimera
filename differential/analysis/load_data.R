@@ -65,10 +65,10 @@ diff.dt <- opts$ko.classes %>% map(function(i) { opts$celltypes %>% map(function
   }
 }) %>% rbindlist }) %>% rbindlist %>%
   .[,celltype:=factor(celltype,levels=opts$celltypes)] %>%
-  .[,class:=factor(class,levels=opts$ko.classes)]
+  .[, sign := ifelse(logFC>0,sprintf("Upregulated in %s",class),sprintf("Downregulated in %s",class))] %>%
+  .[,class:=factor(class,levels=opts$ko.classes)] %>%
+  .[, sig := (padj_fdr<=opts$threshold_fdr & abs(logFC)>=opts$min.logFC)]
 
-# Define statistical significance
-diff.dt %>% .[, sig := (padj_fdr<=opts$threshold_fdr & abs(logFC)>=opts$min.logFC)]
 
 # Print stats
 print(sprintf("Number of classes: %s",length(unique(diff.dt$class))))

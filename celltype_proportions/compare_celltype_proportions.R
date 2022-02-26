@@ -37,26 +37,11 @@ dir.create(file.path(args$outdir,"polar_plots/per_sample"), showWarnings = F)
 ## Define options ##
 ####################
 
-# opts$samples <- c(
-#   "E75_TET_TKO_L002",
-#   "E75_WT_Host_L001",
-#   "E85_Rep1_TET_TKO_L004",
-#   "E85_Rep1_WT_Host_L003",
-#   "E85_Rep2_TET_TKO_L006",
-#   "E85_Rep2_WT_Host_L005"
-# )
 
-# opts$classes <- c(
-#   "E7.5_WT", 
-#   "E7.5_TET_TKO", 
-#   "E8.5_WT",
-#   "E8.5_TET_TKO",
-#   "E9.5_TET_TKO"
-# )
+# opts$classes <- c("E8.5_WT_tdTomato+", "E8.5_WT_tdTomato-", "E8.5_TET_TKO")
 
-# opts$wt.classes <- c("E7.5_WT","E8.5_WT")
-# opts$wt.classes <- c("E7.5_WT_tdTomato+","E8.5_WT_tdTomato++")
-opts$wt.classes <- c("E7.5_WT_tdTomato-","E8.5_WT_tdTomato-","E7.5_WT_tdTomato+","E8.5_WT_tdTomato+")
+opts$wt.classes <- c("E7.5_WT_tdTomato+", "E7.5_WT_tdTomato-", "E8.5_WT_tdTomato-","E8.5_WT_tdTomato+")
+# opts$wt.classes <- c("E8.5_WT_tdTomato-","E8.5_WT_tdTomato+")
   
 opts$celltypes = c(
   "Epiblast",
@@ -149,7 +134,7 @@ table(sample_metadata$celltype.mapped)
 # Calculate celltype proportions for WT samples
 wt_proportions.dt <- sample_metadata %>%
   .[stage_class%in%opts$wt.classes] %>%
-  .[,ncells:=.N] %>%
+  .[,ncells:=.N,by="stage"] %>%
   .[,.(proportion=.N/unique(ncells), N=round(.N/length(unique(alias)))),by=c("celltype.mapped","stage")]
 
 # Calculate celltype proportions for KO samples
@@ -194,11 +179,20 @@ proportions_per_class.dt <- merge(
 ## Filter cell types ##
 #######################
 
+# Only consider cell types with sufficient numbers in the WT
+# tmp <- proportions_per_class.dt[N.wt>=50,c("stage","celltype.mapped")]
+# proportions_per_sample.dt <- proportions_per_sample.dt %>% merge(tmp,by=c("stage","celltype.mapped"))
+# proportions_per_class.dt <- proportions_per_class.dt %>% merge(tmp,by=c("stage","celltype.mapped"))
+
 # Only consider cell types with enough number of cells
-proportions_per_class.dt <- proportions_per_class.dt[N.wt+N.ko>=50]
+proportions_per_class.dt <- proportions_per_class.dt[N.wt+N.ko>=100]
 proportions_per_sample.dt <- proportions_per_sample.dt[N.wt+N.ko>=50]
 
-tmp <- proportions_per_class.dt[stage_class=="E7.5_WT_tdTomato-"] %>% setorder(diff_proportion)
+# Cell types profiled in at least two replicates
+# tmp <- proportions_per_sample.dt[,length(unique(alias)),by=c("stage","celltype.mapped")] %>% .[V1>=2] %>% .[,V1:=NULL]
+# proportions_per_sample.dt <- proportions_per_sample.dt %>% merge(tmp,by=c("stage","celltype.mapped"))
+# proportions_per_class.dt <- proportions_per_class.dt %>% merge(tmp,by=c("stage","celltype.mapped"))
+
 
 ################
 ## Per sample ##
@@ -208,9 +202,7 @@ ylimits <- max(abs(proportions_per_sample.dt[!is.infinite(diff_proportion),diff_
 
 for (i in unique(proportions_per_sample.dt$alias)) {
   
-  to.plot <- proportions_per_sample.dt %>%
-    .[alias==i] %>% 
-    .[N.ko+N.wt>=25]
+  to.plot <- proportions_per_sample.dt %>% .[alias==i]
   
   celltype.order <- to.plot %>%
     .[,mean(diff_proportion),by="celltype.mapped"] %>% setorder(-V1) %>% .$celltype.mapped
@@ -242,16 +234,16 @@ for (i in unique(proportions_per_sample.dt$alias)) {
 ## Boxplots per class ##  
 #######################
 
-# ylim <- max(abs(proportions_per_sample.dt$diff_proportion)) + 0.25
+ylimits <- max(abs(proportions_per_sample.dt[!is.infinite(diff_proportion),diff_proportion]))
 
 for (i in unique(proportions_per_sample.dt$stage_class)) {
   
-  celltypes.to.plot <- proportions_per_sample.dt %>%
-    .[stage_class==i,.(N=sum(N.ko)+sum(N.wt)),by=c("stage_class","celltype.mapped")] %>% 
-    .[N>=50,celltype.mapped] %>% as.character
+  # celltypes.to.plot <- proportions_per_sample.dt %>%
+  #   .[stage_class==i,.(N=sum(N.ko)+sum(N.wt)),by=c("stage_class","celltype.mapped")] %>% 
+  #   .[N>=50,celltype.mapped] %>% as.character
   
   to.plot <- proportions_per_sample.dt %>%
-    .[stage_class==i & celltype.mapped%in%celltypes.to.plot] %>%
+    .[stage_class==i] %>%
     merge(unique(sample_metadata[,c("alias")]),by="alias")
   
   celltype.order <- to.plot %>%
@@ -263,8 +255,8 @@ for (i in unique(proportions_per_sample.dt$stage_class)) {
   #   .[,celltype.mapped:=factor(celltype.mapped,levels=celltype.order)]
   
   p <- ggplot(to.plot, aes(x=celltype.mapped, y=diff_proportion)) +
-    geom_point(aes(fill = celltype.mapped), shape=21, size=1) +
-    geom_boxplot(aes(fill = celltype.mapped), alpha=0.5) +
+    geom_boxplot(aes(fill = celltype.mapped), alpha=0.90) +
+    geom_point(aes(fill = celltype.mapped), shape=21, size=2, alpha=0.80) +
     # geom_text(y=-ylimits, aes(label=N.wt), size=2.5, data=text.dt) +
     # geom_text(y=ylimits, aes(label=N.ko), size=2.5, data=text.dt) +
     coord_flip(ylim=c(-ylimits,ylimits)) +
@@ -279,7 +271,7 @@ for (i in unique(proportions_per_sample.dt$stage_class)) {
       axis.text.x = element_text(color="black")
     )
   
-  pdf(sprintf("%s/boxplots/per_class/%s_boxplots.pdf",args$outdir,i), width=9, height=7)
+  pdf(sprintf("%s/boxplots/per_class/%s_boxplots.pdf",args$outdir,i), width=5, height=7)
   print(p)
   dev.off()
 }
