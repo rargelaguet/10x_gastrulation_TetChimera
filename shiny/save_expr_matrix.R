@@ -76,7 +76,7 @@ opts$stages <- c("E7.5","E8.5")
 ## Load sample metadata ##
 ##########################
 
-sample_metadata
+sample_metadata <- fread(io$metadata)
 
 ###############
 ## Load data ##

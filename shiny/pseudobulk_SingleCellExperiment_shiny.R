@@ -7,7 +7,7 @@ source(here::here("pseudobulk/utils.R"))
 # I/O
 io$metadata <- "/Users/argelagr/shiny_tet/data/cell_metadata.txt.gz"
 io$sce <- file.path(io$basedir,"processed/SingleCellExperiment.rds")
-io$outfile <- "/Users/argelagr/shiny_tet/data/SingleCellExperiment_shiny.rds"
+io$outdir <- "/Users/argelagr/shiny_tet/data"
 
 # Options
 opts$group_by <- "genotype_sample_celltype"
@@ -26,10 +26,11 @@ opts$rename_celltypes <- c(
 ########################
 
 sample_metadata <- fread(io$metadata) %>%
+  .[,celltype:=stringr::str_replace_all(celltype,opts$rename_celltypes)] %>%
   .[,genotype_sample_celltype:=sprintf("%s-%s-%s",genotype,sample,celltype)] %>%
   .[!is.na(eval(as.name(opts$group_by)))]
 
-unique(sample_metadata[,c("genotype","sample")])
+# unique(sample_metadata[,c("genotype","sample")])
 
 ######################################################
 ## Calculate pseudovulk stats and do some filtering ##
@@ -77,20 +78,19 @@ assayNames(sce_pseudobulk) <- "counts"
 ###############
 
 # Add metadata
-sce_pseudobulk$class <- stringr::str_split(colnames(sce_pseudobulk), pattern = "-") %>% map_chr(1)
+# sce_pseudobulk$class <- stringr::str_split(colnames(sce_pseudobulk), pattern = "-") %>% map_chr(1)
+sce_pseudobulk$genotype <- stringr::str_split(colnames(sce_pseudobulk), pattern = "-") %>% map_chr(1)
 sce_pseudobulk$sample <- stringr::str_split(colnames(sce_pseudobulk), pattern = "-") %>% map_chr(2)
 sce_pseudobulk$celltype <- stringr::str_split(colnames(sce_pseudobulk), pattern = "-") %>% map_chr(3)
-sce_pseudobulk$dataset <- stringr::str_split(colnames(sce_pseudobulk), pattern = "-") %>% map_chr(4)
 
 # Filter genes
 genes <- fread("/Users/argelagr/data/shiny_dnmt_tet/genes.txt", header = F)[[1]]
 sce_pseudobulk <- sce_pseudobulk[genes,]
 
 # Sanity checks
-stopifnot(unique(sce_pseudobulk$class)%in%opts$classes)
+# stopifnot(unique(sce_pseudobulk$class)%in%opts$classes)
 stopifnot(unique(sce_pseudobulk$sample)%in%opts$samples)
 stopifnot(unique(sce_pseudobulk$celltype)%in%c(opts$celltypes,c("Erythroid", "Blood_progenitors")))
-stopifnot(unique(sce_pseudobulk$dataset)%in%c("KO","CRISPR"))
 
 ###################
 ## Normalisation ##
@@ -116,12 +116,11 @@ if (opts$normalisation_method=="deseq2") {
 assays(sce_pseudobulk)["counts"] <- NULL
 
 # Save
-# saveRDS(sce_pseudobulk, file.path(io$outdir,sprintf("SingleCellExperiment_pseudobulk_%s.rds",opts$group_by)))
-saveRDS(sce_pseudobulk, io$outfile)
+saveRDS(sce_pseudobulk, file.path(io$outdir,"SingleCellExperiment_shiny.rds"))
 
 #####################
 ## Save statistics ##
 #####################
 
 # stats.dt <- data.table(table(sce[[opts$group_by]])) %>% setnames(c("sample","N"))
-# fwrite(stats.dt, file.path(io$outdir,sprintf("pseudobulk_stats_%s.txt.gz",opts$group_by)), sep="\t")
+fwrite(pseudobulk_stats.dt, file.path(io$outdir,"pseudobulk_stats_shiny.txt.gz"), sep="\t")

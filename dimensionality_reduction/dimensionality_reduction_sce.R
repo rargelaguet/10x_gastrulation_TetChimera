@@ -37,13 +37,12 @@ args <- p$parse_args(commandArgs(TRUE))
 ## START TEST ##
 # args$sce <- io$sce
 # args$metadata <- file.path(io$basedir,"results/mapping/sample_metadata_after_mapping.txt.gz")
-# # args$metadata <- paste0(io$basedir,"/results/doublets/sample_metadata_after_doublets.txt.gz")
-# args$classes <- c("WT_tdTomato+")
+# args$classes <- c("TET_TKO")
 # args$features <- 2500
 # args$npcs <- 50
-# args$colour_by <- c("celltype.mapped","class","stage","nFeature_RNA","sample")
+# args$colour_by <- c("celltype.mapped","class2","stage","nFeature_RNA","sample")
 # args$vars_to_regress <- NULL # c("nFeature_RNA","mit_percent_RNA")
-# args$batch_correction <- "sample"
+# args$batch_correction <- "sample" # NULL
 # args$remove_ExE_cells <- FALSE
 # args$n_neighbors <- 25
 # args$min_dist <- 0.5
@@ -56,11 +55,11 @@ args <- p$parse_args(commandArgs(TRUE))
 dir.create(args$outdir, showWarnings = F)
 
 # Options
-if (args$classes[1]=="all") {
-  args$classes <- opts$classes
-} else {
-  stopifnot(args$classes%in%opts$classes)
-}
+# if (args$classes[1]=="all") {
+#   args$classes <- opts$classes
+# } else {
+#   stopifnot(args$classes%in%opts$classes)
+# }
 
 if (args$samples[1]=="all") {
   args$samples <- opts$samples
@@ -79,7 +78,7 @@ if (args$stages[1]=="all") {
 ##########################
 
 sample_metadata <- fread(args$metadata) %>%
-  .[pass_rnaQC==TRUE & doublet_call==FALSE & sample%in%args$samples & class%in%args$classes & stage%in%args$stages]
+  .[pass_rnaQC==TRUE & doublet_call==FALSE & sample%in%args$samples & class2%in%args$classes & stage%in%args$stages]
   # .[pass_rnaQC==TRUE]
 
 if (args$remove_ExE_cells) {
@@ -90,8 +89,9 @@ if (args$remove_ExE_cells) {
 
 table(sample_metadata$sample)
 table(sample_metadata$stage)
-table(sample_metadata$class)
+table(sample_metadata$class2)
 table(sample_metadata$celltype.mapped)
+# unique(sample_metadata[,c("class","sample","alias")])
 
 ###################
 ## Sanity checks ##
@@ -113,7 +113,6 @@ if (length(args$batch_correction)>0) {
 if (length(args$vars_to_regress)>0) {
   stopifnot(args$vars_to_regress%in%colnames(sample_metadata))
 }
-
 
 ###############
 ## Load data ##
@@ -167,7 +166,7 @@ if (length(args$batch_correction)>0) {
   pca <- multiBatchPCA(sce_filt, batch = colData(sce_filt)[[args$batch_correction]], d = args$npcs)
   pca.corrected <- reducedMNN(pca)$corrected
   colnames(pca.corrected) <- paste0("PC",1:ncol(pca.corrected))
-  reducedDim(sce_filt, "PCA") <- pca.corrected
+  reducedDim(sce_filt, "PCA") <- pca.corrected[colnames(sce),]
 } else {
   sce_filt <- runPCA(sce_filt, ncomponents = args$npcs, ntop=args$features)
 }

@@ -28,13 +28,13 @@ samples:
     - E8.5_batch_5_tdTomato+
     - E8.5_batch_5_tdTomato-
 
+# classes:
+#     - WT_tdTomato+
+#     - WT_tdTomato-
+#     - TET_TKO
 classes:
-    # - TET_TKO
-    # - WT
-    - WT_tdTomato+
-    - WT_tdTomato-
     - TET_TKO
-
+    - WT
 
 stage_classes:
     # - E7.5_WT
@@ -122,7 +122,7 @@ params:
         n_neighbors: 25
         min_dist: 0.3
         vars_to_regress: ["nFeature_RNA"]
-        batch_correction: "stage"
+        batch_correction: "sample"
         colour_by: ["celltype.mapped","sample","stage","nFeature_RNA"]
 
     dimensionality_reduction_sce_sample:
