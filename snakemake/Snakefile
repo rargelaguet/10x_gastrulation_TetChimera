@@ -20,6 +20,16 @@ else:
 
 # validate(config, schema="schemas/config.schema.yaml")
 
+#############################################
+## Wildcard constraints to avoid ambiguity ##
+#############################################
+
+# honestly I don't understand why do I have to do this, but otherwise I get ambiguity and strange wildcards
+
+# wildcard_constraints:
+#     trajectory_metacells = '|'.join([re.escape(x) for x in config["run_metacells_trajectory"]["trajectories"]]),
+#     sample_metacell = '|'.join([re.escape(x) for x in config["samples"]])
+    
 ###########
 ## Rules ##
 ###########

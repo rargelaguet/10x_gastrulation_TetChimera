@@ -37,7 +37,7 @@ args <- p$parse_args(commandArgs(TRUE))
 ## START TEST ##
 # args$sce <- io$sce
 # args$metadata <- file.path(io$basedir,"results/mapping/sample_metadata_after_mapping.txt.gz")
-# args$classes <- c("TET_TKO")
+# args$classes <- c("WT","TET_TKO")
 # args$features <- 2500
 # args$npcs <- 50
 # args$colour_by <- c("celltype.mapped","class2","stage","nFeature_RNA","sample")
