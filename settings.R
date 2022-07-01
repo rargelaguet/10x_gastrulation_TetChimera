@@ -17,6 +17,11 @@ if (grepl("ricard",Sys.info()['nodename'])) {
   io$atlas.basedir <- "/Users/ricard/data/gastrulation10x"
   # io$gene_metadata <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/all_genes/Mmusculus_genes_BioMart.87.txt"
   io$gene_metadata <- "/Users/ricard/data/ensembl/mouse/v87/BioMart/all_genes/Mmusculus_genes_BioMart.87.txt"
+} else if (grepl("rargelaguet.local",Sys.info()['nodename'])) {  
+  io$basedir <- "/Users/rargelaguet/data/10x_gastrulation_TetChimera"
+  # io$Rscript <- ""
+  io$atlas.basedir <- "/Users/rargelaguet/data/gastrulation10x"
+  # io$gene_metadata <- "/Users/rargelaguet/data/ensembl/mouse/v87/BioMart/all_genes/Mmusculus_genes_BioMart.87.txt"
 } else if (grepl("ebi",Sys.info()['nodename'])) {
   io$basedir <- "/hps/nobackup2/research/stegle/users/ricard/10x_gastrulation_TetChimera"
   io$Rscript <- "/nfs/research1/stegle/users/ricard/R-4.0.3/bin/Rscript"
