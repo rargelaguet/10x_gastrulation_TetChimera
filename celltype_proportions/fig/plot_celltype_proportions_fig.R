@@ -7,13 +7,10 @@ source(here::here("utils.R"))
 ## Define settings ##
 #####################
 
-## START TEST ##
-io$outdir <- file.path(io$basedir,"results/celltype_proportions/fig")
-## END TEST ##
-
 # I/O
-dir.create(io$outdir, showWarnings = F)
+io$outdir <- file.path(io$basedir,"results/celltype_proportions/fig"); dir.create(io$outdir, showWarnings = F)
 
+# Options
 opts$celltypes = c(
   "Epiblast",
   "Primitive_Streak",
@@ -62,6 +59,8 @@ sample_metadata <- fread(io$metadata) %>%
   .[pass_rnaQC==TRUE & celltype.mapped%in%opts$celltypes] %>%
   setnames("celltype.mapped","celltype")
 
+table(sample_metadata$alias)
+
 ###################
 ## Plot E7.5 TKO ##
 ###################
@@ -84,7 +83,8 @@ to.plot[,celltype:=factor(celltype, levels=rev(names(celltype.colors)))]
 p <- ggplot(to.plot, aes(x=celltype, y=N)) +
   geom_bar(aes(fill=celltype), stat="identity", color="black",) +
   scale_fill_manual(values=celltype.colors, drop=F) +
-  facet_wrap(~alias, nrow=2, scales="free_x") +
+  scale_x_discrete(drop=FALSE) +
+  # facet_wrap(~alias, nrow=2, scales="free_x") +
   coord_flip() +
   labs(y="Number of cells") +
   theme_bw() +
@@ -99,7 +99,7 @@ p <- ggplot(to.plot, aes(x=celltype, y=N)) +
     axis.text.x = element_text(size=rel(1), color="black")
   )
 
-pdf(file.path(io$outdir,"E7.5_TET_TKO_celltype_proportions_horizontal_barplots.pdf"), width=5, height=3.75)
+pdf(file.path(io$outdir,"E7.5_TET_TKO_celltype_proportions_horizontal_barplots.pdf"), width=7, height=4.5)
 print(p)
 dev.off()
 
@@ -128,6 +128,7 @@ to.plot[,celltype:=factor(celltype, levels=rev(names(celltype.colors)))]
 p <- ggplot(to.plot, aes(x=celltype, y=N)) +
   geom_bar(aes(fill=celltype), stat="identity", color="black",) +
   scale_fill_manual(values=celltype.colors, drop=F) +
+  scale_x_discrete(drop=FALSE) +
   facet_wrap(~alias, nrow=2, scales="free_x") +
   coord_flip() +
   labs(y="Number of cells") +
@@ -147,6 +148,32 @@ p <- ggplot(to.plot, aes(x=celltype, y=N)) +
 pdf(file.path(io$outdir,"E7.5_WT_celltype_proportions_horizontal_barplots.pdf"), width=7, height=6)
 print(p)
 dev.off()
+
+for (i in opts$samples) {
+  
+  p <- ggplot(to.plot[alias==i], aes(x=celltype, y=N)) +
+    geom_bar(aes(fill=celltype), stat="identity", color="black") +
+    scale_fill_manual(values=celltype.colors, drop=F) +
+    scale_x_discrete(drop=FALSE) +
+    facet_wrap(~alias, nrow=2, scales="free_x") +
+    coord_flip() +
+    labs(y="Number of cells") +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      strip.background = element_blank(),
+      strip.text = element_text(color="black", size=rel(0.8)),
+      axis.title.x = element_text(color="black", size=rel(0.9)),
+      axis.title.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      axis.text.y = element_text(size=rel(0.75), color="black"),
+      axis.text.x = element_text(size=rel(1), color="black")
+    )
+  
+  pdf(file.path(io$outdir,sprintf("%s_celltype_proportions_horizontal_barplots.pdf",i)), width=7, height=4.5)
+  print(p)
+  dev.off()
+}
 
 
 ###############
