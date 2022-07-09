@@ -17,9 +17,9 @@ p$add_argument('--outdir',          type="character",                           
 args <- p$parse_args(commandArgs(TRUE))
 
 ## START TEST ##
-args$query_metadata <- file.path(io$basedir,"results_all/mapping/trajectories/blood/sample_metadata_after_mapping.txt.gz")
+args$query_metadata <- file.path(io$basedir,"results/mapping/trajectories/blood/sample_metadata_after_mapping.txt.gz")
 args$atlas_metadata <- file.path(io$atlas.basedir,"results/trajectories/blood_scanpy/blood_sample_metadata.txt.gz")
-args$outdir <- file.path(io$basedir,"results_all/mapping/trajectories/blood/pdf")
+args$outdir <- file.path(io$basedir,"results/mapping/trajectories/blood/pdf/revision")
 ## END TEST ##
 
 dir.create(args$outdir, showWarnings = F)
@@ -30,7 +30,8 @@ dir.create(file.path(args$outdir,"per_class"), showWarnings = F)
 ## Define settings ##
 #####################
 
-# Options
+# io$trajectory <- file.path(io$atlas.basedir,"results/trajectories/blood_scanpy/blood_trajectory.txt.gz")
+io$trajectory <- file.path(io$atlas.basedir,"results/trajectories/blood_precomputed/blood_trajectory.txt.gz")
 
 # Dot size
 opts$size.mapped <- 0.18
@@ -55,8 +56,8 @@ stopifnot("closest.cell"%in%colnames(sample_metadata))
 ################
 
 # Load atlas trajectory
-atlas_trajectory.dt <- fread(file.path(io$atlas.basedir,"results/trajectories/blood_scanpy/blood_trajectory.txt.gz")) %>% 
-  setnames(c("FA1","FA2"),c("V1","V2"))
+# atlas_trajectory.dt <- fread(io$trajectory) %>% setnames(c("FA1","FA2"),c("V1","V2"))
+atlas_trajectory.dt <- fread(io$trajectory)[,c("cell","V1","V2")]
 meta_atlas <- fread(args$atlas_metadata)[,c("cell","stage","celltype")] %>% merge(atlas_trajectory.dt, by="cell")
 
 # Load atlas cell metadata
@@ -101,7 +102,7 @@ for (i in classes.to.plot) {
   
   p <- plot.dimred(to.plot, query.label = i, atlas.label = "Atlas") + theme(legend.position = "none")
   
-  pdf(sprintf("%s/per_class/umap_mapped_%s.pdf",args$outdir,i), width=8, height=6.5)
+  pdf(sprintf("%s/per_class/umap_mapped_%s.pdf",args$outdir,i), width=6, height=6)
   print(p)
   dev.off()
 }
