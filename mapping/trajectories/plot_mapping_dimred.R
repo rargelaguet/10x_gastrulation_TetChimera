@@ -18,7 +18,7 @@ args <- p$parse_args(commandArgs(TRUE))
 
 ## START TEST ##
 args$query_metadata <- file.path(io$basedir,"results/mapping/trajectories/blood/sample_metadata_after_mapping.txt.gz")
-args$atlas_metadata <- file.path(io$atlas.basedir,"results/trajectories/blood_scanpy/blood_sample_metadata.txt.gz")
+args$atlas_metadata <- file.path(io$atlas.basedir,"results/trajectories/blood_precomputed/blood_trajectory.txt.gz")
 args$outdir <- file.path(io$basedir,"results/mapping/trajectories/blood/pdf/revision")
 ## END TEST ##
 
@@ -111,11 +111,11 @@ for (i in classes.to.plot) {
 ## Plot WT and KO together ##
 #############################
 
-opts$size.mapped <- 0.50
+opts$size.mapped <- 1
 opts$size.nomapped <- 0.08
 
 # Transparency
-opts$alpha.mapped <- 0.85
+opts$alpha.mapped <- 0.75
 opts$alpha.nomapped <- 0.10
 
 # Subsample query cells to have the same N per class
@@ -128,13 +128,14 @@ to.plot <- meta_atlas %>% copy %>%
   .[,mapped.ko:=c(0,10)[as.numeric(as.factor(!is.na(index.ko)))]] %>%
   .[,mapped:=factor(mapped.wt + mapped.ko, levels=c("0","-10","10"))] %>%
   # .[,mapped:=plyr::mapvalues(mapped, from = c("0","-10","10"), to = c("Atlas","WT","Tet-TKO"))] %>% setorder(mapped)
-  .[,mapped:=plyr::mapvalues(mapped, from = c("10","-10","0"), to = c("WT","Tet-TKO","Atlas"))] %>% setorder(mapped)
+  .[,mapped:=plyr::mapvalues(mapped, from = c("10","-10","0"), to = c("Tet-TKO","WT","Atlas"))] %>% setorder(mapped)
 
 p <- plot.dimred.wtko(to.plot, wt.label = "WT", ko.label = "Tet-TKO", nomapped.label = "Atlas") +
   scale_colour_manual(values=opts$class2_colors[c("WT","Tet-TKO")]) +
+  guides(size="none", alpha="none") +
   theme(legend.position = "none", axis.line = element_blank())
 
-pdf(sprintf("%s/per_class/umap_mapped_WT_and_KO.pdf",args$outdir), width=4, height=4)
+pdf(sprintf("%s/per_class/umap_mapped_WT_and_KO.pdf",args$outdir), width=6, height=6)
 print(p)
 dev.off()
 
