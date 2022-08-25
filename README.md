@@ -41,7 +41,8 @@ Key results
 
 Data
 -------
-The data is currently not publicly available, we are working on this...
+Raw data is available at [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE204908).
+Parsed data can be downloaded in progress....
 
 <!-- The raw data is accessible at GEO ([GSEXXXX](XXXX)). 
 The parsed data can be downloaded [here](XXXX) -->
